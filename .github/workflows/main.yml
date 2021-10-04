@@ -18,16 +18,15 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '1'
-
     - name: Install Rust Nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          default: true
-          override: true
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        default: true
+        override: true
 
     - name: Build
-       run: cargo build --all --release
+      run: cargo build --all --release
       
        
     - name: Generate Prerelease Release Notes
@@ -41,7 +40,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish GitHub Release
-      uses: ncipollo/release-action@v1.8.6
+      uses: ncipollo/release-action@v1.8.10
       with:
         prerelease: true
         bodyFile: ReleaseNotes.md
