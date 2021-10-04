@@ -45,5 +45,5 @@ jobs:
         prerelease: true
         bodyFile: ReleaseNotes.md
         artifacts: "D:/a/dash/dash/target/release/dash"
-        tag: "0.1.0-alpha"
+        tag: "unstable"
         token: ${{ secrets.GITHUB_TOKEN }}
