@@ -44,6 +44,6 @@ jobs:
       with:
         prerelease: true
         bodyFile: ReleaseNotes.md
-        artifacts: "target/release/oxidize"
+        artifacts: "D:\a\dash\dash\target\release\oxidize"
         tag: "0.1.0-alpha"
         token: ${{ secrets.GITHUB_TOKEN }}
