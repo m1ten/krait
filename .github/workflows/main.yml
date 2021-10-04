@@ -26,7 +26,7 @@ jobs:
         override: true
 
     - name: Build
-      run: cargo build --all --release
+      run: cargo build --release
       
        
     - name: Generate Prerelease Release Notes
@@ -41,6 +41,15 @@ jobs:
 
     - name: Run ls
       run: ls
+      
+    - name: cd
+      run: cd target
+      
+    - name: cdre
+      run: cd release
+      
+    - name: ls again
+      run: ls 
       
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1.8.10
