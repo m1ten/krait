@@ -36,6 +36,7 @@ jobs:
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1.8.10
       with:
+        prerelease: true
         bodyFile: ReleaseNotes.md
         tag: "latest-commit"
         token: ${{ secrets.GITHUB_TOKEN }}
