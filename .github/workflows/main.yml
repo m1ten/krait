@@ -39,6 +39,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Run ls
+      run: ls
+      
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1.8.10
       with:
