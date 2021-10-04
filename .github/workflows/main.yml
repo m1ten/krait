@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
     
     - name: Generate Prerelease Release Notes
       run: |
@@ -28,6 +32,13 @@ jobs:
         tag_name: latest-commit
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish GitHub Release
+      uses: ncipollo/release-action@v1.8.10
+      with:
+        bodyFile: ReleaseNotes.md
+        tag: "latest-commit"
+        token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
     
@@ -47,16 +58,15 @@ jobs:
 
     - name: Build
       run: cargo build --release
-
-    - name: Rename Binary
-      run: mv target/release/dash.exe dash-windows-x86_64.exe
     
-    - name: Publish GitHub Release
-      uses: ncipollo/release-action@v1.8.10
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        artifacts: "D:/a/dash/dash/target/release/dash-windows-x86_64.exe"
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/dash.exe
+        asset_name: dash-windows-x86_64.exe
         tag: "latest-commit"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        overwrite: false
       
   build-linux:
 
@@ -77,15 +87,14 @@ jobs:
     - name: Build
       run: cargo build --release
 
-    - name: Rename Binary
-      run: mv target/release/dash dash-linux-x86_64
-
-    - name: Publish GitHub Release
-      uses: ncipollo/release-action@v1.8.10
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        artifacts: "target/release/dash-linux-x86_64"
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/dash
+        asset_name: dash-linux-x86_64
         tag: "latest-commit"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        overwrite: false
     
   build-macos:
 
@@ -106,13 +115,12 @@ jobs:
 
     - name: Build
       run: cargo build --release
-    
-    - name: Rename Binary
-      run: mv target/release/dash dash-macos-x86_64
 
-    - name: Publish GitHub Release
-      uses: ncipollo/release-action@v1.8.10
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        artifacts: "target/release/dash-macos-x86_64"
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/dash
+        asset_name: dash-macos-x86_64
         tag: "latest-commit"
-        token: ${{ secrets.GITHUB_TOKEN }}
+        overwrite: false
