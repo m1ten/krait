@@ -1,0 +1,50 @@
+name: compile and release dash
+
+on:
+  push:
+    branches: main
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  build-windows:
+    
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+
+    - name: Install Rust Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+          override: true
+
+    - name: Build
+       run: cargo build --all --release
+      
+       
+    - name: Generate Prerelease Release Notes
+      run: |
+        git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
+    - name: Delete Old Prerelease
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        tag_name: ${{ env.OLD_PRE_TAG }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish GitHub Release
+      uses: ncipollo/release-action@v1.8.6
+      with:
+        prerelease: true
+        bodyFile: ReleaseNotes.md
+        artifacts: "target/release/oxidize"
+        tag: "0.1.0-alpha"
+        token: ${{ secrets.GITHUB_TOKEN }}
