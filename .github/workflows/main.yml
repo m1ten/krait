@@ -9,6 +9,22 @@ env:
 
 jobs:
 
+  create-release:
+    
+    - name: Generate Prerelease Release Notes
+      run: |
+        echo '| :warning: WARNING                                        |' >> ReleaseNotes.md
+        echo '|:--------------------------------------------------------:|' >> ReleaseNotes.md
+        echo '| This project is incomplete and may not work as expected. |' >> ReleaseNotes.md
+        git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
+
+    - name: Delete Old Prerelease
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        tag_name: latest-commit
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-windows:
     
     runs-on: windows-latest
@@ -27,32 +43,72 @@ jobs:
 
     - name: Build
       run: cargo build --release
-      
-       
-    - name: Generate Prerelease Release Notes
-      run: |
-        echo '| :warning: WARNING                                        |' >> ReleaseNotes.md
-        echo '|:--------------------------------------------------------:|' >> ReleaseNotes.md
-        echo '| This project is incomplete and may not work as expected. |' >> ReleaseNotes.md
-        git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
-    - name: Delete Old Prerelease
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
-      with:
-        tag_name: latest-commit
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Run ls
-      run: ls
-      
-    - name: cd
-      run: cd target/release && ls
-      
+    - name: Rename Binary
+      run: mv target/release/dash.exe dash-windows-x86_64.exe
+    
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1.8.10
       with:
-        prerelease: true
-        bodyFile: ReleaseNotes.md
-        artifacts: "D:/a/dash/dash/target/release/dash.exe"
+        artifacts: "D:/a/dash/dash/target/release/dash-windows-x86_64.exe"
+        tag: "latest-commit"
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+  build-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust Nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Rename Binary
+      run: mv target/release/dash dash-linux-x86_64
+
+    - name: Publish GitHub Release
+      uses: ncipollo/release-action@v1.8.10
+      with:
+        artifacts: "target/release/dash-linux-x86_64"
+        tag: "latest-commit"
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+  build-macos:
+
+    runs-on: macos-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust Nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        target: x86_64-apple-darwin
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+    
+    - name: Rename Binary
+      run: mv target/release/dash dash-macos-x86_64
+
+    - name: Publish GitHub Release
+      uses: ncipollo/release-action@v1.8.10
+      with:
+        artifacts: "target/release/dash-macos-x86_64"
         tag: "latest-commit"
         token: ${{ secrets.GITHUB_TOKEN }}
