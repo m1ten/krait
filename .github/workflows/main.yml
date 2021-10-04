@@ -43,13 +43,7 @@ jobs:
       run: ls
       
     - name: cd
-      run: cd target
-      
-    - name: cdre
-      run: cd release
-      
-    - name: ls again
-      run: ls 
+      run: cd target/release && ls
       
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1.8.10
