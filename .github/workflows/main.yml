@@ -10,6 +10,10 @@ env:
 jobs:
 
   create-release:
+
+    runs-on: ubuntu-latest
+
+    steps:
     
     - name: Generate Prerelease Release Notes
       run: |
