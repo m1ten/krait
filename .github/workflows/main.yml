@@ -50,6 +50,6 @@ jobs:
       with:
         prerelease: true
         bodyFile: ReleaseNotes.md
-        artifacts: "D:/a/dash/dash/target/release/dash"
+        artifacts: "D:/a/dash/dash/target/release/dash.exe"
         tag: "unstable"
         token: ${{ secrets.GITHUB_TOKEN }}
