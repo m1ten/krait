@@ -1,8 +1,12 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use dash;
 
 fn main() {
     // let args = std::env::args().collect();
 
+    // basic info about dash, stored into vars
     let vars = dash::Variables {
         name: String::from("dash"),
         version: String::from("0.1.0"),
@@ -10,29 +14,39 @@ fn main() {
         description: String::from("dash your way through OS post-install"),
     };
 
+    // get arguments are store into clap
     let clap = dash::Arguments::run(vars.clone());
 
-    // test_config(vars);
+    let c_data = dash::Config::read();
+
+    if c_data.is_none() {
+        println!("None = {:?}", c_data);
+    } else {
+        println!("Some = {:?}", c_data);
+    }
 }
 
-/*
+// function to test config
 fn test_config(vars: dash::Variables) {
-    let chrome = dash::Pkgfile {
+    let chrome = dash::Package {
         name: String::from("Chrome"),
         prv_path: Some(String::from("~/Downloads/Chrome")),
-        new_path: None
+        new_path: None,
+        args: None
     };
 
-    let vimrc = dash::Pkgfile {
+    let vimrc = dash::Dotfile {
         name: String::from(".vimrc"),
         prv_path: Some(String::from("~/Downloads/.vimrc")),
-        new_path: Some(String::from("~/.vimrc"))
+        new_path: Some(String::from("~/.vimrc")),
+        symlink: Some(false)
     };
 
-    let zshrc = dash::Pkgfile {
+    let zshrc = dash::Dotfile {
         name: String::from(".zshrc"),
         prv_path: Some(String::from("~/Downloads/.zshrc")),
-        new_path: Some(String::from("~/.zshrc"))
+        new_path: Some(String::from("~/.zshrc")),
+        symlink: Some(true)
     };
 
     let setup = dash::Setup {
@@ -50,4 +64,3 @@ fn test_config(vars: dash::Variables) {
 
     dash::Config::write(config);
 }
-*/

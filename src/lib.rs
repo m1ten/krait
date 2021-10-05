@@ -1,9 +1,12 @@
+use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
 use clap::{App, Arg};
 use std::fs;
 use std::io::{Read, Write};
 
-#[derive(std::fmt::Debug, Clone, Serialize, Deserialize)]
+
+// Basic info about dash
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Variables {
 	pub name: String,
 	pub version: String,
@@ -11,14 +14,16 @@ pub struct Variables {
 	pub description: String,
 }
 
+// dash args struct
 pub struct Arguments {
 	pub confirm: bool,
 	pub verbose: bool,
 }
 
 impl Arguments {
+	// function to get dash args
 	pub fn run(vars: Variables) -> Arguments {
-		// create custom args
+		// get custom args
 		let matches = App::new(vars.name)
 			.version(vars.version.as_str())
 			.author(vars.author.as_str())
@@ -40,9 +45,9 @@ impl Arguments {
 					.takes_value(false),
 			)
 			.get_matches();
-		// return custom args
-		let mut data: Vec<bool> = Vec::new();
 
+		let mut data: Vec<bool> = Vec::new();
+		
 		match matches.occurrences_of("no confirm") {
 			1 => data.push(true),
 			_ => data.push(false),
@@ -52,6 +57,7 @@ impl Arguments {
 			_ => data.push(false),
 		}
 
+		// convert vector string to struct arguments
 		return Arguments {
 			confirm: data[0],
 			verbose: data[1],
@@ -59,24 +65,33 @@ impl Arguments {
 	}
 }
 
-#[derive(std::fmt::Debug, Clone, Serialize, Deserialize)]
+// Dash config struct
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
 	pub info: Option<Variables>,
 	pub setup: Option<Setup>
 }
 
 impl Config {
-	pub fn read() -> Config {
-		let mut file = fs::OpenOptions::new().read(true).open("dash.toml").unwrap();
+	// read toml data from dash.toml -> Config
+	pub fn read() -> Option<Config> {
+		let option = fs::OpenOptions::new().read(true).open("dash.toml");
+		let mut file = if option.is_ok() {
+			option.unwrap()
+		} else {
+			return None;
+		};
+
 		let mut contents = String::new();
     	match file.read_to_string(&mut contents) {
         	Ok(_) => (),
-        	Err(_) => println!("error reading from file: {}.", "dash.toml"),
-    	}
+        	Err(e) => println!("error reading from file: {}. Err: {}", "dash.toml", e),
+    	};
 
-		return toml::from_str(contents.as_str()).unwrap(); 
+		Some(toml::from_str(contents.as_str()).unwrap())
 	}
 
+	// write toml data into dash.toml <- Config
 	pub fn write(contents: Config) {
 		let mut file = fs::OpenOptions::new()
         	.read(true)
@@ -99,18 +114,30 @@ impl Config {
 	}
 }
 
-#[derive(std::fmt::Debug, Clone, Serialize, Deserialize)]
+// Info about os and pkg/dotfiles
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Setup {
 	pub os: String,
 	pub distro: Option<String>,
 	pub pkg_mgr: Option<String>,
-	pub pkg: Vec<Pkgfile>,
-	pub dotfile: Vec<Pkgfile>,
+	pub pkg: Vec<Package>,
+	pub dotfile: Vec<Dotfile>,
 }
 
-#[derive(std::fmt::Debug, Clone, Serialize, Deserialize)]
-pub struct Pkgfile {
+// Package struct
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Package {
 	pub name: String,
 	pub prv_path: Option<String>,
-	pub new_path: Option<String>
+	pub new_path: Option<String>,
+	pub args: Option<Vec<String>>
+}
+
+// Dotfile struct
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dotfile {
+	pub name: String,
+	pub prv_path: Option<String>,
+	pub new_path: Option<String>,
+	pub symlink: Option<bool>
 }
