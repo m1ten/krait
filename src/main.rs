@@ -42,27 +42,28 @@ fn main() {
     println!("{:?}", doc["info"]["name"].as_str().unwrap());
 
     #[derive(Debug, Clone)] 
-    enum CEnum<'a> {
-        Str(&'a str),
+    enum CEnum {
+        Str(String),
         Int(i64),
         Bool(bool),
+        Null(null)
     }
 
 
     let mut data = [
-        CEnum::Str("name"),
-        CEnum::Str("version"),
-        CEnum::Str("is_dog"),
-        CEnum::Str("occupation"),
-        CEnum::Str("author"),
-        CEnum::Str("description"),
+        CEnum::Str("name".to_string()),
+        CEnum::Str("version".to_string()),
+        CEnum::Str("is_dog".to_string()),
+        CEnum::Str("occupation".to_string()),
+        CEnum::Str("author".to_string()),
+        CEnum::Str("description".to_string()),
     ];
 
     let mut l = 0;
     for j in data.clone() {
         match j {
             CEnum::Str(o) => {
-                match &doc["info"][o] {
+                match &doc["info"][o.as_str()] {
                     yaml_rust::yaml::Yaml::String(s) => data[l] = CEnum::Str(s),
                     yaml_rust::yaml::Yaml::Boolean(b) => data[l] = CEnum::Bool(*b),
                     yaml_rust::yaml::Yaml::Integer(i) => data[l] = CEnum::Int(*i),
