@@ -14,6 +14,8 @@ license = "zlib"
 clap = "2.33.3"
 serde = { version = "1.0.130", features = ["derive"] }
 toml = "0.5.8"
+ron = "0.6.5"
+yaml-rust = "0.4.5"
 
 [profile.release]
 strip = true

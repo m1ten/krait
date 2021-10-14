@@ -17,13 +17,64 @@ fn main() {
     // get arguments are store into clap
     let clap = dash::Arguments::run(vars.clone());
 
-    let c_data = dash::Config::read();
+    // let c_data = dash::Config::read();
 
-    if c_data.is_none() {
-        println!("None = {:?}", c_data);
-    } else {
-        println!("Some = {:?}", c_data);
+    // if c_data.is_none() {
+    //     println!("None = {:?}", c_data);
+    // } else {
+    //     println!("Some = {:?}", c_data);
+    // }
+
+    // test_config(vars);
+    let data = "
+    info:
+        name: dash
+        version: 0.1.0
+        is_dog: false
+        occupation: null
+        author: miten
+        description: dash your way through OS post-install
+        ";
+
+    let docs = yaml_rust::YamlLoader::load_from_str(data).unwrap();
+    let doc = &docs[0];
+
+    println!("{:?}", doc["info"]["name"].as_str().unwrap());
+
+    #[derive(Debug, Clone)] 
+    enum CEnum<'a> {
+        Str(&'a str),
+        Int(i64),
+        Bool(bool),
     }
+
+
+    let mut data = [
+        CEnum::Str("name"),
+        CEnum::Str("version"),
+        CEnum::Str("is_dog"),
+        CEnum::Str("occupation"),
+        CEnum::Str("author"),
+        CEnum::Str("description"),
+    ];
+
+    let mut l = 0;
+    for j in data.clone() {
+        match j {
+            CEnum::Str(o) => {
+                match &doc["info"][o] {
+                    yaml_rust::yaml::Yaml::String(s) => data[l] = CEnum::Str(s),
+                    yaml_rust::yaml::Yaml::Boolean(b) => data[l] = CEnum::Bool(*b),
+                    yaml_rust::yaml::Yaml::Integer(i) => data[l] = CEnum::Int(*i),
+                    _ => (),
+                }
+            },
+            _ => ()
+        }
+        l += 1;
+    }
+
+    println!("{:?}", data);
 }
 
 // function to test config
@@ -32,21 +83,21 @@ fn test_config(vars: dash::Variables) {
         name: String::from("Chrome"),
         prv_path: Some(String::from("~/Downloads/Chrome")),
         new_path: None,
-        args: None
+        args: None,
     };
 
     let vimrc = dash::Dotfile {
         name: String::from(".vimrc"),
         prv_path: Some(String::from("~/Downloads/.vimrc")),
         new_path: Some(String::from("~/.vimrc")),
-        symlink: Some(false)
+        symlink: Some(false),
     };
 
     let zshrc = dash::Dotfile {
         name: String::from(".zshrc"),
         prv_path: Some(String::from("~/Downloads/.zshrc")),
         new_path: Some(String::from("~/.zshrc")),
-        symlink: Some(true)
+        symlink: Some(true),
     };
 
     let setup = dash::Setup {
@@ -54,12 +105,12 @@ fn test_config(vars: dash::Variables) {
         distro: None,
         pkg_mgr: Some(String::from("winget")),
         pkg: vec![chrome],
-        dotfile: vec![vimrc, zshrc]
+        dotfile: vec![vimrc, zshrc],
     };
 
     let config = dash::Config {
         info: Some(vars),
-        setup: Some(setup)
+        setup: Some(setup),
     };
 
     dash::Config::write(config);

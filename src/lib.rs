@@ -88,7 +88,8 @@ impl Config {
         	Err(e) => println!("error reading from file: {}. Err: {}", "dash.toml", e),
     	};
 
-		Some(toml::from_str(contents.as_str()).unwrap())
+		// Some(toml::from_str(contents.as_str()).unwrap())
+		Some(ron::from_str(contents.as_str()).unwrap())
 	}
 
 	// write toml data into dash.toml <- Config
@@ -103,8 +104,16 @@ impl Config {
 		println!("{:?}", contents);
 
     	// convert Config to toml::Value to String
-    	let toml_value = toml::Value::try_from(contents).unwrap();
-		let toml_string = toml::to_string_pretty(&toml_value).unwrap();
+    	// let toml_value = toml::Value::try_from(contents).unwrap();
+		// let toml_string = toml::to_string_pretty(&toml_value).unwrap();
+
+		//let toml_value = ron::Value::try_from(contents).unwrap();
+
+		let pretty = ron::ser::PrettyConfig::new()
+    		.with_depth_limit(4)
+    		.with_indentor("\t".to_owned());
+
+		let toml_string = ron::ser::to_string_pretty(&contents, pretty).unwrap();
 
     	// convert string to byte & write to file
     	match file.write_all(toml_string.as_bytes()) {
@@ -140,4 +149,9 @@ pub struct Dotfile {
 	pub prv_path: Option<String>,
 	pub new_path: Option<String>,
 	pub symlink: Option<bool>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Command {
+	pub cmd: String
 }
