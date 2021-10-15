@@ -22,12 +22,12 @@ pub struct Arguments {
 
 impl Arguments {
 	// function to get dash args
-	pub fn run(vars: Variables) -> Arguments {
+	pub fn run(info: [(&str, &str); 4]) -> Arguments {
 		// get custom args
-		let matches = App::new(vars.name)
-			.version(vars.version.as_str())
-			.author(vars.author.as_str())
-			.about(vars.description.as_str())
+		let matches = App::new(info[0].1)
+			.version(info[1].1)
+			.author(info[2].1)
+			.about(info[3].1)
 			.arg(
 				Arg::with_name("no confirm")
 					.short("y")
