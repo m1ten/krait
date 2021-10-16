@@ -2,7 +2,6 @@
 #![allow(unused_variables)]
 
 use dash;
-use std::collections::HashMap;
 
 fn main() {
     // let args = std::env::args().collect();
@@ -18,94 +17,101 @@ fn main() {
     // get arguments are store into clap
     let clap = dash::Arguments::run(info);
 
-    let mut data = "
+    let data = "
 info:
-  is_dog: false
-  occupation: null
-    
-setup:
-  os: linux
-  distro: Arch Linux
-  pkg-mgr: pacman
-  pkgs:
-    - discord
-    - firefox
-    - chromium
-  dotfiles:
-    - .zshrc
-    - .vimrc
-    
-scripts:
-    run: \"sudo pacman -Syu\"
-    before_pkgs: true
-    run: \"rm -rf ~/.cache\"
-    after_pkgs: true
-    run: \"clear\"
-    run: \"exit\"
-        ".to_string();
-    let data = {
-        let i = data.matches("run:").count();
-        let mut j = 1;
-        while j != i + 1 {
-            data = data.replacen("run:", "run_{}:".replace("{}", j.to_string().as_str()).as_str(), 1);
-            j += 1;
-        };
-        data
-    };
+    name: &name dash
+    version: 0.1.0
+    author: miten
+    description: dash your way through OS post-install
 
-    println!("{:?}", data);
+system:
+    os: Linux
+    distro: Arch Linux
+    pkg_mgr: &pkg_mgr pacman
+    pkgs: 
+        - discord
+        - chrome
+    dotfiles:
+        - .zshrc
+        - .vimrc
+    run:
+        - sudo *pkg_mgr -Syu
+        - echo *name
+    "
+    .to_string();
+
+    let parsed: serde_yaml::Value = serde_yaml::from_str(data.as_str()).unwrap();
 
     return;
 
-    let mut parsed: serde_yaml::Value = serde_yaml::from_str(data.as_str()).unwrap();
-    println!("{:?}", parsed);
+    // loop {
+    //     let start_byte = match parsed_string.find("join:") {
+    //         Some(s) => s,
+    //         None => break
+    //     };
 
-    for (i, j) in info {
-        if parsed[i].is_null() {
-            parsed[i] = serde_yaml::Value::String(j.to_string());
-        }
-    }
+    //     let mut end_byte = start_byte + 1;
+    //     for i in parsed_string[start_byte..].to_string().chars() {
+    //         if i == ']' {
+    //             break;
+    //         }
+    //         end_byte += 1;
+    //     }
 
-    // if !parsed["scripts"].is_null() {
+    //     let result = parsed_string[start_byte..end_byte]
+    //         .to_string()
+    //         .replace("join: [", "")
+    //         .replace(",", "")
+    //         .replace("]", "");
 
+    //     parsed_string = parsed_string.replace(&parsed_string[start_byte..end_byte], parsed_string.as_str());
     // }
-}
 
-// function to test config
-fn test_config(vars: dash::Variables) {
-    let chrome = dash::Package {
-        name: String::from("Chrome"),
-        prv_path: Some(String::from("~/Downloads/Chrome")),
-        new_path: None,
-        args: None,
-    };
+    println!("{}", parsed_string);
 
-    let vimrc = dash::Dotfile {
-        name: String::from(".vimrc"),
-        prv_path: Some(String::from("~/Downloads/.vimrc")),
-        new_path: Some(String::from("~/.vimrc")),
-        symlink: Some(false),
-    };
+    // println!("{:#?}", parsed);
 
-    let zshrc = dash::Dotfile {
-        name: String::from(".zshrc"),
-        prv_path: Some(String::from("~/Downloads/.zshrc")),
-        new_path: Some(String::from("~/.zshrc")),
-        symlink: Some(true),
-    };
+    // let mut parsed = data.parse::<toml::Value>().unwrap();
 
-    let setup = dash::Setup {
-        os: String::from("Windows"),
-        distro: None,
-        pkg_mgr: Some(String::from("winget")),
-        pkg: vec![chrome],
-        dotfile: vec![vimrc, zshrc],
-    };
+    // loop {
+    //     let start_bytes = data.find("{").unwrap_or(0);
+    //     let end_bytes = data.find("}").unwrap_or(0);
 
-    let config = dash::Config {
-        info: Some(vars),
-        setup: Some(setup),
-    };
+    //     if start_bytes == 0 || end_bytes == 0 {
+    //         break;
+    //     }
 
-    dash::Config::write(config);
+    //     let result = data[start_bytes..end_bytes + 1].to_string();
+    //     let clean_result = &result[1..&result.len() - 1]
+    //         .split('.')
+    //         .collect::<Vec<&str>>();
+
+    //     if !parsed[clean_result[0]][clean_result[1]].is_str() {
+    //         data = data.replace(
+    //             result.as_str(),
+    //             "{0}.{1}"
+    //                 .replace("{0}", clean_result[0])
+    //                 .as_str()
+    //                 .replace("{1}", clean_result[1])
+    //                 .as_str(),
+    //         );
+    //     } else {
+    //         data = data.replace(
+    //             result.as_str(),
+    //             parsed[clean_result[0]][clean_result[1]].as_str().unwrap(),
+    //         );
+    //     }
+    // }
+
+    // parsed = data.parse::<toml::Value>().unwrap();
+
+    // if parsed.get("info").is_some() && parsed["info"].is_table()
+    // //    || parsed.get("information").is_some() && parsed["information"].is_table()
+    // {
+    //     for (i, j) in info {
+    //         if parsed["info"].get(i).is_none() {
+    //             parsed["info"]["name"] = toml::Value::String(i.to_string());
+    //         }
+    //     }
+    // }
 }
