@@ -17,7 +17,7 @@ fn main() {
     // get arguments are store into clap
     let clap = dash::Arguments::run(info);
 
-    let data = "
+    let mut data = "
 info:
     name: &name dash
     version: 0.1.0
@@ -36,38 +36,60 @@ system:
         - .vimrc
     run:
         - sudo *pkg_mgr -Syu
-        - echo *name
+        - echo *name 
     "
     .to_string();
 
+    loop {
+        let asterisk_start_byte = match data.find("*") {
+            Some(s) => s,
+            None => break
+        };
+        let mut asterisk_end_byte = asterisk_start_byte + 1;
+
+        for i in data[asterisk_start_byte..].to_string().chars() {
+            if i == ' ' {
+                break;
+            } else {
+                asterisk_end_byte += 1;
+            }
+        }
+
+        let asterisk = &data[asterisk_start_byte..asterisk_end_byte - 1];
+
+        let start_byte = match data.find(&"&{}".replace("{}", &asterisk.replace("*", ""))) {
+            Some(s) => s,
+            None => continue
+        };
+        let mut middle_byte = start_byte + 1;
+        let mut end_byte = start_byte + 1;
+
+        for i in data[start_byte..].to_string().chars() {
+            if i == ' ' {
+                break;
+            } else {
+                middle_byte += 1;
+            }
+        }
+        
+        for i in data[start_byte..].to_string().chars() {
+            if i == '\n' {
+                break;
+            } else {
+                end_byte += 1;
+            }
+        }
+
+        // let ampersand = &data[start_byte..middle_byte];
+        let result = &data[middle_byte..end_byte];
+
+        data = data.replace(asterisk, &result.replace("\n", ""));
+    }
+
     let parsed: serde_yaml::Value = serde_yaml::from_str(data.as_str()).unwrap();
 
-    return;
-
-    // loop {
-    //     let start_byte = match parsed_string.find("join:") {
-    //         Some(s) => s,
-    //         None => break
-    //     };
-
-    //     let mut end_byte = start_byte + 1;
-    //     for i in parsed_string[start_byte..].to_string().chars() {
-    //         if i == ']' {
-    //             break;
-    //         }
-    //         end_byte += 1;
-    //     }
-
-    //     let result = parsed_string[start_byte..end_byte]
-    //         .to_string()
-    //         .replace("join: [", "")
-    //         .replace(",", "")
-    //         .replace("]", "");
-
-    //     parsed_string = parsed_string.replace(&parsed_string[start_byte..end_byte], parsed_string.as_str());
-    // }
-
-    println!("{}", parsed_string);
+    println!("{:?}", parsed);
+    // println!("{}", data);
 
     // println!("{:#?}", parsed);
 
