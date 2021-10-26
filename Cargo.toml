@@ -1,0 +1,20 @@
+[package]
+name = "dashpy"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "dash"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.14.5", features = ["extension-module"] }
+reqwest = { version = "0.11.6", features = ["blocking"] }
+
+[profile.release]
+lto = true
+opt-level = "s"
+codegen-units = 1
+panic = "abort"
