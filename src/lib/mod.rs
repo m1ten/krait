@@ -1,38 +1,6 @@
-use pyo3::prelude::*;
-use std::io;
-use std::fs::File;
-
-#[pyfunction]
-fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
-    let child = std::process::Command::new(cmd)
-        .args(args)
-        .stdout(std::process::Stdio::piped())
-        .spawn()?;
-
-    let output = child.wait_with_output()?;
-
-    Ok(String::from_utf8(output.stdout).unwrap())
-}
-
-#[pyfunction]
-fn get(_py: Python, url: String, file: String) -> u64{
-    let mut resp = reqwest::blocking::get(url).expect("Failed to get");
-    let mut out = File::create(file).expect("failed to create file");
-    io::copy(&mut resp, &mut out).expect("failed to copy")
-}
-
-#[pymodule]
-fn dash(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(cmd, m)?)?;
-    m.add_function(wrap_pyfunction!(get, m)?)?;
-
-    Ok(())
-}
-
-
 // use std::fmt::Debug;
 // use serde::{Serialize, Deserialize};
-// use clap::{App, Arg};
+use clap::{App, Arg};
 // use std::fs;
 // use std::io::{Read, Write};
 
@@ -46,56 +14,55 @@ fn dash(_py: Python, m: &PyModule) -> PyResult<()> {
 // 	pub description: String,
 // }
 
-// // dash args struct
-// pub struct Arguments {
-// 	pub confirm: bool,
-// 	pub verbose: bool,
-// }
+// wix args struct
+pub struct Arguments {
+	pub confirm: bool,
+	pub verbose: bool,
+    pub file: String,
+}
 
-// impl Arguments {
-// 	// function to get dash args
-// 	pub fn run(info: [(&str, &str); 4]) -> Arguments {
-// 		// get custom args
-// 		let matches = App::new(info[0].1)
-// 			.version(info[1].1)
-// 			.author(info[2].1)
-// 			.about(info[3].1)
-// 			.arg(
-// 				Arg::with_name("no confirm")
-// 					.short("y")
-// 					.long("noconfirm")
-// 					.value_name("NOCONFIRM")
-// 					.help("yes to everything")
-// 					.takes_value(false),
-// 			)
-// 			.arg(
-// 				Arg::with_name("verbose")
-// 					.short("v")
-// 					.long("verbose")
-// 					.value_name("Verbose")
-// 					.help("print logs")
-// 					.takes_value(false),
-// 			)
-// 			.get_matches();
+impl Arguments {
+	// function to get wix args
+	pub fn run(info: [(&str, &str); 4]) -> Arguments {
+		// get custom args
+		let matches = App::new(info[0].1)
+			.version(info[1].1)
+			.author(info[2].1)
+			.about(info[3].1)
+			.arg(
+				Arg::with_name("no confirm")
+					.short("y")
+					.long("noconfirm")
+					.value_name("NOCONFIRM")
+					.help("yes to everything")
+					.takes_value(false),
+			)
+			.arg(
+				Arg::with_name("verbose")
+					.short("v")
+					.long("verbose")
+					.value_name("Verbose")
+					.help("print logs")
+					.takes_value(false),
+			)
+            .arg(
+                Arg::with_name("file")
+                    .short("f")
+                    .long("file")
+                    .value_name("FILE")
+                    .help("file to read")
+                    .takes_value(true),
+            )
+			.get_matches();
 
-// 		let mut data: Vec<bool> = Vec::new();
-		
-// 		match matches.occurrences_of("no confirm") {
-// 			1 => data.push(true),
-// 			_ => data.push(false),
-// 		}
-// 		match matches.occurrences_of("verbose") {
-// 			1 => data.push(true),
-// 			_ => data.push(false),
-// 		}
-
-// 		// convert vector string to struct arguments
-// 		return Arguments {
-// 			confirm: data[0],
-// 			verbose: data[1],
-// 		};
-// 	}
-// }
+		// convert vector string to struct arguments
+		return Arguments {
+			confirm: matches.is_present("no confirm"),
+			verbose: matches.is_present("verbose"),
+            file: matches.value_of("file").unwrap().to_string(),
+		};
+	}
+}
 
 // // Dash config struct
 // #[derive(Debug, Clone, Serialize, Deserialize)]
