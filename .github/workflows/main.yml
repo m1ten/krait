@@ -1,4 +1,4 @@
-name: compile and release dash
+name: compile and release wix
 
 on:
   push:
@@ -64,8 +64,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/dash.exe
-        asset_name: dash-windows-x86_64.exe
+        file: target/release/wix.exe
+        asset_name: wix-windows-x86_64.exe
         tag: "latest-commit"
         overwrite: false
         prerelease: true
@@ -93,8 +93,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/dash
-        asset_name: dash-linux-x86_64
+        file: target/release/wix
+        asset_name: wix-linux-x86_64
         tag: "latest-commit"
         overwrite: false
         prerelease: true
@@ -123,8 +123,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/dash
-        asset_name: dash-macos-x86_64
+        file: target/release/wix
+        asset_name: wix-macos-x86_64
         tag: "latest-commit"
         overwrite: false
         prerelease: true
