@@ -2,40 +2,40 @@
 |:--------------------------------------------------------:|
 | This project is incomplete and may not work as expected. |
 
-# dash ![](https://github.com/m1ten/dash/workflows/Rust/badge.svg?branch=main) [![Rustc Version]][rustc]
+# wix ![](https://github.com/m1ten/wix/workflows/Rust/badge.svg?branch=main) [![Rustc Version]][rustc]
 
-[Rustc Version]: https://img.shields.io/badge/rustc-1.57.0.nightly-lightgray.svg
+[Rustc Version]: https://img.shields.io/badge/rustc-1.56.0-orange.svg
 [rustc]: https://github.com/rust-lang/rust/milestone/86
 
-dash your way through OS post-install
+wix - cross platform package manager
 
 ## Installation
 
-Download the latest binary from [releases](https://github.com/m1ten/dash/releases)
+Download the latest binary from [releases](https://github.com/m1ten/wix/releases)
 
 ```sh
-# Unix-Like: Give execution permission to dash and run
-$ chmod +x dash && ./dash
+# Unix-Like: Give execution permission to wix and run
+$ chmod +x wix && ./wix
 
 # Windows: Run the exe
-$ .\dash.exe
+$ .\wix.exe
 ```
 ### Building from source 
 
-1. Install [Rust nightly >=1.57.0](https://github.com/rust-lang/rust/milestone/86) using [`rustup`](https://www.rust-lang.org/tools/install)
+1. Install [Rust >=1.56.0](https://blog.rust-lang.org/2021/10/21/Rust-1.56.0.html) using [`rustup`](https://www.rust-lang.org/tools/install)
    ```sh
-   $ rustup toolchain install nightly
+   $ rustup toolchain install stable
    ```
-2. Clone the [source](https://github.com/m1ten/dash) using [`git`](https://git-scm.com/)
+2. Clone the [source](https://github.com/m1ten/wix) using [`git`](https://git-scm.com/)
     ```sh
-    $ git clone https://github.com/m1ten/dash.git
-    $ cd dash
+    $ git clone https://github.com/m1ten/wix.git
+    $ cd wix
     ```
 3. Build and run using [`cargo`](https://doc.rust-lang.org/stable/cargo/)
     ```sh
-    $ cargo +nightly run --release
+    $ cargo +stable run --release
     ```
 
 ## License
 
-dash is licensed under [zlib](./LICENSE).
+wix is licensed under [zlib](./LICENSE).

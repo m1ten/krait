@@ -1,12 +1,16 @@
 [package]
-name = "dash"
+name = "wix"
 version = "0.1.0"
 authors = ["miten"]
 edition = "2021"
-description = "dash your way through OS post-install"
+description = "wix - cross platform package manager"
 readme = "README.md"
-repository = "https://github.com/m1ten/dash"
+repository = "https://github.com/m1ten/wix"
 license = "zlib"
+
+[lib]
+name = "dash"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 clap = "2.33.3"
@@ -14,7 +18,8 @@ serde = { version = "1.0.130", features = ["derive"] }
 toml = "0.5.8"
 ron = "0.6.5"
 serde_yaml = "0.8.21"
-dashpy = { git = "https://github.com/m1ten/dash-priv/", branch = "python" }
+pyo3 = { version = "0.14.5", features = ["extension-module"] }
+reqwest = { version = "0.11.6", features = ["blocking"] }
 
 [profile.release]
 lto = true
