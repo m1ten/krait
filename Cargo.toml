@@ -1,5 +1,3 @@
-cargo-features = ["strip"]
-
 [package]
 name = "dash"
 version = "0.1.0"
@@ -16,9 +14,9 @@ serde = { version = "1.0.130", features = ["derive"] }
 toml = "0.5.8"
 ron = "0.6.5"
 serde_yaml = "0.8.21"
+dashpy = { git = "https://github.com/m1ten/dash-priv/", branch = "python" }
 
 [profile.release]
-strip = true
 lto = true
 opt-level = "z"
 codegen-units = 1
