@@ -2,7 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 
-use dash;
+mod lib;
 
 fn main() {
 
@@ -46,7 +46,7 @@ without = 'root'
     ];
 
     // get arguments are store into clap
-    let clap = dash::Arguments::run(info);
+    let clap = lib::Arguments::run(info);
 
     let mut data = "
 
