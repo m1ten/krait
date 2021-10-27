@@ -2,10 +2,12 @@
 #![allow(unused_variables)]
 #![allow(unreachable_code)]
 
-mod lib;
-mod py;
+use wix;
+
+// use wix;
 
 fn main() {
+	
 }
 
 //     return;
