@@ -3,7 +3,7 @@ use std::io;
 use std::fs::File;
 
 #[pyfunction]
-fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
+pub fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
     let child = std::process::Command::new(cmd)
         .args(args)
         .stdout(std::process::Stdio::piped())
@@ -22,12 +22,12 @@ fn get(_py: Python, url: String, file: String) -> u64{
 }
 
 #[pyfunction]
-fn hello(_py: Python) {
+pub fn hello(_py: Python) {
     println!("Hello, Python!");
 }
 
 #[pymodule]
-fn wix(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn wix(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cmd, m)?)?;
     m.add_function(wrap_pyfunction!(get, m)?)?;
     m.add_function(wrap_pyfunction!(hello, m)?)?;
