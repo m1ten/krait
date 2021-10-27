@@ -21,10 +21,16 @@ fn get(_py: Python, url: String, file: String) -> u64{
     io::copy(&mut resp, &mut out).expect("failed to copy")
 }
 
+#[pyfunction]
+fn hello(_py: Python) {
+    println!("Hello, Python!");
+}
+
 #[pymodule]
-fn wixpy(_py: Python, m: &PyModule) -> PyResult<()> {
+fn wix(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cmd, m)?)?;
     m.add_function(wrap_pyfunction!(get, m)?)?;
+    m.add_function(wrap_pyfunction!(hello, m)?)?;
 
     Ok(())
 }
