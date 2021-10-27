@@ -22,7 +22,7 @@ fn get(_py: Python, url: String, file: String) -> u64{
 }
 
 #[pyfunction]
-pub fn hello(_py: Python) {
+pub fn hello() {
     println!("Hello, Python!");
 }
 
