@@ -8,10 +8,10 @@ readme = "README.md"
 repository = "https://github.com/m1ten/wix"
 license = "zlib"
 
-[lib]
-name = "wix"
-path = "src/lib/mod.rs"
-crate-type = ["cdylib", "rlib"]
+# [lib]
+# name = "wix"
+# path = "src/lib.rs"
+# crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 clap = "2.33.3"
@@ -21,6 +21,8 @@ ron = "0.6.5"
 serde_yaml = "0.8.21"
 pyo3 = { version = "0.14.5", features = ["extension-module"] }
 reqwest = { version = "0.11.6", features = ["blocking"] }
+wixpy = { git = "https://github.com/m1ten/wix/", branch = "python" }
+
 
 [profile.release]
 lto = true
