@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use std::io;
 use std::fs::File;
 
-
 #[pyfunction]
 fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
     let child = std::process::Command::new(cmd)
@@ -23,7 +22,7 @@ fn get(_py: Python, url: String, file: String) -> u64{
 }
 
 #[pymodule]
-fn dash(_py: Python, m: &PyModule) -> PyResult<()> {
+fn wixpy(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cmd, m)?)?;
     m.add_function(wrap_pyfunction!(get, m)?)?;
 
