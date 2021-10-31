@@ -39,7 +39,7 @@ pub fn wix_py(_py: Python, m: &PyModule) -> PyResult<()> {
 pub fn exec_py(code: String, file: String, name: String) -> String {
     Python::with_gil(|py| -> String {
         let py_mod = PyModule::from_code(py, &code, &file, &name).unwrap();
-        let py_var = py_mod.getattr("version").unwrap();
+        let py_var = py_mod.getattr("version".to_string()).unwrap();
         py_var.extract::<String>().unwrap()
     })
 }
