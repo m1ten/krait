@@ -1,0 +1,131 @@
+name: compile and release wix_py library
+
+on:
+  push:
+    branches: wix_py
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  create-release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    
+    - name: Generate Prerelease Release Notes
+      run: |
+        echo '| :warning: WARNING                                        |' >> ReleaseNotes.md
+        echo '|:--------------------------------------------------------:|' >> ReleaseNotes.md
+        echo '| This project is incomplete and may not work as expected. |' >> ReleaseNotes.md
+        git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
+        echo 'Rename `wix_py-os.ext` to `wix_py.ext`.' >> ReleaseNotes.md
+        echo 'Example: `wix_py-windows.pyd` -> `wix_py.pyd`.' >> ReleaseNotes.md
+    - name: Delete Old Prerelease
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        tag_name: wix_py-unstable
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish GitHub Release
+      uses: ncipollo/release-action@v1.8.10
+      with:
+        prerelease: true
+        bodyFile: ReleaseNotes.md
+        tag: "wix_py-unstable"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+    
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/libwix_py.dll
+        asset_name: wix_py-windows.pyd
+        tag: "wix_py-unstable"
+        overwrite: false
+        prerelease: true
+      
+  build-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/libwix_py.so
+        asset_name: wix_py-linux.so
+        tag: "wix_py-unstable"
+        overwrite: false
+        prerelease: true
+    
+  build-macos:
+
+    runs-on: macos-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: x86_64-apple-darwin
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/libwix_py.dylib
+        asset_name: wix_py-mac.so
+        tag: "wix_py-unstable"
+        overwrite: false
+        prerelease: true
