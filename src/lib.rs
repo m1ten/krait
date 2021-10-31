@@ -27,7 +27,7 @@ pub fn hello() {
 }
 
 #[pymodule]
-pub fn wix(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn wix_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cmd, m)?)?;
     m.add_function(wrap_pyfunction!(get, m)?)?;
     m.add_function(wrap_pyfunction!(hello, m)?)?;
