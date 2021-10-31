@@ -15,7 +15,7 @@ pub fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
 }
 
 #[pyfunction]
-fn get(_py: Python, url: String, file: String) -> u64{
+pub fn get(_py: Python, url: String, file: String) -> u64{
     let mut resp = reqwest::blocking::get(url).expect("Failed to get");
     let mut out = File::create(file).expect("failed to create file");
     io::copy(&mut resp, &mut out).expect("failed to copy")
@@ -33,4 +33,13 @@ pub fn wix_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hello, m)?)?;
 
     Ok(())
+}
+
+// get variable from python
+pub fn exec_py(py: Python, code: String, file: String, name: String) -> String {
+    Python::with_gil(|py| -> String {
+        let py_mod = PyModule::from_code(py, &code, &file, &name).unwrap();
+        let py_var = py_mod.getattr("version").unwrap();
+        py_var.extract::<String>().unwrap()
+    })
 }
