@@ -34,12 +34,3 @@ pub fn wix_py(_py: Python, m: &PyModule) -> PyResult<()> {
 
     Ok(())
 }
-
-// get variable from python
-pub fn get_var(code: String, file: String, name: String, var: String) -> String {
-    Python::with_gil(|py| -> String {
-        let py_mod = PyModule::from_code(py, &code, &file, &name).unwrap();
-        let py_var = py_mod.getattr(var).unwrap();
-        py_var.extract::<String>().unwrap()
-    })
-}
