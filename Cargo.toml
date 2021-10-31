@@ -16,7 +16,7 @@ clap = "2.33.3"
 # serde_yaml = "0.8.21"
 # pyo3 = { version = "0.14.5" }, features = ["extension-module"] }
 # reqwest = { version = "0.11.6", features = ["blocking"] }
-wixpy = { git = "https://github.com/m1ten/wix/", branch = "python" }
+wixpy = { git = "https://github.com/m1ten/wix/", branch = "wix_py" }
 
 [profile.release]
 lto = true

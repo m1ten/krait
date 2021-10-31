@@ -29,7 +29,7 @@ jobs:
     - name: Delete Old Prerelease
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
       with:
-        tag_name: latest-commit
+        tag_name: wix-unstable
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,7 +38,7 @@ jobs:
       with:
         prerelease: true
         bodyFile: ReleaseNotes.md
-        tag: "latest-commit"
+        tag: "wix-unstable"
         token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
@@ -50,10 +50,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '1'
-    - name: Install Rust Nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         default: true
         override: true
 
@@ -66,7 +66,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix.exe
         asset_name: wix-windows-x86_64.exe
-        tag: "latest-commit"
+        tag: "wix-unstable"
         overwrite: false
         prerelease: true
       
@@ -79,10 +79,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '1'
-    - name: Install Rust Nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         default: true
         override: true
 
@@ -95,7 +95,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix
         asset_name: wix-linux-x86_64
-        tag: "latest-commit"
+        tag: "wix-unstable"
         overwrite: false
         prerelease: true
     
@@ -108,10 +108,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '1'
-    - name: Install Rust Nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         target: x86_64-apple-darwin
         default: true
         override: true
@@ -125,6 +125,6 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix
         asset_name: wix-macos-x86_64
-        tag: "latest-commit"
+        tag: "wix-unstable"
         overwrite: false
         prerelease: true
