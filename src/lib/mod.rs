@@ -1,2 +1,9 @@
 pub mod args;
-pub mod py;
+
+#[derive(Debug)]
+pub struct Information {
+	pub name: String,
+	pub author: String,
+	pub version: String,
+	pub description: String
+}

@@ -1,20 +1,21 @@
+use crate as wix;
 use clap::{App, Arg};
 
 // wix args struct
+#[derive(Debug)]
 pub struct Arguments {
 	pub confirm: bool,
-	pub verbose: bool,
-    pub file: String,
+	pub verbose: bool
 }
 
 impl Arguments {
 	// function to get wix args
-	pub fn run(info: [(&str, &str); 4]) -> Arguments {
+	pub fn new(info: wix::Information) -> Arguments {
 		// get custom args
-		let matches = App::new(info[0].1)
-			.version(info[1].1)
-			.author(info[2].1)
-			.about(info[3].1)
+		let matches = App::new(info.name)
+			.version(info.version.as_str())
+			.author(info.author.as_str())
+			.about(info.description.as_str())
 			.arg(
 				Arg::with_name("no confirm")
 					.short("y")
@@ -31,21 +32,12 @@ impl Arguments {
 					.help("print logs")
 					.takes_value(false),
 			)
-            .arg(
-                Arg::with_name("file")
-                    .short("f")
-                    .long("file")
-                    .value_name("FILE")
-                    .help("file to read")
-                    .takes_value(true),
-            )
 			.get_matches();
 
 		// convert vector string to struct arguments
 		return Arguments {
 			confirm: matches.is_present("no confirm"),
-			verbose: matches.is_present("verbose"),
-            file: matches.value_of("file").unwrap().to_string(),
+			verbose: matches.is_present("verbose")
 		};
 	}
 }
