@@ -10,11 +10,11 @@ license = "zlib"
 
 [lib]
 name = "wix"
-path = "src/lib/mod.rs"
+path = "src/lib.rs"
 
 [dependencies]
 clap = "2.33.3"
-wix_py = { git = "https://github.com/m1ten/wix/", branch = "wix_py" }
+pyo3 = { version = "0.14.5", features = ["auto-initialize"] }
 
 [profile.release]
 lto = true
