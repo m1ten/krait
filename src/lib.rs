@@ -28,9 +28,15 @@ pub fn hello() {
 
 #[pymodule]
 pub fn wix_py(_py: Python, m: &PyModule) -> PyResult<()> {
+
+    let name: &str = "wix_py";
+    let version: &str = "0.1.0";
+
     m.add_function(wrap_pyfunction!(cmd, m)?)?;
     m.add_function(wrap_pyfunction!(get, m)?)?;
     m.add_function(wrap_pyfunction!(hello, m)?)?;
+    m.add("__name__", name)?;
+    m.add("__version__", version)?;
 
     Ok(())
 }
