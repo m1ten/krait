@@ -3,16 +3,29 @@ use pyo3::prelude::*;
 use crate as wix;
 
 // get variable from python
-pub fn get_info(code: String, file: String, name: String) -> wix::Package {
-    Python::with_gil(|py| -> wix::Package {
-        let py_mod = PyModule::from_code(py, &code, &file, &name).unwrap();
-        let py_class = py_mod.getattr(&name).unwrap();
-        
-        wix::Package {
-            name: py_class.getattr("name").unwrap().extract::<String>().unwrap(),
-            version: py_class.getattr("version").unwrap().extract::<String>().unwrap(),
-            url: py_class.getattr("url").unwrap().extract::<String>().unwrap(),
+pub fn get_variable<T>(code: String, file: String, name: String, variable: String) -> Result<T, String> 
+where T: core::str::FromStr {
+    Python::with_gil(|py| -> Result<T, String> {
+
+        let py_mod = match PyModule::from_code(py, &code, &file, &name) {
+            Ok(m) => m,
+            Err(e) => {
+                return Result::Err("error".to_string());
+            }
+        };
+
+        let py_var = match py_mod.getattr(&variable) {
+            Ok(v) => v,
+            Err(e) => {
+                return Result::Err("variable not found".to_string());
+            }
+        };
+
+        match py_var.to_string().parse::<T>() {
+            Ok(v) => Result::Ok(v),
+            Err(e) => {
+                return Result::Err("type error".to_string());
+            }
         }
-        
     })
 }

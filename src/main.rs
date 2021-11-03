@@ -17,10 +17,14 @@ fn main() {
 	let file = "discord.py";
 	let code = read_file(file);
 	let name = file.replace(".py", "");
+	let variable = "version".to_string();
 
-	let pkg = wix::lang::get_info(code, file.to_string(), name);
+	let pkg = match wix::lang::get_variable::<i8>(code, file.to_string(), name, variable) {
+		Ok(k) => k,
+		Err(e) => 0
+	};
 
-	println!("{:?}", pkg);
+	println!("{}", pkg);
 }
 
 // function to read from a file
