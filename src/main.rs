@@ -19,9 +19,9 @@ fn main() {
 	let name = file.replace(".py", "");
 	let variable = "version".to_string();
 
-	let pkg = match wix::lang::get_variable::<f32>(code, file.to_string(), name, variable) {
+	let pkg = match wix::lang::get_variable::<f32>(code, file.to_string(), name, variable.clone()) {
 		Ok(k) => k,
-		Err(e) => { println!("{:?}", e); 0.0 }
+		Err(e) => { println!("{} - {}", &variable, e); return; }
 	};
 
 	println!("{}", pkg);
