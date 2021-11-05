@@ -31,3 +31,16 @@ where
         }
     })
 }
+
+// function to convert struct to python code
+pub fn struct_to_code(struct_name: String, struct_contents: Vec<[String; 2]>) -> String {
+    let mut code = String::new();
+    code.push_str(&format!("{} = {}", struct_name, "{}"));
+    code.push_str("\n");
+    for data in struct_contents {
+        // write code to check type of data[1]
+        code.push_str(&format!("{}.{} = {}", struct_name, data[0], data[1]));
+        code.push_str("\n");
+    }
+    code
+}

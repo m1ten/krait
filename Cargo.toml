@@ -14,7 +14,8 @@ path = "src/lib.rs"
 
 [dependencies]
 clap = "2.33.3"
-pyo3 = { version = "0.14.5", features = ["auto-initialize"] }
+serde = { version = "1.0.130", features = ["derive"] }
+pyo3 = { version = "0.15.0", features = ["auto-initialize", "serde"] }
 
 [profile.release]
 lto = true

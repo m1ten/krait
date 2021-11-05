@@ -3,34 +3,26 @@
 #![allow(unreachable_code)]
 
 fn main() {
-	let info = wix::Information {
-		name: "wix".to_string(),
-		author: "miten".to_string(),
-		version: "0.1.0".to_string(),
-		description: "wix - cross platform package manager".to_string(),
-	};
+    let info = wix::structs::Information {
+        name: "wix".to_string(),
+        author: "miten".to_string(),
+        version: "0.1.0".to_string(),
+        description: "wix - cross platform package manager".to_string(),
+        license: "zlib".to_string(),
+        repository: "github.com/m1ten/wix".to_string()
+    };
 
-	let args = wix::args::Arguments::new(info);
+    let args = wix::args::Arguments::new(info.clone());
 
-	println!("{:?}", args);
+    // code for info
+    //let info_code = wix::lang::struct_to_code("info".to_string(), "no".to_string(), vec!["hello".to_string()]);
 
-	let file = "discord.py";
-	let code = read_file(file);
-	let name = file.replace(".py", "");
-	let variable = "version".to_string();
+    //println!("{}", info_code);
 
-	let pkg = match wix::lang::get_variable::<f32>(code, file.to_string(), name, variable.clone()) {
-		Ok(k) => k,
-		Err(e) => { println!("{} - {}", &variable, e); return; }
-	};
+    let struct_name = "Information".to_string();
+    let struct_contents = wix::structs::Information::get_field_type(Some(info));
 
-	println!("{}", pkg);
-}
+    let struct_code = wix::lang::struct_to_code(struct_name, struct_contents);
 
-// function to read from a file
-fn read_file(path: &str) -> String {
-	let mut file = std::fs::File::open(path).unwrap();
-	let mut contents = String::new();
-	std::io::Read::read_to_string(&mut file, &mut contents).unwrap();
-	contents
-}
+    println!("{}", struct_code);
+}    

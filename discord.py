@@ -1,2 +1,5 @@
-name = "discord"
-version = "s"
+s = 'Hello Rust!'
+
+def main():
+    global s
+    s = 'new'
