@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unreachable_code)]
-
 fn main() {
     let info = wix::structs::Information {
         name: "wix".to_string(),
@@ -9,20 +5,19 @@ fn main() {
         version: "0.1.0".to_string(),
         description: "wix - cross platform package manager".to_string(),
         license: "zlib".to_string(),
-        repository: "github.com/m1ten/wix".to_string()
+        repository: "https://github.com/m1ten/wix".to_string()
     };
 
     let args = wix::args::Arguments::new(info.clone());
 
-    // code for info
-    //let info_code = wix::lang::struct_to_code("info".to_string(), "no".to_string(), vec!["hello".to_string()]);
+    let info_contents = wix::structs::Information::get_field_type(Some(info));
 
-    //println!("{}", info_code);
+    let mut info_code = wix::lang::struct_to_code("Information".to_string(), info_contents);
+    info_code = info_code.replace("Information = {}", "").replace("Information.", "");
 
-    let struct_name = "Information".to_string();
-    let struct_contents = wix::structs::Information::get_field_type(Some(info));
+    wix::file::writefs(
+        "wix.py".to_string(),
+        info_code.trim_start().to_string().trim_end().to_string()
+    ).unwrap();
 
-    let struct_code = wix::lang::struct_to_code(struct_name, struct_contents);
-
-    println!("{}", struct_code);
 }    
