@@ -4,7 +4,6 @@ use clap::{App, Arg};
 // wix args struct
 #[derive(Debug)]
 pub struct Arguments {
-	pub assume_yes: bool,
 	pub verbose: bool,
 	pub package: String,
 	pub file: String
@@ -54,7 +53,6 @@ impl Arguments {
 
 		// convert vector string to struct arguments
 		return Arguments {
-			assume_yes: matches.is_present("assume-yes"),
 			verbose: matches.is_present("verbose"),
 			package: matches.value_of("package").unwrap_or("").to_string(),
 			file: matches.value_of("file").unwrap_or("").to_string(),
