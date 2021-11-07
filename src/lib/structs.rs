@@ -1,3 +1,5 @@
+use indexmap::IndexMap;
+
 #[derive(Debug, Clone)]
 pub struct Information {
     pub name: String,
@@ -9,28 +11,28 @@ pub struct Information {
 }
 
 impl Information {
-    pub fn get_field_type(info: Option<Information>) -> Vec<[String; 2]> {
+    pub fn get_field_type(info: Option<Information>) -> IndexMap<String, String> {
         let info = match info {
             Some(i) => i,
             None => {
-                return vec![
-                    ["name".to_string(), "String".to_string()],
-                    ["author".to_string(), "String".to_string()],
-                    ["version".to_string(), "String".to_string()],
-                    ["description".to_string(), "String".to_string()],
-                    ["license".to_string(), "String".to_string()],
-                    ["repository".to_string(), "String".to_string()],
-                ]
+                let mut map = IndexMap::new();
+                map.insert("name".to_string(), "String".to_string());
+                map.insert("author".to_string(), "String".to_string());
+                map.insert("version".to_string(), "String".to_string());
+                map.insert("description".to_string(), "String".to_string());
+                map.insert("license".to_string(), "String".to_string());
+                map.insert("repository".to_string(), "String".to_string());
+                return map
             }
         };
-        return vec![
-            ["name".to_string(), info.name.clone()],
-            ["author".to_string(), info.author.clone()],
-            ["version".to_string(), info.version.clone()],
-            ["description".to_string(), info.description.clone()],
-            ["license".to_string(), info.license.clone()],
-            ["repository".to_string(), info.repository.clone()],
-        ];
+        let mut map = IndexMap::new();
+        map.insert("name".to_string(), info.name.clone());
+        map.insert("author".to_string(), info.author.clone());
+        map.insert("version".to_string(), info.version.clone());
+        map.insert("description".to_string(), info.description.clone());
+        map.insert("license".to_string(), info.license.clone());
+        map.insert("repository".to_string(), info.repository.clone());
+        map
     }
 }
 
@@ -39,6 +41,8 @@ pub struct Package {
     pub name: String,
     pub version: String,
     pub url: String,
+    pub _type: String,
     pub verified: bool,
+    pub dependency: String,
     pub dependencies: Vec<String>,
 }

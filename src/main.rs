@@ -1,4 +1,5 @@
 fn main() {
+
     let info = wix::structs::Information {
         name: "wix".to_string(),
         author: "miten".to_string(),
@@ -10,14 +11,25 @@ fn main() {
 
     let args = wix::args::Arguments::new(info.clone());
 
-    let info_contents = wix::structs::Information::get_field_type(Some(info));
+    wix::setup::run(info, args);
 
-    let mut info_code = wix::lang::struct_to_code("Information".to_string(), info_contents);
-    info_code = info_code.replace("Information = {}", "").replace("Information.", "");
+    // match std::env::var("USER") {
+    //     Ok(user) => { 
+    //         match user.as_str() {
+    //             "root" => { eprintln!("Please run wix as a regular user."); return },
+    //             _ => (),
+    //         }
+    //     },
+    //     Err(e) => ()
+    // }
 
-    wix::file::writefs(
-        "wix.py".to_string(),
-        info_code.trim_start().to_string().trim_end().to_string()
-    ).unwrap();
+    // let info_contents = wix::structs::Information::get_field_type(Some(info));
 
+    // let mut info_code = wix::lang::struct_to_py("Information".to_string(), info_contents);
+    // info_code = info_code.replace("Information = {}", "").replace("Information.", "");
+
+    // wix::file::writefs(
+    //     "wix.py".to_string(),
+    //     info_code.trim_start().to_string().trim_end().to_string()
+    // ).unwrap();
 }    
