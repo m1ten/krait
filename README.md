@@ -4,8 +4,8 @@
 
 # wix ![](https://github.com/m1ten/wix/workflows/Rust/badge.svg?branch=main) [![Rustc Version]][rustc]
 
-[Rustc Version]: https://img.shields.io/badge/rustc-1.56.1-orange.svg
-[rustc]: https://blog.rust-lang.org/2021/11/01/Rust-1.56.1.html
+[Rustc Version]: https://img.shields.io/badge/rustc-1.56.X-orange.svg
+[rustc]: https://blog.rust-lang.org/2021/11/01/Rust-1.56.0.html
 
 wix - cross platform package manager
 
