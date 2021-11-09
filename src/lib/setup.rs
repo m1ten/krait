@@ -13,7 +13,7 @@ pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
 
     #[cfg(target_os = "linux")] 
     { 
-        let distro = sysinfo.distro_name();
+        let distro = sysinfo::distro_name();
         println!("{}", distro);
     }
 }
