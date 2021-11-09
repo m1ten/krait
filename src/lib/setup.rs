@@ -21,7 +21,15 @@ pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
 fn is_super() -> bool {
     #[cfg(windows)]
     {
-        let output = std::process::Command::new("powershell")
+        let ps = match which::which("powershell") {
+            Ok(path) => path,
+            Err(_) => {
+                eprintln!("Error: powershell is not installed.");
+                std::process::exit(1);
+            }
+        };
+        
+        let output = std::process::Command::new(ps)
             .arg("-Command")
             .arg("Get-WmiObject -Class Win32_UserAccount -Filter \"Name='Administrator'\" -Property LocalAccount")
             .output()
