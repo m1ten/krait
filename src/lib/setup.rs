@@ -11,10 +11,16 @@ pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
         panic!("Python is not installed.");
     }
 
-    #[cfg(target_os = "linux")] 
+    // #[cfg(target_os = "linux")] 
+    // { 
+    //     let distro = sysinfo::distro_name();
+    //     println!("{}", distro);
+    // }
+
+    #[cfg(target_os = "linux")]
     { 
-        let distro = sysinfo::distro_name();
-        println!("{}", distro);
+        let distro_id = os_release::OsRelease::new().unwrap().id();
+        println!("{}", distro_id);
     }
 }
 
