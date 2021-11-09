@@ -10,23 +10,12 @@ pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
     if !is_python_installed() {
         panic!("Python is not installed.");
     }
-
-    // #[cfg(target_os = "linux")] 
-    // { 
-    //     let distro = sysinfo::distro_name();
-    //     println!("{}", distro);
-    // }
-
-    #[cfg(target_os = "linux")]
-    { 
-        let distro_id = os_release::OsRelease::new().unwrap().id();
-        println!("{}", distro_id);
-    }
 }
 
 // function to check if running as root/admin
 fn is_super() -> bool {
-    if cfg!(windows) {
+    #[cfg(windows)]
+    {
         let output = std::process::Command::new("powershell")
             .arg("-Command")
             .arg("Get-WmiObject -Class Win32_UserAccount -Filter \"Name='Administrator'\" -Property LocalAccount")
@@ -35,16 +24,19 @@ fn is_super() -> bool {
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         stdout.contains("True")
-    } else {
+    }
+
+    #[cfg(not(windows))]
+    {
         nix::unistd::getuid().is_root()
     }
 }
 
 // function to check if python is installed
 fn is_python_installed() -> bool {
-    if cfg!(windows) {
-        which::which("python3").is_ok()
+    if which::which("python3").is_ok() || which::which("python").is_ok() {
+        return true;
     } else {
-        which::which("python").is_ok()
+        return false;
     }
 }
