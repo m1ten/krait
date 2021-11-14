@@ -3,22 +3,11 @@ use crate as wix;
 pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
     // TODO: Implement setup.rs
 
-    // rewrite these functions because they suck and won't work on linux.
-    if is_super() {
-        eprintln!("{}", "Error: You are running wix as root.");
-        std::process::exit(1);
-    }
-
-    if !is_python_installed() {
-        eprintln!("Error: Python is not installed.");
-        std::process::exit(1);
-    }
-
     println!("works");
 }
 
 // function to check if running as root/admin
-fn is_super() -> bool {
+pub fn is_super() -> bool {
     #[cfg(windows)]
     {
         let ps = match which::which("powershell") {
@@ -46,8 +35,8 @@ fn is_super() -> bool {
 }
 
 // function to check if python is installed
-fn is_python_installed() -> bool {
-    match which::which("python3") {
+pub fn is_python_installed() -> bool {
+    match which::which("python") {
         Ok(_) => true,
         Err(_) => false,
     }

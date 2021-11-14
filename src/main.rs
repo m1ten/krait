@@ -11,7 +11,19 @@ fn main() {
 
     let args = wix::args::Arguments::new(info.clone());
 
-    wix::setup::run(info, args);
+    if wix::setup::is_super() {
+        eprintln!("{}", "Error: You are running wix as root.");
+        std::process::exit(1);
+    }
+
+    if !wix::setup::is_python_installed() {
+        eprintln!("Error: Python is not installed.");
+        std::process::exit(1);
+    }
+
+    println!("Wix!");
+
+    // wix::setup::run(info, args);
 
     // match std::env::var("USER") {
     //     Ok(user) => { 
