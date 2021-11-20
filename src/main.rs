@@ -11,17 +11,18 @@ fn main() {
 
     let args = wix::args::Arguments::new(info.clone());
 
+    println!("Wix!\n");
+
     if wix::setup::is_super() {
         eprintln!("{}", "Error: You are running wix as root.");
-        std::process::exit(1);
+        wix::exit!(1);
     }
 
     if !wix::setup::is_python_installed() {
-        eprintln!("Error: Python is not installed.");
-        std::process::exit(1);
+        eprintln!("Error: Python >=3.8 is not installed.");
+        eprintln!("Please install and add Python to path then try again.");
+        wix::exit!(127);
     }
-
-    println!("Wix!");
 
     // wix::setup::run(info, args);
 
@@ -44,9 +45,4 @@ fn main() {
     //     "wix.py".to_string(),
     //     info_code.trim_start().to_string().trim_end().to_string()
     // ).unwrap();
-    
-
-
-    // stop console from closing
-    std::io::Read::read(&mut std::io::stdin(), &mut [0]).unwrap();
 }   

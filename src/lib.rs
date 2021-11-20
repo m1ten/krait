@@ -28,7 +28,7 @@ pub fn writefs(path: String, contents: String) -> Result<(), io::Error> {
 }
 
 // read from stdin
-fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
+pub fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
     let mut input = Vec::<u8>::new();
 
     let mut data: [u8; 1] = [0];
@@ -79,5 +79,13 @@ macro_rules! clear {
 			print!("\x1B[2J\x1B[1;1H");
 		}
 		std::io::Write::flush(&mut std::io::stdout()).unwrap();
+	}};
+}
+
+#[macro_export]
+macro_rules! exit {
+	($code: tt) => {{
+		wix::scanln!("\nPress enter to exit.\n");
+    	std::process::exit($code);
 	}};
 }
