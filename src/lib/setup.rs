@@ -9,23 +9,8 @@ pub fn run(info: wix::structs::Information, args: wix::args::Arguments) {
 // function to check if running as root/admin
 pub fn is_super() -> bool {
     #[cfg(windows)]
-    {
-        let ps = match which::which("powershell") {
-            Ok(path) => path,
-            Err(_) => {
-                eprintln!("Error: powershell is not installed.");
-                std::process::exit(1);
-            }
-        };
-        
-        let output = std::process::Command::new(ps)
-            .arg("-Command")
-            .arg("Get-WmiObject -Class Win32_UserAccount -Filter \"Name='Administrator'\" -Property LocalAccount")
-            .output()
-            .expect("Failed to execute command");
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        stdout.contains("True")
+    {        
+        is_elevated::is_elevated()
     }
 
     #[cfg(not(windows))]

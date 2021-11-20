@@ -44,4 +44,9 @@ fn main() {
     //     "wix.py".to_string(),
     //     info_code.trim_start().to_string().trim_end().to_string()
     // ).unwrap();
-}    
+    
+
+
+    // stop console from closing
+    std::io::Read::read(&mut std::io::stdin(), &mut [0]).unwrap();
+}   
