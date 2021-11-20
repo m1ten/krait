@@ -1,8 +1,11 @@
 # Start of file
 
-import wix # import the wix module
+# import the wix module (optional, if not imported, wix.X will error)
+# using wix.X instead of python.X is optional, but recommended for speed
+import wix 
 
-# Package information
+# Package information (variable names are case sensitive, but not the values)
+# file name must be the same as the package name
 name = "Dash" # name of the package (not case sensitive)
 alias = "dash-wix" # alias of the package (optional)
 version = "0.1.0" # version of the package
@@ -21,7 +24,7 @@ supported_os = ["macOS", "Linux", "Windows"] # Supported OS list
 # For a full list of supported variables, see https://m1ten.github.io/wix/
 
 def install(): # Manual installation 
-	wix.print("Installing Dependencies") 
+	wix.print("Installing Dependencies")
 	wix.print("Installing Dash")
 
 def uninstall(): # Manual uninstallation
