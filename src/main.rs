@@ -1,14 +1,13 @@
-use wix::{exit, question, scan};
+use wix::{exit, question, clear};
 
 fn main() {
-
     let info = wix::structs::Information {
         name: "wix".to_string(),
         author: "miten".to_string(),
         version: "0.1.0".to_string(),
         description: "wix - cross platform package manager".to_string(),
         license: "zlib".to_string(),
-        repository: "https://github.com/m1ten/wix".to_string()
+        repository: "https://github.com/m1ten/wix".to_string(),
     };
 
     let args = wix::args::Arguments::new(info.clone());
@@ -27,19 +26,31 @@ fn main() {
     }
 
     // check if config file exists
-    if dirs::home_dir().unwrap().join("wix/wix.py").exists() {
-        exit!(0);
-    } else {
+    if !dirs::home_dir().unwrap().join("wix/wix.py").exists() {
         // run setup?
         if question!("Would you like to run setup?") {
-            wix::setup::run(info, args);
+            wix::setup::run(info.clone(), args.clone());
         } else {
             exit!(1);
         }
     }
 
+    // check if wix.py is up to date
+
+    match args.status.as_str() {
+        "install" => println!("Installing {}", args.package),
+        "uninstall" => println!("Uninstalling {}", args.package),
+        "search" => println!("Searching for {}", args.package),
+        "update" => println!("Updating {}", args.package),
+        _ => {
+            clear!();
+            println!("{}", args.help);
+            exit!(1);
+        }
+    }
+
     // match std::env::var("USER") {
-    //     Ok(user) => { 
+    //     Ok(user) => {
     //         match user.as_str() {
     //             "root" => { eprintln!("Please run wix as a regular user."); return },
     //             _ => (),
@@ -57,4 +68,4 @@ fn main() {
     //     "wix.py".to_string(),
     //     info_code.trim_start().to_string().trim_end().to_string()
     // ).unwrap();
-}   
+}
