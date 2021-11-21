@@ -1,13 +1,29 @@
-use wix::{exit, question, clear};
+use wix::{clear, exit, question, structs::Configuration, writefs};
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    get_package(
+        "7zip".to_string(),
+        "latest".to_string(),
+        "windows".to_string(),
+        "x86_64".to_string(),
+    )
+    .await;
+
+    return;
+
+    let config: Configuration = wix::structs::Configuration {
+        repo: "https:://github.com/m1ten/wix-pkgs".to_string(),
+        mirror: None,
+    };
+
     let info = wix::structs::Information {
         name: "wix".to_string(),
         author: "miten".to_string(),
         version: "0.1.0".to_string(),
         description: "wix - cross platform package manager".to_string(),
         license: "zlib".to_string(),
-        repository: "https://github.com/m1ten/wix".to_string(),
+        git: "https://github.com/m1ten/wix".to_string(),
     };
 
     let args = wix::args::Arguments::new(info.clone());
@@ -28,8 +44,9 @@ fn main() {
     // check if config file exists
     if !dirs::home_dir().unwrap().join("wix/wix.py").exists() {
         // run setup?
+        println!("{:?}", info.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(info.clone(), args.clone());
+            wix::setup::run(info.clone(), config.clone(), args.clone());
         } else {
             exit!(1);
         }
@@ -68,4 +85,73 @@ fn main() {
     //     "wix.py".to_string(),
     //     info_code.trim_start().to_string().trim_end().to_string()
     // ).unwrap();
+}
+
+// search for a package by name and version and return the package from github repo
+// (e.g. "rust-lang/rust", "1.0.0")
+pub async fn get_package(
+    name: String,
+    version: String,
+    os: String,
+    arch: String,
+) -> Result<(), reqwest::Error> {
+    let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
+
+    let url = "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{folder}/{version}.py"
+        .replace("{name}", &name)
+        .replace("{folder}", &folder)
+        .replace("{version}", &version);
+    // url.push_str(&name);
+    // url.push_str("/");
+    // url.push_str(&version.unwrap_or("".to_string()));
+
+    println!("{}", url);
+
+    let client = reqwest::Client::new();
+    let contents = client
+        .get(url)
+        .header(reqwest::header::USER_AGENT, "Wix")
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    println!("{}", contents);
+
+    // check if package exists in local cache
+    if !dirs::home_dir().unwrap().join("wix/cache/{name}").exists() {
+        // create cache folder
+        std::fs::create_dir_all(
+            dirs::home_dir().unwrap().join(
+                "wix/cache/{name}/{folder}/"
+                    .replace("{name}", &name)
+                    .replace("{folder}", &folder)
+            ),
+        )
+        .unwrap();
+    } else {
+        // check if package exists in cache
+        // if !dirs::home_dir().unwrap().join(
+        //     "wix/cache/{name}/{folder}/{version}.py"
+        //         .replace("{name}", &name)
+        //         .replace("{folder}", &folder)
+        //         .replace("{version}", &version),
+        // )
+        // .exists()
+        // {
+            
+        // }
+    }
+
+    let path  = dirs::home_dir().unwrap().join(
+        "wix/cache/{name}/{folder}/{version}.py"
+            .replace("{name}", &name)
+            .replace("{folder}", &folder)
+            .replace("{version}", &version),
+    ).to_str().unwrap().to_string();
+
+    println!("{}", path);
+    writefs(path, contents);
+
+    Ok(())
 }
