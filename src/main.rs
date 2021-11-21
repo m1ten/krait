@@ -45,7 +45,7 @@ fn main() {
         _ => {
             clear!();
             println!("{}", args.help);
-            exit!(1);
+            exit!(0);
         }
     }
 

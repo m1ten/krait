@@ -73,19 +73,30 @@ macro_rules! scanln {
 #[macro_export]
 macro_rules! clear {
 	() => {{
+		// if cfg!(target_os = "windows") {
+		// 	print!("\x1B[2J");
+		// } else {
+		// 	print!("\x1B[2J\x1B[1;1H");
+		// }
+		// std::io::Write::flush(&mut std::io::stdout()).unwrap();
+
+		use std::process::Command;
+
 		if cfg!(target_os = "windows") {
-			print!("\x1B[2J");
+			Command::new("cmd").arg("/c").arg("cls").status().unwrap();
 		} else {
-			print!("\x1B[2J\x1B[1;1H");
+			Command::new("clear").status().unwrap();
 		}
-		std::io::Write::flush(&mut std::io::stdout()).unwrap();
+
 	}};
 }
 
 #[macro_export]
 macro_rules! exit {
 	($code: tt) => {{
-		wix::scanln!("\nPress enter to exit.\n");
+		let key = if cfg!(target_os = "macos") { "return" } else { "enter" };
+		let msg = format!("\nPress {} to exit.\n", key);
+		wix::scanln!(msg);
     	std::process::exit($code);
 	}};
 }
