@@ -1,3 +1,5 @@
+use wix::{exit, question, scan};
+
 fn main() {
 
     let info = wix::structs::Information {
@@ -15,16 +17,26 @@ fn main() {
 
     if wix::setup::is_super() {
         eprintln!("{}", "Error: You are running wix as root.");
-        wix::exit!(1);
+        exit!(1);
     }
 
     if !wix::setup::is_python_installed() {
         eprintln!("Error: Python >=3.8 is not installed.");
         eprintln!("Please install and add Python to path then try again.");
-        wix::exit!(127);
+        exit!(127);
     }
 
-    // wix::setup::run(info, args);
+    // check if config file exists
+    if dirs::home_dir().unwrap().join("wix/wix.py").exists() {
+        exit!(0);
+    } else {
+        // run setup?
+        if question!("Would you like to run setup?") {
+            wix::setup::run(info, args);
+        } else {
+            exit!(1);
+        }
+    }
 
     // match std::env::var("USER") {
     //     Ok(user) => { 

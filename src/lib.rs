@@ -89,3 +89,19 @@ macro_rules! exit {
     	std::process::exit($code);
 	}};
 }
+
+#[macro_export]
+macro_rules! question {
+	($msg: tt) => {{
+		loop {
+			print!("{} [Y/n] ", $msg);
+			std::io::Write::flush(&mut std::io::stdout()).unwrap();
+			let answer = wix::scan::<String>('\n' as u8).expect("question failed").to_lowercase();
+			if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
+				break true;
+			} else if answer.trim() == "n" || answer.trim() == "no" {
+				break false;
+			}
+		}
+	}}
+}
