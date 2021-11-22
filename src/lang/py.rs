@@ -1,44 +1,5 @@
 use pyo3::Python;
 use pyo3::prelude::*;
-use std::fs::File;
-
-#[pyfunction]
-pub fn cmd(cmd: String, args: Vec<String>) -> PyResult<String> {
-    let child = std::process::Command::new(cmd)
-        .args(args)
-        .stdout(std::process::Stdio::piped())
-        .spawn()?;
-
-    let output = child.wait_with_output()?;
-
-    Ok(String::from_utf8(output.stdout).unwrap())
-}
-
-#[pyfunction]
-pub fn get(_py: Python, url: String, file: String) -> u64 {
-    let mut resp = reqwest::blocking::get(url).expect("Failed to get");
-    let mut out = File::create(file).expect("failed to create file");
-    std::io::copy(&mut resp, &mut out).expect("failed to copy")
-}
-
-#[pyfunction]
-pub fn hello() {
-    println!("Hello, Python!");
-}
-
-pub fn wix(m: &PyModule) -> &PyModule
-{
-    let name: &str = "wix";
-    let version: &str = "0.1.0";
-
-    m.add_function(wrap_pyfunction!(cmd, m).unwrap()).unwrap();
-    m.add_function(wrap_pyfunction!(get, m).unwrap()).unwrap();
-    m.add_function(wrap_pyfunction!(hello, m).unwrap()).unwrap();
-    m.add("__name__", name).unwrap();
-    m.add("__version__", version).unwrap();
-
-    m
-}
 
 // get data from python file
 pub fn get_data<T>(code: String, file: String, name: String, variable: Option<String>, function: Option<String>) -> Result<T, String> 
