@@ -109,7 +109,7 @@ async fn main() {
 }
 
 // search for a package by name and version and return the package from github repo
-// (e.g. "rust-lang/rust", "1.0.0")
+// (e.g. "rust", "1.0.0")
 pub async fn get_package(
     name: String,
     version: String,

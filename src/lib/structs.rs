@@ -1,4 +1,6 @@
-use crate as wix;
+use std::collections::HashMap;
+
+use crate::{self as wix, exit};
 use indexmap::IndexMap;
 
 #[derive(Debug, Clone)]
@@ -58,8 +60,8 @@ pub struct Configuration {
 }
 
 impl Configuration {
-    pub fn get_field_type(info: Option<Configuration>) -> IndexMap<String, String> {
-        let info = match info {
+    pub fn get_field_type(config: Option<Configuration>) -> IndexMap<String, String> {
+        let config = match config {
             Some(i) => i,
             None => {
                 let mut map = IndexMap::new();
@@ -69,10 +71,10 @@ impl Configuration {
             }
         };
         let mut map = IndexMap::new();
-        map.insert("repo".to_string(), info.repo.clone());
+        map.insert("repo".to_string(), config.repo.clone());
         map.insert(
             "mirror".to_string(),
-            info.mirror.clone().unwrap_or("".to_string()),
+            config.mirror.clone().unwrap_or("".to_string()),
         );
         map
     }
@@ -110,23 +112,82 @@ pub struct Package {
 
 impl Package {
     pub fn install(script: String, name: String, path: String) {
-        // TODO: check if package is already installed
-
         println!("\nReview Script\n{}", script);
 
         let question = format!("Do you want to install {}?", name);
 
         if wix::question!(question) {
-            println!("\nInstalling {}.", name);
+            println!("\nInstalling {}.\n", name);
 
-            let function =
-                wix::lang::get_data::<bool>(script, path, name.clone(), None, Some("install".to_string()));
+            let function = wix::lang::get_data::<bool>(
+                script.clone(),
+                path.clone(),
+                name.clone(),
+                None,
+                Some("install".to_string()),
+            );
 
-            if !function.unwrap_err().contains("TypeError: 'function'") {
-                println!("install is not a function.");
-            } 
+            // TODO: add support for installing packages with no install function
 
+            // get installed_packages list from config
+            // add package to installed_packages list
 
+            // read config
+            let wix_path = dirs::home_dir()
+                .unwrap()
+                .join("wix/wix.py")
+                .to_str()
+                .unwrap()
+                .to_string();
+            let config = wix::readfs(wix_path.clone()).unwrap();
+
+            // get installed_packages list
+            let mut installed_packages = wix::lang::get_data::<HashMap<String, String>>(
+                config.clone(),
+                wix_path.clone(),
+                "wix".to_string(),
+                Some("installed_packages".to_string()),
+                None,
+            )
+            .unwrap();
+
+            let version = "latest".to_string();
+
+            // check if package is already installed
+            if installed_packages.contains_key(&name) {
+                println!("{} is already installed.", name);
+                exit!(1);
+            }
+
+            if function.unwrap_err().contains("TypeError: 'function'") {
+
+                // call install function
+                match wix::lang::call_func(script, path, name.clone(), "install".to_string()) {
+                    Ok(()) => println!("\n{} installed successfully.", name),
+                    Err(e) => {
+                        println!("\n{} failed to install.", name);
+                        println!("{}", e);
+                        exit!(1);
+                    }
+                }
+
+                
+            }
+
+            // add package to installed_packages list
+            installed_packages.insert(name.clone(), version.clone());
+
+            let new_installed_packages =
+                format!("installed_packages = {:?}", installed_packages.clone()).replace("\"", "'");
+
+            // remove everything between { and } from config
+            let start_bytes = config.find("installed_packages = {").unwrap();
+            let end_bytes = config.find("}").unwrap();
+            let mut new_config = config.clone();
+            new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
+
+            // write new config
+            wix::writefs(wix_path.clone(), new_config).unwrap();
         }
     }
 }

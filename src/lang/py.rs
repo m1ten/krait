@@ -92,6 +92,18 @@ where
     })
 }
 
+// call python function
+pub fn call_func(code: String, file: String, name: String, function: String) -> Result<(), String> {
+    Python::with_gil(|py| {
+        let py_mod = PyModule::from_code(py, &code, &file, &name).unwrap();
+        let py_func = py_mod.getattr(function).unwrap();
+        match py_func.call0() {
+            Ok(_) => Result::Ok(()),
+            Err(e) => Result::Err(e.to_string())
+        }
+    })
+}
+
 // function to convert struct to python variable code
 pub fn struct_to_py(struct_name: String, struct_contents: indexmap::IndexMap<String, String>) -> String {
     let mut code = String::new();
@@ -132,3 +144,15 @@ pub fn struct_to_py(struct_name: String, struct_contents: indexmap::IndexMap<Str
     }
     code
 }
+
+// // rust hashmap to python dict
+// pub fn map_to_py(map: indexmap::IndexMap<String, String>) -> String {
+//     let mut code = String::new();
+//     code.push_str("{");
+//     for data in map {
+//         code.push_str(&format!("'{}': '{}'", data.0, data.1));
+//         code.push_str(",");
+//     }
+//     code.push_str("}");
+//     code
+// }
