@@ -40,8 +40,8 @@ pub fn wix(m: &PyModule) -> &PyModule
     m
 }
 
-// get variable from python file
-pub fn get_variable<T>(code: String, file: String, name: String, variable: String) -> Result<T, String> 
+// get data from python file
+pub fn get_data<T>(code: String, file: String, name: String, variable: Option<String>, function: Option<String>) -> Result<T, String> 
 where
     T: for<'p> FromPyObject<'p>
 {
@@ -54,18 +54,40 @@ where
             }
         };
 
-        let py_var: PyResult<T> = match py_mod.getattr(&variable) {
-            Ok(v) => v.extract(),
-            Err(e) => {
-                return Result::Err(e.to_string());
+        if variable.is_none() && function.is_none() {
+            return Err("No variable or function specified".to_string());
+        } else if variable.is_some() && function.is_some() {
+            return Err("Only one of variable or function can be specified".to_string());
+        } else if variable.is_some() {
+            let py_var: PyResult<T> = match py_mod.getattr(&variable.unwrap()) {
+                Ok(v) => v.extract(),
+                Err(e) => {
+                    return Result::Err(e.to_string());
+                }
+            };
+    
+            match py_var {
+                Ok(v) => Result::Ok(v),
+                Err(e) => {
+                    return Result::Err(e.to_string());
+                }
             }
-        };
-
-        match py_var {
-            Ok(v) => Result::Ok(v),
-            Err(e) => {
-                return Result::Err(e.to_string());
+        } else if function.is_some() {
+            let py_func: PyResult<T> = match py_mod.getattr(&function) {
+                Ok(f) => f.extract(),
+                Err(e) => {
+                    return Result::Err(e.to_string());
+                }
+            };
+    
+            match py_func {
+                Ok(f) => Result::Ok(f),
+                Err(e) => {
+                    return Result::Err(e.to_string());
+                }
             }
+        } else {
+            return Err("No variable or function specified".to_string());
         }
     })
 }

@@ -1,5 +1,5 @@
-use indexmap::IndexMap;
 use crate as wix;
+use indexmap::IndexMap;
 
 #[derive(Debug, Clone)]
 pub struct Information {
@@ -70,7 +70,10 @@ impl Configuration {
         };
         let mut map = IndexMap::new();
         map.insert("repo".to_string(), info.repo.clone());
-        map.insert("mirror".to_string(), info.mirror.clone().unwrap_or("".to_string()));
+        map.insert(
+            "mirror".to_string(),
+            info.mirror.clone().unwrap_or("".to_string()),
+        );
         map
     }
 }
@@ -106,16 +109,24 @@ pub struct Package {
 }
 
 impl Package {
-   pub fn install(script: String, name: String, path: String) {
-       // TODO: check if package is already installed
+    pub fn install(script: String, name: String, path: String) {
+        // TODO: check if package is already installed
 
-       println!("\nReview Script\n{}", script);
+        println!("\nReview Script\n{}", script);
 
-       let question = format!("\nDo you want to install {}?", name);
+        let question = format!("Do you want to install {}?", name);
 
-       if wix::question!(question) {
-            println!("Installing {}.", name);            
+        if wix::question!(question) {
+            println!("\nInstalling {}.", name);
 
-       }
-   }
+            let function =
+                wix::lang::get_data::<bool>(script, path, name.clone(), None, Some("install".to_string()));
+
+            if !function.unwrap_err().contains("TypeError: 'function'") {
+                println!("install is not a function.");
+            } 
+
+
+        }
+    }
 }
