@@ -89,3 +89,8 @@ pub fn is_python_installed() -> bool {
     }
     false
 }
+
+// check if there is a internet connection
+pub async fn is_internet_connected() -> bool {
+    online::check(None).await.is_ok()
+}

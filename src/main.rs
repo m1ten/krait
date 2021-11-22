@@ -22,6 +22,7 @@ async fn main() {
 
     if wix::setup::is_super() {
         eprintln!("{}", "Error: You are running wix as root.");
+        eprintln!("{}", "Please run wix as a normal user.");
         exit!(1);
     }
 
@@ -29,6 +30,12 @@ async fn main() {
         eprintln!("Error: Python >=3.8 is not installed.");
         eprintln!("Please install and add Python to path then try again.");
         exit!(127);
+    }
+
+    if !wix::setup::is_internet_connected().await {
+        eprintln!("Error: Internet connection is not available.");
+        eprintln!("Please check your internet connection and try again.");
+        exit!(1);
     }
 
     // check if config file exists
