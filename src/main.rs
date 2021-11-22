@@ -2,16 +2,6 @@ use wix::{clear, exit, question, structs::Configuration, writefs};
 
 #[tokio::main]
 async fn main() {
-    get_package(
-        "7zip".to_string(),
-        "latest".to_string(),
-        "windows".to_string(),
-        "x86_64".to_string(),
-    )
-    .await;
-
-    return;
-
     let config: Configuration = wix::structs::Configuration {
         repo: "https:://github.com/m1ten/wix-pkgs".to_string(),
         mirror: None,
@@ -55,7 +45,38 @@ async fn main() {
     // check if wix.py is up to date
 
     match args.status.as_str() {
-        "install" => println!("Installing {}", args.package),
+        "install" => {
+            let os = "windows".to_string();
+            let version = "latest".to_string();
+            let arch = "x86_64".to_string();
+            let path = dirs::home_dir()
+                .unwrap()
+                .join("wix/cache/{name}/{os}-{arch}/{version}.py")
+                .to_str()
+                .unwrap()
+                .to_string()
+                .replace("{name}", args.clone().package.as_str())
+                .replace("{os}", os.as_str())
+                .replace("{arch}", arch.as_str())
+                .replace("{version}", version.as_str());
+
+            let package = get_package(
+                args.package.to_lowercase(),
+                version.clone(),
+                os.clone(),
+                arch.clone(),
+            )
+            .await
+            .unwrap();
+
+            match package.as_str() {
+                "404: Not Found" => {
+                    eprintln!("Error: Package not found in repository.");
+                    exit!(1);
+                }
+                _ => wix::structs::Package::install(package, args.package.clone(), path)
+            }
+        }
         "uninstall" => println!("Uninstalling {}", args.package),
         "search" => println!("Searching for {}", args.package),
         "update" => println!("Updating {}", args.package),
@@ -94,18 +115,13 @@ pub async fn get_package(
     version: String,
     os: String,
     arch: String,
-) -> Result<(), reqwest::Error> {
+) -> Result<String, reqwest::Error> {
     let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
 
     let url = "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{folder}/{version}.py"
         .replace("{name}", &name)
         .replace("{folder}", &folder)
         .replace("{version}", &version);
-    // url.push_str(&name);
-    // url.push_str("/");
-    // url.push_str(&version.unwrap_or("".to_string()));
-
-    println!("{}", url);
 
     let client = reqwest::Client::new();
     let contents = client
@@ -116,8 +132,6 @@ pub async fn get_package(
         .text()
         .await?;
 
-    println!("{}", contents);
-
     // check if package exists in local cache
     if !dirs::home_dir().unwrap().join("wix/cache/{name}").exists() {
         // create cache folder
@@ -125,7 +139,7 @@ pub async fn get_package(
             dirs::home_dir().unwrap().join(
                 "wix/cache/{name}/{folder}/"
                     .replace("{name}", &name)
-                    .replace("{folder}", &folder)
+                    .replace("{folder}", &folder),
             ),
         )
         .unwrap();
@@ -139,19 +153,23 @@ pub async fn get_package(
         // )
         // .exists()
         // {
-            
+
         // }
     }
 
-    let path  = dirs::home_dir().unwrap().join(
-        "wix/cache/{name}/{folder}/{version}.py"
-            .replace("{name}", &name)
-            .replace("{folder}", &folder)
-            .replace("{version}", &version),
-    ).to_str().unwrap().to_string();
+    let path = dirs::home_dir()
+        .unwrap()
+        .join(
+            "wix/cache/{name}/{folder}/{version}.py"
+                .replace("{name}", &name)
+                .replace("{folder}", &folder)
+                .replace("{version}", &version),
+        )
+        .to_str()
+        .unwrap()
+        .to_string();
 
-    println!("{}", path);
-    writefs(path, contents);
+    writefs(path, contents.clone());
 
-    Ok(())
+    Ok(contents)
 }

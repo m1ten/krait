@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use crate as wix;
 
 #[derive(Debug, Clone)]
 pub struct Information {
@@ -102,4 +103,19 @@ pub struct Package {
 
     // package hash with type as field name and value as field value (optional, default: none)
     pub hash: Option<std::collections::HashMap<String, String>>,
+}
+
+impl Package {
+   pub fn install(script: String, name: String, path: String) {
+       // TODO: check if package is already installed
+
+       println!("\nReview Script\n{}", script);
+
+       let question = format!("\nDo you want to install {}?", name);
+
+       if wix::question!(question) {
+            println!("Installing {}.", name);            
+
+       }
+   }
 }
