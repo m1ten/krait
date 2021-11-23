@@ -7,7 +7,7 @@ use crate::{
 };
 use std::{fs, process::Command, vec};
 
-pub fn run(info: Information, config: Configuration, args: Arguments) {
+pub fn run(info: Information, config: Configuration, _args: Arguments) {
     // TODO: Implement setup.rs
 
     if !question!("All pervious wix data will erased, continue?") {

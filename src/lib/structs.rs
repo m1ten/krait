@@ -111,6 +111,7 @@ pub struct Package {
 }
 
 impl Package {
+    // function to install package
     pub fn install(script: String, name: String, path: String) {
         println!("\nReview Script\n{}", script);
 
@@ -188,6 +189,86 @@ impl Package {
 
             // write new config
             wix::writefs(wix_path.clone(), new_config).unwrap();
+        }
+    }
+
+
+    // function to uninstall package
+    pub fn uninstall(script: String, name: String, path: String) {
+        println!("\nReview Script\n{}", script);
+
+        let question = format!("Do you want to uninstall {}?", name);
+
+        if wix::question!(question) {
+            println!("\nUninstalling {}.\n", name);
+
+            let function = wix::lang::get_data::<bool>(
+                script.clone(),
+                path.clone(),
+                name.clone(),
+                None,
+                Some("uninstall".to_string()),
+            );
+
+            // TODO: add support for uninstalling packages with no uninstall function
+
+            // get installed_packages list from config
+            // remove package from installed_packages list
+
+            // read config
+            let wix_path = dirs::home_dir()
+                .unwrap()
+                .join("wix/wix.py")
+                .to_str()
+                .unwrap()
+                .to_string();
+            let config = wix::readfs(wix_path.clone()).unwrap();
+
+            // get installed_packages list
+            let mut installed_packages = wix::lang::get_data::<HashMap<String, String>>(
+                config.clone(),
+                wix_path.clone(),
+                "wix".to_string(),
+                Some("installed_packages".to_string()),
+                None,
+            )
+            .unwrap();
+
+            // check if package is already installed
+            if !installed_packages.contains_key(&name) {
+                println!("{} is not installed.", name);
+                exit!(1);
+            }
+
+            if function.unwrap_err().contains("TypeError: 'function'") {
+
+                // call install function
+                match wix::lang::call_func(script, path, name.clone(), "uninstall".to_string()) {
+                    Ok(()) => println!("\n{} uninstalled successfully.", name),
+                    Err(e) => {
+                        println!("\n{} failed to uninstall.", name);
+                        println!("{}", e);
+                        exit!(1);
+                    }
+                }
+                
+            }
+
+            // remove package from installed_packages list
+            installed_packages.remove(&name);
+
+            let new_installed_packages =
+                format!("installed_packages = {:?}", installed_packages.clone()).replace("\"", "'");
+
+            // remove everything between { and } from config
+            let start_bytes = config.find("installed_packages = {").unwrap();
+            let end_bytes = config.find("}").unwrap();
+            let mut new_config = config.clone();
+            new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
+
+            // write new config
+            wix::writefs(wix_path.clone(), new_config).unwrap();
+
         }
     }
 }

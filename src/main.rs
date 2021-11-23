@@ -51,41 +51,64 @@ async fn main() {
 
     // check if wix.py is up to date
 
+    let os = "windows".to_string();
+    let version = "latest".to_string();
+    let arch = "x86_64".to_string();
+    let mut path = dirs::home_dir()
+        .unwrap()
+        .join("wix/cache/{name}/{os}-{arch}/{version}.py")
+        .to_str()
+        .unwrap()
+        .to_string()
+        .replace("{name}", args.clone().package.as_str())
+        .replace("{os}", os.as_str())
+        .replace("{arch}", arch.as_str())
+        .replace("{version}", version.as_str());
+
+    if cfg!(windows) {
+        path = path.replace("/", "\\");
+    }
+
+    let package = get_package(
+        args.package.to_lowercase(),
+        version.clone(),
+        os.clone(),
+        arch.clone(),
+    )
+    .await
+    .unwrap();
+
     match args.status.as_str() {
         "install" => {
-            let os = "windows".to_string();
-            let version = "latest".to_string();
-            let arch = "x86_64".to_string();
-            let path = dirs::home_dir()
-                .unwrap()
-                .join("wix/cache/{name}/{os}-{arch}/{version}.py")
-                .to_str()
-                .unwrap()
-                .to_string()
-                .replace("{name}", args.clone().package.as_str())
-                .replace("{os}", os.as_str())
-                .replace("{arch}", arch.as_str())
-                .replace("{version}", version.as_str());
-
-            let package = get_package(
-                args.package.to_lowercase(),
-                version.clone(),
-                os.clone(),
-                arch.clone(),
-            )
-            .await
-            .unwrap();
-
             match package.as_str() {
                 "404: Not Found" => {
                     eprintln!("Error: Package not found in repository.");
                     exit!(1);
                 }
-                _ => wix::structs::Package::install(package, args.package.clone(), path)
+                _ => wix::structs::Package::install(package, args.package.clone(), path),
             }
         }
-        "uninstall" => println!("Uninstalling {}", args.package),
-        "search" => println!("Searching for {}", args.package),
+        "uninstall" => {
+            match package.as_str() {
+                "404: Not Found" => {
+                    eprintln!("Error: Package not found in repository.");
+                    exit!(1);
+                }
+                _ => wix::structs::Package::uninstall(package, args.package.clone(), path),
+            }
+        },
+        "search" => {
+            match package.as_str() {
+                "404: Not Found" => {
+                    eprintln!("Error: Package not found in repository.");
+                    exit!(1);
+                }
+                _ => {
+                    println!("{} cloned to path '{}'.\nReview Script\n{}", args.package, path, package);
+                    exit!(0);
+                }
+            }
+        },
         "update" => println!("Updating {}", args.package),
         _ => {
             clear!();
@@ -176,7 +199,7 @@ pub async fn get_package(
         .unwrap()
         .to_string();
 
-    writefs(path, contents.clone());
+    let _ = writefs(path, contents.clone());
 
     Ok(contents)
 }
