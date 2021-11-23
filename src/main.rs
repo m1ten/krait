@@ -69,7 +69,7 @@ async fn main() {
         path = path.replace("/", "\\");
     }
 
-    let package = get_package(
+    let package = wix::structs::Package::get_package(
         args.package.to_lowercase(),
         version.clone(),
         os.clone(),
@@ -116,90 +116,4 @@ async fn main() {
             exit!(0);
         }
     }
-
-    // match std::env::var("USER") {
-    //     Ok(user) => {
-    //         match user.as_str() {
-    //             "root" => { eprintln!("Please run wix as a regular user."); return },
-    //             _ => (),
-    //         }
-    //     },
-    //     Err(e) => ()
-    // }
-
-    // let info_contents = wix::structs::Information::get_field_type(Some(info));
-
-    // let mut info_code = wix::lang::struct_to_py("Information".to_string(), info_contents);
-    // info_code = info_code.replace("Information = {}", "").replace("Information.", "");
-
-    // wix::file::writefs(
-    //     "wix.py".to_string(),
-    //     info_code.trim_start().to_string().trim_end().to_string()
-    // ).unwrap();
-}
-
-// search for a package by name and version and return the package from github repo
-// (e.g. "rust", "1.0.0")
-pub async fn get_package(
-    name: String,
-    version: String,
-    os: String,
-    arch: String,
-) -> Result<String, reqwest::Error> {
-    let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
-
-    let url = "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{folder}/{version}.py"
-        .replace("{name}", &name)
-        .replace("{folder}", &folder)
-        .replace("{version}", &version);
-
-    let client = reqwest::Client::new();
-    let contents = client
-        .get(url)
-        .header(reqwest::header::USER_AGENT, "Wix")
-        .send()
-        .await?
-        .text()
-        .await?;
-
-    // check if package exists in local cache
-    if !dirs::home_dir().unwrap().join("wix/cache/{name}").exists() {
-        // create cache folder
-        std::fs::create_dir_all(
-            dirs::home_dir().unwrap().join(
-                "wix/cache/{name}/{folder}/"
-                    .replace("{name}", &name)
-                    .replace("{folder}", &folder),
-            ),
-        )
-        .unwrap();
-    } else {
-        // check if package exists in cache
-        // if !dirs::home_dir().unwrap().join(
-        //     "wix/cache/{name}/{folder}/{version}.py"
-        //         .replace("{name}", &name)
-        //         .replace("{folder}", &folder)
-        //         .replace("{version}", &version),
-        // )
-        // .exists()
-        // {
-
-        // }
-    }
-
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(
-            "wix/cache/{name}/{folder}/{version}.py"
-                .replace("{name}", &name)
-                .replace("{folder}", &folder)
-                .replace("{version}", &version),
-        )
-        .to_str()
-        .unwrap()
-        .to_string();
-
-    let _ = writefs(path, contents.clone());
-
-    Ok(contents)
 }

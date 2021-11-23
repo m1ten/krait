@@ -111,6 +111,73 @@ pub struct Package {
 }
 
 impl Package {
+    // search for a package by name and version and return the package from github repo
+    // (e.g. "rust", "1.0.0")
+    pub async fn get_package(
+        name: String,
+        version: String,
+        os: String,
+        arch: String,
+    ) -> Result<String, reqwest::Error> {
+        let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
+
+        let url =
+            "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{folder}/{version}.py"
+                .replace("{name}", &name)
+                .replace("{folder}", &folder)
+                .replace("{version}", &version);
+
+        let client = reqwest::Client::new();
+        let contents = client
+            .get(url)
+            .header(reqwest::header::USER_AGENT, "Wix")
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        // check if package exists in local cache
+        if !dirs::home_dir().unwrap().join("wix/cache/{name}").exists() {
+            // create cache folder
+            std::fs::create_dir_all(
+                dirs::home_dir().unwrap().join(
+                    "wix/cache/{name}/{folder}/"
+                        .replace("{name}", &name)
+                        .replace("{folder}", &folder),
+                ),
+            )
+            .unwrap();
+        } else {
+            // check if package exists in cache
+            // if !dirs::home_dir().unwrap().join(
+            //     "wix/cache/{name}/{folder}/{version}.py"
+            //         .replace("{name}", &name)
+            //         .replace("{folder}", &folder)
+            //         .replace("{version}", &version),
+            // )
+            // .exists()
+            // {
+
+            // }
+        }
+
+        let path = dirs::home_dir()
+            .unwrap()
+            .join(
+                "wix/cache/{name}/{folder}/{version}.py"
+                    .replace("{name}", &name)
+                    .replace("{folder}", &folder)
+                    .replace("{version}", &version),
+            )
+            .to_str()
+            .unwrap()
+            .to_string();
+
+        let _ = wix::writefs(path, contents.clone());
+
+        Ok(contents)
+    }
+
     // function to install package
     pub fn install(script: String, name: String, path: String) {
         println!("\nReview Script\n{}", script);
@@ -161,7 +228,6 @@ impl Package {
             }
 
             if function.unwrap_err().contains("TypeError: 'function'") {
-
                 // call install function
                 match wix::lang::call_func(script, path, name.clone(), "install".to_string()) {
                     Ok(()) => println!("\n{} installed successfully.", name),
@@ -171,8 +237,6 @@ impl Package {
                         exit!(1);
                     }
                 }
-
-                
             }
 
             // add package to installed_packages list
@@ -191,7 +255,6 @@ impl Package {
             wix::writefs(wix_path.clone(), new_config).unwrap();
         }
     }
-
 
     // function to uninstall package
     pub fn uninstall(script: String, name: String, path: String) {
@@ -241,7 +304,6 @@ impl Package {
             }
 
             if function.unwrap_err().contains("TypeError: 'function'") {
-
                 // call install function
                 match wix::lang::call_func(script, path, name.clone(), "uninstall".to_string()) {
                     Ok(()) => println!("\n{} uninstalled successfully.", name),
@@ -251,7 +313,6 @@ impl Package {
                         exit!(1);
                     }
                 }
-                
             }
 
             // remove package from installed_packages list
@@ -268,7 +329,6 @@ impl Package {
 
             // write new config
             wix::writefs(wix_path.clone(), new_config).unwrap();
-
         }
     }
 }
