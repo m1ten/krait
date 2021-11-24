@@ -45,7 +45,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix.exe
         asset_name: wix-windows-x86_64.exe
-        tag: "*"
+        tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
       
@@ -74,7 +74,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix
         asset_name: wix-linux-x86_64
-        tag: "*"
+        tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
     
@@ -104,6 +104,6 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: target/release/wix
         asset_name: wix-macos-x86_64
-        tag: "*"
+        tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
