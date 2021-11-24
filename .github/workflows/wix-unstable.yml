@@ -1,4 +1,4 @@
-name: compile and release wix
+name: compile and release wix unstable
 
 on:
   push:
