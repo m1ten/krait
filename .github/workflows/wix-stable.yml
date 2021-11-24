@@ -1,0 +1,109 @@
+name: compile and release wix
+
+on:
+  push:
+    tags: 
+      - '*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  create-release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+
+  build-windows:
+    
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+    
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/wix.exe
+        asset_name: wix-windows-x86_64.exe
+        tag: "*"
+        overwrite: false
+        prerelease: true
+      
+  build-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/wix
+        asset_name: wix-linux-x86_64
+        tag: "*"
+        overwrite: false
+        prerelease: true
+    
+  build-macos:
+
+    runs-on: macos-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '1'
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: x86_64-apple-darwin
+        default: true
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/wix
+        asset_name: wix-macos-x86_64
+        tag: "*"
+        overwrite: false
+        prerelease: true
