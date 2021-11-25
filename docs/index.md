@@ -1,37 +1,33 @@
-## Welcome to GitHub Pages
+## Installation
 
-You can use the [editor on GitHub](https://github.com/m1ten/wix/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+Download the latest binary from [releases](https://github.com/m1ten/wix/releases)
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+```sh
+# Unix-Like: Give execution permission to wix and run
+$ chmod +x wix && ./wix
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+# Windows: Run the exe
+$ .\wix.exe
 ```
+### Building from source 
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+1. Install dependencies
+   1. [Python >=3.8](https://python.org/)
+   2. [Rust >=1.56.0](https://blog.rust-lang.org/2021/10/21/Rust-1.56.0.html) using [`rustup`](https://www.rust-lang.org/tools/install)
+   ```sh
+   $ rustup toolchain install stable
+   ```
 
-### Jekyll Themes
+2. Clone the [source](https://github.com/m1ten/wix) using [`git`](https://git-scm.com/)
+    ```sh
+    $ git clone https://github.com/m1ten/wix.git
+    $ cd wix
+    ```
+3. Build and run using [`cargo`](https://doc.rust-lang.org/stable/cargo/)
+    ```sh
+    $ cargo +stable run --release
+    ```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/m1ten/wix/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+## License
 
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+wix is licensed under [zlib](./LICENSE).
