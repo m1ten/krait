@@ -76,10 +76,13 @@ pub fn is_python_installed() -> bool {
     let name: Vec<&str> = vec!["py", "python", "python3", "pypy", "pypy3"];
     let version: Vec<&str> = vec!["3.8", "3.9", "3.10"];
     for i in name.iter() {
+        println!("Checking if {} is installed...", i);
         for j in version.iter() {
+            println!("{} version...", j);
             match Command::new(i).arg("--version").output() {
                 Ok(o) => {
                     if String::from_utf8(o.stdout).unwrap().contains(j) {
+                        exit!(0);
                         return true;
                     }
                 },
