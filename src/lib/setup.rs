@@ -77,14 +77,14 @@ pub fn is_python_installed() -> bool {
     let version: Vec<&str> = vec!["3.8", "3.9", "3.10"];
     for i in name.iter() {
         for j in version.iter() {
-            let output = match Command::new(i).arg("--version").output() {
-                Ok(o) => o,
+            match Command::new(i).arg("--version").output() {
+                Ok(o) => {
+                    if String::from_utf8(o.stdout).unwrap().contains(j) {
+                        return true;
+                    }
+                },
                 Err(_) => return false,
             };
-            let output = String::from_utf8_lossy(&output.stdout).to_string();
-            if output.contains(j) {
-                return true;
-            }
         }
     }
     false
