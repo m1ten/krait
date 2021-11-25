@@ -1,4 +1,4 @@
-use wix::{clear, exit, question, structs::Configuration, writefs};
+use wix::{clear, exit, question, structs::Configuration};
 
 #[tokio::main]
 async fn main() {
@@ -51,16 +51,17 @@ async fn main() {
 
     // check if wix.py is up to date
 
-    let os = "windows".to_string();
-    let version = "latest".to_string();
-    let arch = "x86_64".to_string();
+    let pkg_name = args.package;
+    let os = wix::setup::get_os();
+    let version = args.version.clone();
+    let arch = wix::setup::get_arch();
     let mut path = dirs::home_dir()
         .unwrap()
         .join("wix/cache/{name}/{os}-{arch}/{version}.py")
         .to_str()
         .unwrap()
         .to_string()
-        .replace("{name}", args.clone().package.as_str())
+        .replace("{name}", pkg_name.as_str())
         .replace("{os}", os.as_str())
         .replace("{arch}", arch.as_str())
         .replace("{version}", version.as_str());
@@ -70,7 +71,7 @@ async fn main() {
     }
 
     let package = wix::structs::Package::get_package(
-        args.package.to_lowercase(),
+        pkg_name.clone().to_lowercase(),
         version.clone(),
         os.clone(),
         arch.clone(),
@@ -82,10 +83,10 @@ async fn main() {
         "install" => {
             match package.as_str() {
                 "404: Not Found" => {
-                    eprintln!("Error: Package not found in repository.");
+                    eprintln!("Error: {}@{} not found in repository.", pkg_name, version);
                     exit!(1);
                 }
-                _ => wix::structs::Package::install(package, args.package.clone(), path),
+                _ => wix::structs::Package::install(package, pkg_name, path),
             }
         }
         "uninstall" => {
@@ -94,7 +95,7 @@ async fn main() {
                     eprintln!("Error: Package not found in repository.");
                     exit!(1);
                 }
-                _ => wix::structs::Package::uninstall(package, args.package.clone(), path),
+                _ => wix::structs::Package::uninstall(package, pkg_name, path),
             }
         },
         "search" => {
@@ -104,12 +105,12 @@ async fn main() {
                     exit!(1);
                 }
                 _ => {
-                    println!("{} cloned to path '{}'.\nReview Script\n{}", args.package, path, package);
+                    println!("{} cloned to path '{}'.\nReview Script\n{}", pkg_name, path, package);
                     exit!(0);
                 }
             }
         },
-        "update" => println!("Updating {}", args.package),
+        "update" => println!("Updating {}", pkg_name),
         _ => {
             clear!();
             println!("{}", args.help);

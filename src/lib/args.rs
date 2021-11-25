@@ -4,10 +4,11 @@ use clap::{App, Arg, SubCommand};
 // wix args struct
 #[derive(Debug, Clone)]
 pub struct Arguments {
-	pub help: String,
+    pub help: String,
     pub assume_yes: bool,
     pub status: String,
     pub package: String,
+    pub version: String,
 }
 
 impl Arguments {
@@ -30,12 +31,18 @@ impl Arguments {
                 SubCommand::with_name("install")
                     .about("install a package")
                     .visible_aliases(&["i", "in"])
-                    .arg(
+                    .args(&[
                         Arg::with_name("package")
-                            .help("package to install")
+                            .help("the package to install")
                             .takes_value(true)
                             .required(true),
-                    ),
+                        Arg::with_name("version")
+                            .short("v")
+                            .long("version")
+                            .value_name("Version")
+                            .help("the version of the package to install")
+                            .takes_value(true),
+                    ]),
             )
             .subcommand(
                 SubCommand::with_name("uninstall")
@@ -73,7 +80,7 @@ impl Arguments {
 
         let mut help = Vec::new();
         app.write_long_help(&mut help).unwrap();
-		let help = String::from_utf8(help).unwrap();
+        let help = String::from_utf8(help).unwrap();
         let matches = app.get_matches();
 
         let list = vec!["install", "uninstall", "search"];
@@ -81,7 +88,7 @@ impl Arguments {
         for l in list {
             if matches.subcommand_matches(l).is_some() {
                 return Arguments {
-					help: help,
+                    help: help,
                     assume_yes: matches.is_present("assume-yes"),
                     status: l.to_string(),
                     package: matches
@@ -90,16 +97,23 @@ impl Arguments {
                         .value_of("package")
                         .unwrap()
                         .to_string(),
+                    version: matches
+                        .subcommand_matches(l)
+                        .unwrap()
+                        .value_of("version")
+                        .unwrap_or("latest")
+                        .to_string(),
                 };
             }
         }
 
         // convert vector string to struct arguments
         return Arguments {
-			help: help,
+            help: help,
             assume_yes: matches.is_present("assume-yes"),
             status: "".to_string(),
             package: "".to_string(),
+            version: "".to_string(),
         };
     }
 }
