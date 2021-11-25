@@ -1,13 +1,13 @@
-use wix::{clear, exit, question, structs::Configuration};
+use wix::{clear, exit, question, Information, Configuration, pkg};
 
 #[tokio::main]
 async fn main() {
-    let config: Configuration = wix::structs::Configuration {
+    let config: Configuration = Configuration {
         repo: "https:://github.com/m1ten/wix-pkgs".to_string(),
         mirror: None,
     };
 
-    let info = wix::structs::Information {
+    let info = Information {
         name: "wix".to_string(),
         author: "miten".to_string(),
         version: "0.1.0".to_string(),
@@ -70,7 +70,7 @@ async fn main() {
         path = path.replace("/", "\\");
     }
 
-    let package = wix::structs::Package::get_package(
+    let package = pkg::Package::get_package(
         pkg_name.clone().to_lowercase(),
         version.clone(),
         os.clone(),
@@ -86,7 +86,7 @@ async fn main() {
                     eprintln!("Error: {}@{} not found in repository.", pkg_name, version);
                     exit!(1);
                 }
-                _ => wix::structs::Package::install(package, pkg_name, path),
+                _ => pkg::Package::install(package, pkg_name, path),
             }
         }
         "uninstall" => {
@@ -95,7 +95,7 @@ async fn main() {
                     eprintln!("Error: Package not found in repository.");
                     exit!(1);
                 }
-                _ => wix::structs::Package::uninstall(package, pkg_name, path),
+                _ => pkg::Package::uninstall(package, pkg_name, path),
             }
         },
         "search" => {

@@ -1,84 +1,4 @@
-use std::collections::HashMap;
-
 use crate::{self as wix, exit};
-use indexmap::IndexMap;
-
-#[derive(Debug, Clone)]
-pub struct Information {
-    // wix name
-    pub name: String,
-
-    // wix author
-    pub author: String,
-
-    // wix version
-    pub version: String,
-
-    // wix description
-    pub description: String,
-
-    // wix license
-    pub license: String,
-
-    // wix git repository
-    pub git: String,
-}
-
-impl Information {
-    pub fn get_field_type(info: Option<Information>) -> IndexMap<String, String> {
-        let info = match info {
-            Some(i) => i,
-            None => {
-                let mut map = IndexMap::new();
-                map.insert("name".to_string(), "String".to_string());
-                map.insert("author".to_string(), "String".to_string());
-                map.insert("version".to_string(), "String".to_string());
-                map.insert("description".to_string(), "String".to_string());
-                map.insert("license".to_string(), "String".to_string());
-                map.insert("git".to_string(), "String".to_string());
-                return map;
-            }
-        };
-        let mut map = IndexMap::new();
-        map.insert("name".to_string(), info.name.clone());
-        map.insert("author".to_string(), info.author.clone());
-        map.insert("version".to_string(), info.version.clone());
-        map.insert("description".to_string(), info.description.clone());
-        map.insert("license".to_string(), info.license.clone());
-        map.insert("git".to_string(), info.git.clone());
-        map
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Configuration {
-    // wix repo
-    pub repo: String,
-
-    // wix name
-    pub mirror: Option<String>,
-}
-
-impl Configuration {
-    pub fn get_field_type(config: Option<Configuration>) -> IndexMap<String, String> {
-        let config = match config {
-            Some(i) => i,
-            None => {
-                let mut map = IndexMap::new();
-                map.insert("repo".to_string(), "String".to_string());
-                map.insert("mirror".to_string(), "String".to_string());
-                return map;
-            }
-        };
-        let mut map = IndexMap::new();
-        map.insert("repo".to_string(), config.repo.clone());
-        map.insert(
-            "mirror".to_string(),
-            config.mirror.clone().unwrap_or("".to_string()),
-        );
-        map
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct Package {
@@ -187,7 +107,7 @@ impl Package {
         if wix::question!(question) {
             println!("\nInstalling {}.\n", name);
 
-            let function = wix::lang::get_data::<bool>(
+            let function = wix::py::get_data::<bool>(
                 script.clone(),
                 path.clone(),
                 name.clone(),
@@ -210,14 +130,15 @@ impl Package {
             let config = wix::readfs(wix_path.clone()).unwrap();
 
             // get installed_packages list
-            let mut installed_packages = wix::lang::get_data::<HashMap<String, String>>(
-                config.clone(),
-                wix_path.clone(),
-                "wix".to_string(),
-                Some("installed_packages".to_string()),
-                None,
-            )
-            .unwrap();
+            let mut installed_packages =
+                wix::py::get_data::<std::collections::HashMap<String, String>>(
+                    config.clone(),
+                    wix_path.clone(),
+                    "wix".to_string(),
+                    Some("installed_packages".to_string()),
+                    None,
+                )
+                .unwrap();
 
             let version = "latest".to_string();
 
@@ -229,7 +150,7 @@ impl Package {
 
             if function.unwrap_err().contains("TypeError: 'function'") {
                 // call install function
-                match wix::lang::call_func(script, path, name.clone(), "install".to_string()) {
+                match wix::py::call_func(script, path, name.clone(), "install".to_string()) {
                     Ok(()) => println!("\n{} installed successfully.", name),
                     Err(e) => {
                         println!("\n{} failed to install.", name);
@@ -265,7 +186,7 @@ impl Package {
         if wix::question!(question) {
             println!("\nUninstalling {}.\n", name);
 
-            let function = wix::lang::get_data::<bool>(
+            let function = wix::py::get_data::<bool>(
                 script.clone(),
                 path.clone(),
                 name.clone(),
@@ -288,14 +209,15 @@ impl Package {
             let config = wix::readfs(wix_path.clone()).unwrap();
 
             // get installed_packages list
-            let mut installed_packages = wix::lang::get_data::<HashMap<String, String>>(
-                config.clone(),
-                wix_path.clone(),
-                "wix".to_string(),
-                Some("installed_packages".to_string()),
-                None,
-            )
-            .unwrap();
+            let mut installed_packages =
+                wix::py::get_data::<std::collections::HashMap<String, String>>(
+                    config.clone(),
+                    wix_path.clone(),
+                    "wix".to_string(),
+                    Some("installed_packages".to_string()),
+                    None,
+                )
+                .unwrap();
 
             // check if package is already installed
             if !installed_packages.contains_key(&name) {
@@ -305,7 +227,7 @@ impl Package {
 
             if function.unwrap_err().contains("TypeError: 'function'") {
                 // call install function
-                match wix::lang::call_func(script, path, name.clone(), "uninstall".to_string()) {
+                match wix::py::call_func(script, path, name.clone(), "uninstall".to_string()) {
                     Ok(()) => println!("\n{} uninstalled successfully.", name),
                     Err(e) => {
                         println!("\n{} failed to uninstall.", name);

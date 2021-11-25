@@ -13,7 +13,7 @@ pub struct Arguments {
 
 impl Arguments {
     // function to get wix args
-    pub fn new(info: wix::structs::Information) -> Arguments {
+    pub fn new(info: wix::Information) -> Arguments {
         // get custom args
         let mut app = App::new(info.name)
             .version(info.version.as_str())

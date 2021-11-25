@@ -1,10 +1,4 @@
-use crate::{
-    self as wix,
-    args::Arguments,
-    exit, question,
-    structs::{Configuration, Information},
-    writefs,
-};
+use crate::{self as wix, args::Arguments, exit, question, writefs, Configuration, Information};
 use std::{fs, process::Command, vec};
 
 pub fn run(info: Information, config: Configuration, _args: Arguments) {
@@ -28,16 +22,16 @@ pub fn run(info: Information, config: Configuration, _args: Arguments) {
     // create wix.py file
     println!("Creating wix.py file...");
 
-    let info_code = &wix::lang::struct_to_py(
+    let info_code = &wix::py::struct_to_py(
         "Information".to_string(),
-        wix::structs::Information::get_field_type(Some(info)),
+        Information::get_field_type(Some(info)),
     )
     .replace("Information = {}", "")
     .replace("Information.", "");
 
-    let config_code = &wix::lang::struct_to_py(
+    let config_code = &wix::py::struct_to_py(
         "Configuration".to_string(),
-        wix::structs::Configuration::get_field_type(Some(config)),
+        Configuration::get_field_type(Some(config)),
     )
     .replace("Configuration = {}", "")
     .replace("Configuration.", "");
@@ -80,9 +74,9 @@ pub fn is_python_installed() -> bool {
             match Command::new(i).arg("--version").output() {
                 Ok(o) => {
                     if String::from_utf8(o.stdout).unwrap().contains(j) {
-                        return true
+                        return true;
                     }
-                },
+                }
                 Err(_) => continue,
             };
         }
@@ -123,7 +117,7 @@ pub fn get_os() -> String {
     }
 }
 
-// get the current architecture 
+// get the current architecture
 pub fn get_arch() -> String {
     if cfg!(target_arch = "x86_64") {
         "x86_64".to_string()
