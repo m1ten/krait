@@ -77,7 +77,7 @@ pub fn is_python_installed() -> bool {
     let version: Vec<&str> = vec!["3.8", "3.9", "3.10"];
     for i in name.iter() {
         for j in version.iter() {
-            let output = match Command::new(*i).arg("--version").output() {
+            let output = match Command::new(i).arg("--version").output() {
                 Ok(o) => o,
                 Err(_) => return false,
             };
