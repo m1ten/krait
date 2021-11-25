@@ -10,7 +10,7 @@ license = "Zlib"
 
 [lib]
 name = "wix"
-path = "src/lib.rs"
+path = "src/lib/mod.rs"
 
 [dependencies]
 clap = "2.33.3"
