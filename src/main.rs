@@ -58,11 +58,11 @@ async fn main() {
         Some(p) => {
             pkg_name = p.0.clone();
             pkg_version = p.1.clone();
-        },
+        }
         None => {
             pkg_name = "".to_string();
             pkg_version = "".to_string();
-        },
+        }
     };
 
     let os = wix::setup::get_os();
@@ -82,14 +82,18 @@ async fn main() {
         path = path.replace("/", "\\");
     }
 
-    let package = pkg::Package::get_package(
-        pkg_name.clone().to_lowercase(),
-        pkg_version.clone(),
-        os.clone(),
-        arch.clone(),
-    )
-    .await
-    .unwrap();
+    let package = if !pkg_name.is_empty() {
+        pkg::Package::get_package(
+            pkg_name.clone().to_lowercase(),
+            pkg_version.clone(),
+            os.clone(),
+            arch.clone(),
+        )
+        .await
+        .unwrap()
+    } else {
+        String::from("")
+    };
 
     match args.status.as_str() {
         "install" => match package.as_str() {
@@ -125,19 +129,20 @@ async fn main() {
         "update" => println!("Updating {}", pkg_name),
         "clean" => {
             println!("Cleaning up.");
-            std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/"))
-                .unwrap_or_else(|err| {
+            std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(
+                |err| {
                     eprintln!("Error Cleaning Cache: {}", err);
                     exit!(1);
-                });
-            
+                },
+            );
+
             println!("Cache Cleaned!");
             exit!(0);
-        },
+        }
         _ => {
             clear!();
             println!("{}", args.help);
             exit!(0);
-        },
+        }
     }
 }
