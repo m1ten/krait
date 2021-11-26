@@ -1,4 +1,4 @@
-use wix::{clear, exit, question, Information, Configuration, pkg};
+use wix::{clear, exit, pkg, question, Configuration, Information};
 
 #[tokio::main]
 async fn main() {
@@ -11,7 +11,7 @@ async fn main() {
         name: "wix".to_string(),
         author: "miten".to_string(),
         version: "0.1.0".to_string(),
-        description: "wix - cross platform package manager".to_string(),
+        description: "cross platform package manager".to_string(),
         license: "zlib".to_string(),
         git: "https://github.com/m1ten/wix".to_string(),
     };
@@ -51,9 +51,21 @@ async fn main() {
 
     // check if wix.py is up to date
 
-    let pkg_name = args.package;
+    let pkg_name;
+    let pkg_version;
+
+    match args.package.get_index(0) {
+        Some(p) => {
+            pkg_name = p.0.clone();
+            pkg_version = p.1.clone();
+        },
+        None => {
+            pkg_name = "".to_string();
+            pkg_version = "".to_string();
+        },
+    };
+
     let os = wix::setup::get_os();
-    let version = args.version.clone();
     let arch = wix::setup::get_arch();
     let mut path = dirs::home_dir()
         .unwrap()
@@ -64,7 +76,7 @@ async fn main() {
         .replace("{name}", pkg_name.as_str())
         .replace("{os}", os.as_str())
         .replace("{arch}", arch.as_str())
-        .replace("{version}", version.as_str());
+        .replace("{version}", pkg_version.as_str());
 
     if cfg!(windows) {
         path = path.replace("/", "\\");
@@ -72,7 +84,7 @@ async fn main() {
 
     let package = pkg::Package::get_package(
         pkg_name.clone().to_lowercase(),
-        version.clone(),
+        pkg_version.clone(),
         os.clone(),
         arch.clone(),
     )
@@ -80,41 +92,52 @@ async fn main() {
     .unwrap();
 
     match args.status.as_str() {
-        "install" => {
-            match package.as_str() {
-                "404: Not Found" => {
-                    eprintln!("Error: {}@{} not found in repository.", pkg_name, version);
-                    exit!(1);
-                }
-                _ => pkg::Package::install(package, pkg_name, path),
+        "install" => match package.as_str() {
+            "404: Not Found" => {
+                eprintln!(
+                    "Error: {}@{} not found in repository.",
+                    pkg_name, pkg_version
+                );
+                exit!(1);
             }
-        }
-        "uninstall" => {
-            match package.as_str() {
-                "404: Not Found" => {
-                    eprintln!("Error: Package not found in repository.");
-                    exit!(1);
-                }
-                _ => pkg::Package::uninstall(package, pkg_name, path),
-            }
+            _ => pkg::Package::install(package, pkg_name, path),
         },
-        "search" => {
-            match package.as_str() {
-                "404: Not Found" => {
-                    eprintln!("Error: Package not found in repository.");
-                    exit!(1);
-                }
-                _ => {
-                    println!("{} cloned to path '{}'.\nReview Script\n{}", pkg_name, path, package);
-                    exit!(0);
-                }
+        "uninstall" => match package.as_str() {
+            "404: Not Found" => {
+                eprintln!("Error: Package not found in repository.");
+                exit!(1);
+            }
+            _ => pkg::Package::uninstall(package, pkg_name, path),
+        },
+        "search" => match package.as_str() {
+            "404: Not Found" => {
+                eprintln!("Error: Package not found in repository.");
+                exit!(1);
+            }
+            _ => {
+                println!(
+                    "{} cloned to path '{}'.\nReview Script\n{}",
+                    pkg_name, path, package
+                );
+                exit!(0);
             }
         },
         "update" => println!("Updating {}", pkg_name),
+        "clean" => {
+            println!("Cleaning up.");
+            std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/"))
+                .unwrap_or_else(|err| {
+                    eprintln!("Error Cleaning Cache: {}", err);
+                    exit!(1);
+                });
+            
+            println!("Cache Cleaned!");
+            exit!(0);
+        },
         _ => {
             clear!();
             println!("{}", args.help);
             exit!(0);
-        }
+        },
     }
 }
