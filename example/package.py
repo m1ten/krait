@@ -21,7 +21,7 @@ dependencies = ["pkg-dep-1", "pkg-dep-1"] # Multiple dependency list
 optional_depedency = None # For one optional dependency, use this variable name
 optional_dependencies = ["pkg-opt-dep-1", "pkg-opt-dep-2"] # Multiple optional dependencies
 supported_os = ["macOS", "Linux", "Windows"] # Supported OS list
-# For a full list of supported variables, see https://m1ten.github.io/wix/
+# For a full list of supported variables, see https://github.com/m1ten/wix/wiki/
 
 def install(): # Manual installation 
 	wix.print("Installing Dependencies")
