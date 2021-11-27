@@ -50,65 +50,67 @@ async fn main() {
     }
 
     // check if wix.py is up to date
-
-    let pkg_name;
-    let pkg_version;
-
-    match args.package.get_index(0) {
-        Some(p) => {
-            pkg_name = p.0.clone();
-            pkg_version = p.1.clone();
-        }
-        None => {
-            pkg_name = "".to_string();
-            pkg_version = "".to_string();
-        }
-    };
-
+    let pkgs: Vec<wix::pkg::Pkg>;
     let os = wix::setup::get_os();
     let arch = wix::setup::get_arch();
-    let mut path = dirs::home_dir()
-        .unwrap()
-        .join("wix/cache/{name}/{os}-{arch}/{version}.py")
-        .to_str()
-        .unwrap()
-        .to_string()
-        .replace("{name}", pkg_name.as_str())
-        .replace("{os}", os.as_str())
-        .replace("{arch}", arch.as_str())
-        .replace("{version}", pkg_version.as_str());
 
-    if cfg!(windows) {
-        path = path.replace("/", "\\");
+    for pkg in args.package.clone() {
+        let pkg_name = pkg.0;
+        let pkg_version = pkg.1;
+
+        let mut pkg_path = dirs::home_dir()
+            .unwrap()
+            .join("wix/cache/{name}/{os}-{arch}/{version}.py")
+            .to_str()
+            .unwrap()
+            .to_string()
+            .replace("{name}", pkg_name.as_str())
+            .replace("{os}", os.as_str())
+            .replace("{arch}", arch.as_str())
+            .replace("{version}", pkg_version.as_str());
+
+        if cfg!(windows) {
+            pkg_path = pkg_path.replace("/", "\\");
+        }
+
+        let pkg_script = if !pkg_name.is_empty() {
+            pkg::Package::get_package(
+                pkg_name.clone().to_lowercase(),
+                pkg_version.clone(),
+                os.clone(),
+                arch.clone(),
+            )
+            .await
+            .unwrap()
+        } else {
+            String::from("")
+        };
+
+        pkgs.push(wix::pkg::Pkg {
+            name: pkg_name.clone(),
+            version: pkg_version.clone(),
+            script: pkg_script,
+            path: pkg_path.clone(),
+        });
     }
-
-    let package = if !pkg_name.is_empty() {
-        pkg::Package::get_package(
-            pkg_name.clone().to_lowercase(),
-            pkg_version.clone(),
-            os.clone(),
-            arch.clone(),
-        )
-        .await
-        .unwrap()
-    } else {
-        String::from("")
-    };
 
     match args.status.as_str() {
         "install" => match package.as_str() {
             "404: Not Found" => {
                 eprintln!(
-                    "Error: {}@{} not found in repository.",
+                    "Error: '{}@{}' not found in repository.",
                     pkg_name, pkg_version
                 );
                 exit!(1);
             }
-            _ => pkg::Package::install(package, pkg_name, path),
+            _ => pkg::Package::install(pkgs.clone()).await,
         },
         "uninstall" => match package.as_str() {
             "404: Not Found" => {
-                eprintln!("Error: Package not found in repository.");
+                eprintln!(
+                    "Error: '{}@{}' not found in repository.",
+                    pkg_name, pkg_version
+                );
                 exit!(1);
             }
             _ => pkg::Package::uninstall(package, pkg_name, path),

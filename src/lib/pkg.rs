@@ -1,6 +1,14 @@
 use crate::{self as wix, exit};
 
 #[derive(Debug, Clone)]
+pub struct Pkg {
+    name: String,
+    version: String,
+    script: String,
+    path: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct Package {
     // package name (e.g. "rust-lang/rust")
     pub name: String,
@@ -98,8 +106,10 @@ impl Package {
         Ok(contents)
     }
 
+    // TODO: add support for multiple packages
+
     // function to install package
-    pub fn install(script: String, name: String, path: String) {
+    pub async fn install(pkgs: Vec<Pkg>) {
         println!("\nReview Script\n{}", script);
 
         let question = format!("Do you want to install {}?", name);
