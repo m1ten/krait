@@ -8,6 +8,22 @@ pub struct Pkg {
     pub path: String,
 }
 
+impl Pkg {
+    pub fn new(name: &str, version: &str, script: &str, path: &str) -> Pkg {
+        Pkg {
+            name: name.to_string(),
+            version: version.to_string(),
+            script: script.to_string(),
+            path: path.to_string(),
+        }
+    }
+
+    // install self 
+    pub fn install(&self) {
+        println!("Installing {:?}", self);   
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Package {
     // package name (e.g. "rust-lang/rust")

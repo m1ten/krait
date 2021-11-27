@@ -100,6 +100,8 @@ async fn main() {
         if p.script == "404: Not Found" {
             eprintln!("Error: Package {} not found.", p.name);
             exit!(1);
+        } else {
+            p.install();
         }
     }
 
