@@ -50,7 +50,7 @@ async fn main() {
     }
 
     // check if wix.py is up to date
-    let pkgs: Vec<wix::pkg::Pkg>;
+    let mut pkgs: Vec<wix::pkg::Pkg> = vec![];
     let os = wix::setup::get_os();
     let arch = wix::setup::get_arch();
 
@@ -92,43 +92,22 @@ async fn main() {
             script: pkg_script,
             path: pkg_path.clone(),
         });
+
+    }     
+    
+
+    for p in pkgs.clone() {
+        if p.script == "404: Not Found" {
+            eprintln!("Error: Package {} not found.", p.name);
+            exit!(1);
+        }
     }
 
     match args.status.as_str() {
-        "install" => match package.as_str() {
-            "404: Not Found" => {
-                eprintln!(
-                    "Error: '{}@{}' not found in repository.",
-                    pkg_name, pkg_version
-                );
-                exit!(1);
-            }
-            _ => pkg::Package::install(pkgs.clone()).await,
-        },
-        "uninstall" => match package.as_str() {
-            "404: Not Found" => {
-                eprintln!(
-                    "Error: '{}@{}' not found in repository.",
-                    pkg_name, pkg_version
-                );
-                exit!(1);
-            }
-            _ => pkg::Package::uninstall(package, pkg_name, path),
-        },
-        "search" => match package.as_str() {
-            "404: Not Found" => {
-                eprintln!("Error: Package not found in repository.");
-                exit!(1);
-            }
-            _ => {
-                println!(
-                    "{} cloned to path '{}'.\nReview Script\n{}",
-                    pkg_name, path, package
-                );
-                exit!(0);
-            }
-        },
-        "update" => println!("Updating {}", pkg_name),
+        "install" => pkg::Package::install(pkgs.clone()).await,
+        "uninstall" => pkg::Package::uninstall(pkgs.clone()).await,
+        "search" => println!("Searching"),
+        "update" => println!("Updating"),
         "clean" => {
             println!("Cleaning up.");
             std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(

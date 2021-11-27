@@ -2,10 +2,10 @@ use crate::{self as wix, exit};
 
 #[derive(Debug, Clone)]
 pub struct Pkg {
-    name: String,
-    version: String,
-    script: String,
-    path: String,
+    pub name: String,
+    pub version: String,
+    pub script: String,
+    pub path: String,
 }
 
 #[derive(Debug, Clone)]
@@ -110,157 +110,166 @@ impl Package {
 
     // function to install package
     pub async fn install(pkgs: Vec<Pkg>) {
-        println!("\nReview Script\n{}", script);
+        for p in pkgs {
+            println!("\nReview Script\n{}", p.script);
 
-        let question = format!("Do you want to install {}?", name);
+            let question = format!("Do you want to install {}?", p.name);
 
-        if wix::question!(question) {
-            println!("\nInstalling {}.\n", name);
+            if wix::question!(question) {
+                println!("\nInstalling {}.\n", p.name);
 
-            let function = wix::py::get_data::<bool>(
-                script.clone(),
-                path.clone(),
-                name.clone(),
-                None,
-                Some("install".to_string()),
-            );
-
-            // TODO: add support for installing packages with no install function
-
-            // get installed_packages list from config
-            // add package to installed_packages list
-
-            // read config
-            let wix_path = dirs::home_dir()
-                .unwrap()
-                .join("wix/wix.py")
-                .to_str()
-                .unwrap()
-                .to_string();
-            let config = wix::readfs(wix_path.clone()).unwrap();
-
-            // get installed_packages list
-            let mut installed_packages =
-                wix::py::get_data::<std::collections::HashMap<String, String>>(
-                    config.clone(),
-                    wix_path.clone(),
-                    "wix".to_string(),
-                    Some("installed_packages".to_string()),
+                let function = wix::py::get_data::<bool>(
+                    p.script.clone(),
+                    p.path.clone(),
+                    p.name.clone(),
                     None,
-                )
-                .unwrap();
+                    Some("install".to_string()),
+                );
 
-            let version = "latest".to_string();
+                // TODO: add support for installing packages with no install function
 
-            // check if package is already installed
-            if installed_packages.contains_key(&name) {
-                println!("{} is already installed.", name);
-                exit!(1);
-            }
+                // get installed_packages list from config
+                // add package to installed_packages list
 
-            if function.unwrap_err().contains("TypeError: 'function'") {
-                // call install function
-                match wix::py::call_func(script, path, name.clone(), "install".to_string()) {
-                    Ok(()) => println!("\n{} installed successfully.", name),
-                    Err(e) => {
-                        println!("\n{} failed to install.", name);
-                        println!("{}", e);
-                        exit!(1);
+                // read config
+                let wix_path = dirs::home_dir()
+                    .unwrap()
+                    .join("wix/wix.py")
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                let config = wix::readfs(wix_path.clone()).unwrap();
+
+                // get installed_packages list
+                let mut installed_packages =
+                    wix::py::get_data::<std::collections::HashMap<String, String>>(
+                        config.clone(),
+                        wix_path.clone(),
+                        "wix".to_string(),
+                        Some("installed_packages".to_string()),
+                        None,
+                    )
+                    .unwrap();
+
+                // check if package is already installed
+                if installed_packages.contains_key(&p.name) {
+                    println!("{} is already installed.", p.name);
+                    exit!(1);
+                }
+
+                if function.unwrap_err().contains("TypeError: 'function'") {
+                    // call install function
+                    match wix::py::call_func(
+                        p.script,
+                        p.path,
+                        p.name.clone(),
+                        "install".to_string(),
+                    ) {
+                        Ok(()) => println!("\n{} installed successfully.", p.name),
+                        Err(e) => {
+                            println!("\n{} failed to install.", p.name);
+                            println!("{}", e);
+                            exit!(1);
+                        }
                     }
                 }
+
+                // add package to installed_packages list
+                installed_packages.insert(p.name.clone(), p.version.clone());
+
+                let new_installed_packages =
+                    format!("installed_packages = {:?}", installed_packages.clone())
+                        .replace("\"", "'");
+
+                // remove everything between { and } from config
+                let start_bytes = config.find("installed_packages = {").unwrap();
+                let end_bytes = config.find("}").unwrap();
+                let mut new_config = config.clone();
+                new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
+
+                // write new config
+                wix::writefs(wix_path.clone(), new_config).unwrap();
             }
-
-            // add package to installed_packages list
-            installed_packages.insert(name.clone(), version.clone());
-
-            let new_installed_packages =
-                format!("installed_packages = {:?}", installed_packages.clone()).replace("\"", "'");
-
-            // remove everything between { and } from config
-            let start_bytes = config.find("installed_packages = {").unwrap();
-            let end_bytes = config.find("}").unwrap();
-            let mut new_config = config.clone();
-            new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
-
-            // write new config
-            wix::writefs(wix_path.clone(), new_config).unwrap();
         }
     }
 
     // function to uninstall package
-    pub fn uninstall(script: String, name: String, path: String) {
-        println!("\nReview Script\n{}", script);
+    pub async fn uninstall(pkgs: Vec<Pkg>) {
+        for p in pkgs {
+            println!("\nReview Script\n{}", p.script);
 
-        let question = format!("Do you want to uninstall {}?", name);
+            let question = format!("Do you want to uninstall {}?", p.name);
 
-        if wix::question!(question) {
-            println!("\nUninstalling {}.\n", name);
+            if wix::question!(question) {
+                println!("\nUninstalling {}.\n", p.name);
 
-            let function = wix::py::get_data::<bool>(
-                script.clone(),
-                path.clone(),
-                name.clone(),
-                None,
-                Some("uninstall".to_string()),
-            );
-
-            // TODO: add support for uninstalling packages with no uninstall function
-
-            // get installed_packages list from config
-            // remove package from installed_packages list
-
-            // read config
-            let wix_path = dirs::home_dir()
-                .unwrap()
-                .join("wix/wix.py")
-                .to_str()
-                .unwrap()
-                .to_string();
-            let config = wix::readfs(wix_path.clone()).unwrap();
-
-            // get installed_packages list
-            let mut installed_packages =
-                wix::py::get_data::<std::collections::HashMap<String, String>>(
-                    config.clone(),
-                    wix_path.clone(),
-                    "wix".to_string(),
-                    Some("installed_packages".to_string()),
+                let function = wix::py::get_data::<bool>(
+                    p.script.clone(),
+                    p.path.clone(),
+                    p.name.clone(),
                     None,
-                )
-                .unwrap();
+                    Some("uninstall".to_string()),
+                );
 
-            // check if package is already installed
-            if !installed_packages.contains_key(&name) {
-                println!("{} is not installed.", name);
-                exit!(1);
-            }
+                // TODO: add support for uninstalling packages with no uninstall function
 
-            if function.unwrap_err().contains("TypeError: 'function'") {
-                // call install function
-                match wix::py::call_func(script, path, name.clone(), "uninstall".to_string()) {
-                    Ok(()) => println!("\n{} uninstalled successfully.", name),
-                    Err(e) => {
-                        println!("\n{} failed to uninstall.", name);
-                        println!("{}", e);
-                        exit!(1);
+                // get installed_packages list from config
+                // remove package from installed_packages list
+
+                // read config
+                let wix_path = dirs::home_dir()
+                    .unwrap()
+                    .join("wix/wix.py")
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                let config = wix::readfs(wix_path.clone()).unwrap();
+
+                // get installed_packages list
+                let mut installed_packages =
+                    wix::py::get_data::<std::collections::HashMap<String, String>>(
+                        config.clone(),
+                        wix_path.clone(),
+                        "wix".to_string(),
+                        Some("installed_packages".to_string()),
+                        None,
+                    )
+                    .unwrap();
+
+                // check if package is already installed
+                if !installed_packages.contains_key(&p.name) {
+                    println!("{} is not installed.", p.name);
+                    exit!(1);
+                }
+
+                if function.unwrap_err().contains("TypeError: 'function'") {
+                    // call install function
+                    match wix::py::call_func(p.script, p.path, p.name.clone(), "uninstall".to_string()) {
+                        Ok(()) => println!("\n{} uninstalled successfully.", p.name),
+                        Err(e) => {
+                            println!("\n{} failed to uninstall.", p.name);
+                            println!("{}", e);
+                            exit!(1);
+                        }
                     }
                 }
+
+                // remove package from installed_packages list
+                installed_packages.remove(&p.name);
+
+                let new_installed_packages =
+                    format!("installed_packages = {:?}", installed_packages.clone())
+                        .replace("\"", "'");
+
+                // remove everything between { and } from config
+                let start_bytes = config.find("installed_packages = {").unwrap();
+                let end_bytes = config.find("}").unwrap();
+                let mut new_config = config.clone();
+                new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
+
+                // write new config
+                wix::writefs(wix_path.clone(), new_config).unwrap();
             }
-
-            // remove package from installed_packages list
-            installed_packages.remove(&name);
-
-            let new_installed_packages =
-                format!("installed_packages = {:?}", installed_packages.clone()).replace("\"", "'");
-
-            // remove everything between { and } from config
-            let start_bytes = config.find("installed_packages = {").unwrap();
-            let end_bytes = config.find("}").unwrap();
-            let mut new_config = config.clone();
-            new_config.replace_range(start_bytes..end_bytes + 1, &new_installed_packages);
-
-            // write new config
-            wix::writefs(wix_path.clone(), new_config).unwrap();
         }
     }
 }
