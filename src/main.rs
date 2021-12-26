@@ -21,20 +21,20 @@ async fn main() {
     println!("Wix!\n");
 
     if wix::setup::is_super() {
-        eprintln!("{}", "Error: You are running wix as root.");
-        eprintln!("{}", "Please run wix as a normal user.");
+        eprintln!("Error: You are running wix as root.");
+        eprintln!("Please run wix as a normal user.");
         exit!(1);
     }
 
     if !wix::setup::is_python_installed() {
-        eprintln!("Error: Python >=3.8 is not installed.");
-        eprintln!("Please install and add Python to path then try again.");
+        eprintln!("Error: Python >=3.10 is not installed.");
+        eprintln!("Please install and add Python to path.");
         exit!(127);
     }
 
     if !wix::setup::is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
-        eprintln!("Please check your internet connection and try again.");
+        eprintln!("Please check your internet connection.");
         exit!(1);
     }
 
@@ -93,8 +93,8 @@ async fn main() {
             path: pkg_path.clone(),
         });
 
-    }     
-    
+    }
+
 
     for p in pkgs.clone() {
         if p.script == "404: Not Found" {
