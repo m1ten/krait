@@ -63,12 +63,12 @@ impl Package {
         os: String,
         arch: String,
     ) -> Result<String, reqwest::Error> {
-        let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
+        // let folder = "{os}-{arch}".replace("{os}", &os).replace("{arch}", &arch);
 
         let url =
-            "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{folder}/{version}.py"
+            "https://raw.githubusercontent.com/m1ten/wix-pkgs/main/{name}/{version}.py"
                 .replace("{name}", &name)
-                .replace("{folder}", &folder)
+                //.replace("{folder}", &folder)
                 .replace("{version}", &version);
 
         let client = reqwest::Client::new();
@@ -85,9 +85,9 @@ impl Package {
             // create cache folder
             std::fs::create_dir_all(
                 dirs::home_dir().unwrap().join(
-                    "wix/cache/{name}/{folder}/"
+                    "wix/cache/{name}/"
                         .replace("{name}", &name)
-                        .replace("{folder}", &folder),
+                        //.replace("{folder}", &folder),
                 ),
             )
             .unwrap();
@@ -108,9 +108,9 @@ impl Package {
         let path = dirs::home_dir()
             .unwrap()
             .join(
-                "wix/cache/{name}/{folder}/{version}.py"
+                "wix/cache/{name}/{version}.py"
                     .replace("{name}", &name)
-                    .replace("{folder}", &folder)
+                    //.replace("{folder}", &folder)
                     .replace("{version}", &version),
             )
             .to_str()

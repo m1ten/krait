@@ -66,20 +66,17 @@ pub fn is_super() -> bool {
 }
 
 // function to check if python is installed
-pub fn is_python_installed() -> bool {
+pub fn is_python_installed(v: &str) -> bool {
     let name: Vec<&str> = vec!["py", "python3", "python", "pypy3", "pypy"];
-    let version: Vec<&str> = vec!["3.8", "3.9", "3.10"];
-    for i in name.iter() {
-        for j in version.iter() {
-            match Command::new(i).arg("--version").output() {
+    for n in name.iter() {
+            match Command::new(n).arg("--version").output() {
                 Ok(o) => {
-                    if String::from_utf8(o.stdout).unwrap().contains(j) {
+                    if String::from_utf8(o.stdout).unwrap().contains(v) {
                         return true;
                     }
                 }
                 Err(_) => continue,
             };
-        }
     }
     false
 }

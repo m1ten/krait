@@ -26,7 +26,7 @@ async fn main() {
         exit!(1);
     }
 
-    if !wix::setup::is_python_installed() {
+    if !wix::setup::is_python_installed("3.10") {
         eprintln!("Error: Python >=3.10 is not installed.");
         eprintln!("Please install and add Python to path.");
         exit!(127);
