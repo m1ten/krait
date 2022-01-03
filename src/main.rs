@@ -92,22 +92,23 @@ async fn main() {
             script: pkg_script,
             path: pkg_path.clone(),
         });
-
     }
-
 
     for p in pkgs.clone() {
         if p.script == "404: Not Found" {
             eprintln!("Error: Package {} not found.", p.name);
             exit!(1);
-        } else {
-            p.install();
         }
     }
 
     match args.status.as_str() {
-        "install" => pkg::Package::install(pkgs.clone()).await,
-        "uninstall" => pkg::Package::uninstall(pkgs.clone()).await,
+        "install" => {
+            for p in pkgs {
+                p.install().await;
+            }
+        }
+        // "install" => pkg::Package::install(pkgs.clone()).await,
+        // "uninstall" => pkg::Package::uninstall(pkgs.clone()).await,
         "search" => println!("Searching"),
         "update" => println!("Updating"),
         "clean" => {
