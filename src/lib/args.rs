@@ -8,7 +8,7 @@ pub struct Arguments {
     pub help: String,
     pub assume_yes: bool,
     pub status: String,
-    pub package: IndexMap<String, String>,
+    pub pkgs: IndexMap<String, String>,
 }
 
 impl Arguments {
@@ -36,13 +36,7 @@ impl Arguments {
                             .help("the package to install")
                             .takes_value(true)
                             .required(true)
-                            .min_values(1),
-                        Arg::with_name("version")
-                            .short("v")
-                            .long("version")
-                            .value_name("Version")
-                            .help("the version of the package to install")
-                            .takes_value(true),
+                            .min_values(1)
                     ]),
             )
             .subcommand(
@@ -53,7 +47,8 @@ impl Arguments {
                         Arg::with_name("package")
                             .help("package to uninstall")
                             .takes_value(true)
-                            .required(true),
+                            .required(true)
+                            .min_values(1)
                     ),
             )
             .subcommand(
@@ -64,7 +59,8 @@ impl Arguments {
                         Arg::with_name("package")
                             .help("package to search")
                             .takes_value(true)
-                            .required(true),
+                            .required(true)
+                            .min_values(1)
                     ),
             )
             .subcommand(
@@ -75,7 +71,8 @@ impl Arguments {
                         Arg::with_name("package")
                             .help("package to update")
                             .takes_value(true)
-                            .required(true),
+                            .required(true)
+                            .min_values(1)
                     ),
             )
             .subcommand(
@@ -97,20 +94,18 @@ impl Arguments {
                     help: help,
                     assume_yes: matches.is_present("assume-yes"),
                     status: l.to_string(),
-                    package: matches
+                    pkgs: matches
                         .subcommand_matches(l)
                         .unwrap()
                         .values_of("package")
                         .unwrap()
-                        .map(|x| {
+                        .map(|p| {
                             (
-                                x.to_string(),
-                                matches
-                                    .subcommand_matches(l)
-                                    .unwrap()
-                                    .value_of("version")
-                                    .unwrap_or("latest")
-                                    .to_string(),
+                                // remove everything after @ in the package name
+                                p.split("@").next().unwrap().to_string(),
+
+                                // get everything after @ in the package name
+                                p.split("@").skip(1).next().unwrap().to_string(),
                             )
                         })
                         .collect(),
@@ -122,7 +117,7 @@ impl Arguments {
             help: help,
             assume_yes: matches.is_present("assume-yes"),
             status: matches.subcommand_name().unwrap_or("").to_string(),
-            package: IndexMap::new(),
+            pkgs: IndexMap::new(),
         };
     }
 }

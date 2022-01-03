@@ -1,4 +1,4 @@
-use wix::{clear, exit, pkg, question, Configuration, Information};
+use wix::{clear, exit, question, Configuration, Information};
 
 #[tokio::main]
 async fn main() {
@@ -49,68 +49,31 @@ async fn main() {
         }
     }
 
-    // check if wix.py is up to date
-    let mut pkgs: Vec<wix::pkg::Pkg> = vec![];
-    let os = wix::setup::get_os();
-    let arch = wix::setup::get_arch();
+    // TODO: check if wix.py is valid and up to date
 
-    for pkg in args.package.clone() {
-        let pkg_name = pkg.0;
-        let pkg_version = pkg.1;
+    let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
 
-        let mut pkg_path = dirs::home_dir()
-            .unwrap()
-            .join("wix/cache/{name}/{os}-{arch}/{version}.py")
-            .to_str()
-            .unwrap()
-            .to_string()
-            .replace("{name}", pkg_name.as_str())
-            .replace("{os}", os.as_str())
-            .replace("{arch}", arch.as_str())
-            .replace("{version}", pkg_version.as_str());
+    for arg_p in args.pkgs.clone() {
+        let name = arg_p.0;
+        let ver = arg_p.1;
 
-        if cfg!(windows) {
-            pkg_path = pkg_path.replace("/", "\\");
+        let pkg = wix::pkg::Pkg {
+            name,
+            ver: Some(ver),
+            ..Default::default()
         }
+        .search()
+        .await
+        .unwrap();
 
-        let pkg_script = if !pkg_name.is_empty() {
-            pkg::Package::get_package(
-                pkg_name.clone().to_lowercase(),
-                pkg_version.clone(),
-                os.clone(),
-                arch.clone(),
-            )
-            .await
-            .unwrap()
-        } else {
-            String::from("")
-        };
-
-        pkgs.push(wix::pkg::Pkg {
-            name: pkg_name.clone(),
-            version: pkg_version.clone(),
-            script: pkg_script,
-            path: pkg_path.clone(),
-        });
-    }
-
-    for p in pkgs.clone() {
-        if p.script == "404: Not Found" {
-            eprintln!("Error: Package {} not found.", p.name);
-            exit!(1);
-        }
+        pkgs.push(pkg);
     }
 
     match args.status.as_str() {
-        "install" => {
-            for p in pkgs {
-                p.install().await;
-            }
+        "search" => {
+            println!("{:?}", pkgs);
+            exit!(0);
         }
-        // "install" => pkg::Package::install(pkgs.clone()).await,
-        // "uninstall" => pkg::Package::uninstall(pkgs.clone()).await,
-        "search" => println!("Searching"),
-        "update" => println!("Updating"),
         "clean" => {
             println!("Cleaning up.");
             std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(

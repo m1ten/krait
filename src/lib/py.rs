@@ -105,15 +105,3 @@ pub fn struct_to_py(struct_name: String, struct_contents: indexmap::IndexMap<Str
     }
     code
 }
-
-// // rust hashmap to python dict
-// pub fn map_to_py(map: indexmap::IndexMap<String, String>) -> String {
-//     let mut code = String::new();
-//     code.push_str("{");
-//     for data in map {
-//         code.push_str(&format!("'{}': '{}'", data.0, data.1));
-//         code.push_str(",");
-//     }
-//     code.push_str("}");
-//     code
-// }
