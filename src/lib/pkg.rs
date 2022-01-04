@@ -64,7 +64,7 @@ impl Default for Pkg {
 
 impl Pkg {
     // search self
-    pub async fn search(mut self) -> Result<Self, reqwest::Error> {
+    pub async fn search(mut self) -> Result<Pkg, String> {
         if self.name.is_empty() {
             println!("Package name is required.");
             exit!(1);
@@ -83,6 +83,10 @@ impl Pkg {
                     .unwrap()
                     .to_string(),
             );
+
+            if self.os == "windows" {
+                self.path = Some(self.path.unwrap().replace("/", "\\"));
+            }
         }
 
         if self.url.is_none() {
@@ -104,12 +108,31 @@ impl Pkg {
                         .get(self.url.clone().unwrap())
                         .header(reqwest::header::USER_AGENT, "Wix")
                         .send()
-                        .await?
+                        .await
+                        .unwrap()
                         .text()
-                        .await?;
+                        .await
+                        .unwrap();
 
                     // write package script to local cache
+                    let new_path = if self.os != "windows" {
+                        self.path.clone().unwrap().replace(
+                            &"/{ver}.py".replace("/{ver}", &self.ver.clone().unwrap()),
+                            "",
+                        )
+                    } else {
+                        self.path.clone().unwrap().replace(
+                            &"\\{ver}.py".replace("\\{ver}", &self.ver.clone().unwrap()),
+                            "",
+                        )
+                    };
+                    std::fs::create_dir_all(new_path).unwrap();
                     let _ = wix::writefs(self.path.clone().unwrap(), res.clone());
+
+                    if res.clone().contains("404: Not Found") {
+                        println!("{}@{} not found.", self.name.clone(), self.ver.clone().unwrap());
+                        return Err(res);
+                    }
 
                     Some(res)
                 }
