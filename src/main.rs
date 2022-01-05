@@ -1,20 +1,8 @@
-use wix::{clear, exit, question, Configuration, Information};
+use wix::{clear, exit, question, WixPy};
 
 #[tokio::main]
 async fn main() {
-    let config: Configuration = Configuration {
-        repo: "https:://github.com/m1ten/wix-pkgs".to_string(),
-        mirror: None,
-    };
-
-    let info = Information {
-        name: "wix".to_string(),
-        author: "miten".to_string(),
-        ver: "0.1.0".to_string(),
-        desc: "cross platform package manager".to_string(),
-        license: "zlib".to_string(),
-        git: "https://github.com/m1ten/wix".to_string(),
-    };
+    let wix_py = WixPy::default();
 
     let args = wix::args::Arguments::new(info.clone());
 
