@@ -121,10 +121,10 @@ pub struct Information {
     pub author: String,
 
     // wix version
-    pub version: String,
+    pub ver: String,
 
     // wix description
-    pub description: String,
+    pub desc: String,
 
     // wix license
     pub license: String,
@@ -141,8 +141,8 @@ impl Information {
                 let mut map = IndexMap::new();
                 map.insert("name".to_string(), "String".to_string());
                 map.insert("author".to_string(), "String".to_string());
-                map.insert("version".to_string(), "String".to_string());
-                map.insert("description".to_string(), "String".to_string());
+                map.insert("ver".to_string(), "String".to_string());
+                map.insert("desc".to_string(), "String".to_string());
                 map.insert("license".to_string(), "String".to_string());
                 map.insert("git".to_string(), "String".to_string());
                 return map;
@@ -151,8 +151,8 @@ impl Information {
         let mut map = IndexMap::new();
         map.insert("name".to_string(), info.name.clone());
         map.insert("author".to_string(), info.author.clone());
-        map.insert("version".to_string(), info.version.clone());
-        map.insert("description".to_string(), info.description.clone());
+        map.insert("ver".to_string(), info.ver.clone());
+        map.insert("desc".to_string(), info.desc.clone());
         map.insert("license".to_string(), info.license.clone());
         map.insert("git".to_string(), info.git.clone());
         map

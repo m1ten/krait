@@ -10,8 +10,8 @@ async fn main() {
     let info = Information {
         name: "wix".to_string(),
         author: "miten".to_string(),
-        version: "0.1.0".to_string(),
-        description: "cross platform package manager".to_string(),
+        ver: "0.1.0".to_string(),
+        desc: "cross platform package manager".to_string(),
         license: "zlib".to_string(),
         git: "https://github.com/m1ten/wix".to_string(),
     };
@@ -50,6 +50,7 @@ async fn main() {
     }
 
     // TODO: check if wix.py is valid and up to date
+
 
     let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
 

@@ -14,7 +14,7 @@ pub struct Arguments {
 impl Arguments {
     // function to get wix args
     pub fn new(info: wix::Information) -> Arguments {
-        let title = format!("- {} - {}", info.version, info.description);
+        let title = format!("- {} - {}", info.ver, info.desc);
 
         // get custom args
         let mut app = App::new(info.name.as_str())
