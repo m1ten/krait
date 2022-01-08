@@ -31,13 +31,11 @@ impl Arguments {
                 SubCommand::with_name("install")
                     .about("install a package")
                     .visible_aliases(&["i", "in"])
-                    .args(&[
-                        Arg::with_name("package")
-                            .help("the package to install")
-                            .takes_value(true)
-                            .required(true)
-                            .min_values(1)
-                    ]),
+                    .args(&[Arg::with_name("package")
+                        .help("the package to install")
+                        .takes_value(true)
+                        .required(true)
+                        .min_values(1)]),
             )
             .subcommand(
                 SubCommand::with_name("uninstall")
@@ -48,7 +46,7 @@ impl Arguments {
                             .help("package to uninstall")
                             .takes_value(true)
                             .required(true)
-                            .min_values(1)
+                            .min_values(1),
                     ),
             )
             .subcommand(
@@ -60,7 +58,7 @@ impl Arguments {
                             .help("package to search")
                             .takes_value(true)
                             .required(true)
-                            .min_values(1)
+                            .min_values(1),
                     ),
             )
             .subcommand(
@@ -72,13 +70,13 @@ impl Arguments {
                             .help("package to update")
                             .takes_value(true)
                             .required(true)
-                            .min_values(1)
+                            .min_values(1),
                     ),
             )
             .subcommand(
                 SubCommand::with_name("clean")
                     .about("clean the cache")
-                    .visible_aliases(&["cl", "cle", "cls", "clear"])
+                    .visible_aliases(&["cl", "cle", "cls", "clear"]),
             );
 
         let mut help = Vec::new();
@@ -99,14 +97,17 @@ impl Arguments {
                         .unwrap()
                         .values_of("package")
                         .unwrap()
-                        .map(|p| {
-                            (
+                        .map(|p| -> (String, String) {
+                            if p.contains("@") {
                                 // remove everything after @ in the package name
-                                p.split("@").next().unwrap().to_string(),
-
-                                // get everything after @ in the package name
-                                p.split("@").skip(1).next().unwrap().to_string(),
-                            )
+                                (
+                                    p.split("@").next().unwrap().to_string(),
+                                    // get everything after @ in the package name
+                                    p.split("@").skip(1).next().unwrap().to_string(),
+                                )
+                            } else {
+                                (p.to_string(), "latest".to_string())
+                            }
                         })
                         .collect(),
                 };

@@ -3,21 +3,24 @@ pub mod pkg;
 pub mod py;
 pub mod setup;
 
-use std::{fs::File, io::{self, Read, Write}};
+use std::{
+    fs::File,
+    io::{self, Read, Write},
+};
 
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
-	let mut file = File::open(path)?;
-	let mut contents = String::new();
-	file.read_to_string(&mut contents)?;
-	Ok(contents)
+    let mut file = File::open(path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
 }
 
 // write to file
 pub fn writefs(path: String, contents: String) -> Result<(), io::Error> {
-	let mut file = File::create(path)?;
-	file.write_all(contents.as_bytes())?;
-	Ok(())
+    let mut file = File::create(path)?;
+    file.write_all(contents.as_bytes())?;
+    Ok(())
 }
 
 // read from stdin
@@ -47,67 +50,72 @@ pub fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
 #[macro_export]
 macro_rules! scan {
     ($str:tt, $_type:ty) => {{
-		print!("{}", $str);
-		std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        print!("{}", $str);
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
         wix::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
 #[macro_export]
 macro_rules! scanln {
-	($str:tt) => {{
-		print!("{}", $str);
-		std::io::Write::flush(&mut std::io::stdout()).unwrap();
-		wix::scan::<String>('\n' as u8).expect("scanln failed")
-	}};
+    ($str:tt) => {{
+        print!("{}", $str);
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        wix::scan::<String>('\n' as u8).expect("scanln failed")
+    }};
 }
 
 // macro to clear console
 #[macro_export]
 macro_rules! clear {
-	() => {{
-		// if cfg!(target_os = "windows") {
-		// 	print!("\x1B[2J");
-		// } else {
-		// 	print!("\x1B[2J\x1B[1;1H");
-		// }
-		// std::io::Write::flush(&mut std::io::stdout()).unwrap();
+    () => {{
+        // if cfg!(target_os = "windows") {
+        // 	print!("\x1B[2J");
+        // } else {
+        // 	print!("\x1B[2J\x1B[1;1H");
+        // }
+        // std::io::Write::flush(&mut std::io::stdout()).unwrap();
 
-		use std::process::Command;
+        use std::process::Command;
 
-		if cfg!(target_os = "windows") {
-			Command::new("cmd").arg("/c").arg("cls").status().unwrap();
-		} else {
-			Command::new("clear").status().unwrap();
-		}
-
-	}};
+        if cfg!(target_os = "windows") {
+            Command::new("cmd").arg("/c").arg("cls").status().unwrap();
+        } else {
+            Command::new("clear").status().unwrap();
+        }
+    }};
 }
 
 #[macro_export]
 macro_rules! exit {
-	($code: tt) => {{
-		let key = if cfg!(target_os = "macos") { "return" } else { "enter" };
-		let msg = format!("\nPress {} to exit.\n", key);
-		wix::scanln!(msg);
-    	std::process::exit($code);
-	}};
+    ($code: tt) => {{
+        let key = if cfg!(target_os = "macos") {
+            "return"
+        } else {
+            "enter"
+        };
+        let msg = format!("\nPress {} to exit.\n", key);
+        wix::scanln!(msg);
+        std::process::exit($code);
+    }};
 }
 
 #[macro_export]
 macro_rules! question {
-	($msg: tt) => {{
-		loop {
-			print!("{} [Y/n] ", $msg);
-			std::io::Write::flush(&mut std::io::stdout()).unwrap();
-			let answer = wix::scan::<String>('\n' as u8).expect("question failed").to_lowercase();
-			if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
-				break true;
-			} else if answer.trim() == "n" || answer.trim() == "no" {
-				break false;
-			}
-		}
-	}}
+    ($msg: tt) => {{
+        loop {
+            print!("{} [Y/n] ", $msg);
+            std::io::Write::flush(&mut std::io::stdout()).unwrap();
+            let answer = wix::scan::<String>('\n' as u8)
+                .expect("question failed")
+                .to_lowercase();
+            if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
+                break true;
+            } else if answer.trim() == "n" || answer.trim() == "no" {
+                break false;
+            }
+        }
+    }};
 }
 
 #[derive(Debug, Clone)]
@@ -156,7 +164,6 @@ impl Default for WixPy {
         }
     }
 }
-
 
 // impl Config {
 //     pub fn get_field_type(config: Option<Config>) -> IndexMap<String, String> {

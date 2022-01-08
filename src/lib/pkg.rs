@@ -130,7 +130,11 @@ impl Pkg {
                     let _ = wix::writefs(self.path.clone().unwrap(), res.clone());
 
                     if res.clone().contains("404: Not Found") {
-                        println!("{}@{} not found.", self.name.clone(), self.ver.clone().unwrap());
+                        println!(
+                            "{}@{} not found.",
+                            self.name.clone(),
+                            self.ver.clone().unwrap()
+                        );
                         return Err(res);
                     }
 

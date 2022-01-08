@@ -4,7 +4,7 @@ use wix::{clear, exit, question, WixPy};
 async fn main() {
     let wix_py = WixPy::default();
 
-    let args = wix::args::Arguments::new(info.clone());
+    let args = wix::args::Arguments::new(wix_py.clone());
 
     println!("Wix!\n");
 
@@ -29,9 +29,9 @@ async fn main() {
     // check if config file exists
     if !dirs::home_dir().unwrap().join("wix/wix.py").exists() {
         // run setup?
-        println!("{:?}", info.clone());
+        println!("{:?}", wix_py.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(info.clone(), config.clone(), args.clone());
+            wix::setup::run(wix_py.clone(), args.clone());
         } else {
             exit!(1);
         }
