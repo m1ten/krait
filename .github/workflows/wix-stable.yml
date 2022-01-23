@@ -36,6 +36,11 @@ jobs:
         default: true
         override: true
 
+    - name: Install Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
     - name: Build
       run: cargo build --release
     
@@ -64,6 +69,11 @@ jobs:
         toolchain: stable
         default: true
         override: true
+
+    - name: Install Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
 
     - name: Build
       run: cargo build --release
@@ -94,6 +104,11 @@ jobs:
         target: x86_64-apple-darwin
         default: true
         override: true
+
+    - name: Install Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
 
     - name: Build
       run: cargo build --release
