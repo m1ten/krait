@@ -30,7 +30,7 @@ $ .\wix.exe
     ```
 
     #### Linux only! (remove `target.x86_64-unknown-linux-gnu` in config.toml to use gcc)
-    3. [Clang 13](https://repology.org/project/llvm/versions)
+    3. [Clang 12](https://repology.org/project/llvm/versions)
     4. [mold](https://github.com/rui314/mold)
 
 2. Clone the [source](https://github.com/m1ten/wix) using [`git`](https://git-scm.com/)
