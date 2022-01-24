@@ -4,8 +4,8 @@
 
 # wix ![](https://github.com/m1ten/wix/workflows/Rust/badge.svg?branch=main) [![rustc version]][rustc]
 
-[rustc version]: https://img.shields.io/badge/rustc-1.56.X-orange.svg
-[rustc]: https://blog.rust-lang.org/2021/10/21/Rust-1.56.0.html
+[rustc version]: https://img.shields.io/badge/rustc-1.58-orange.svg
+[rustc]: https://blog.rust-lang.org/2022/01/13/Rust-1.58.0.html
 
 wix - cross platform package manager
 
@@ -32,7 +32,7 @@ $ .\wix.exe
    $ rustup toolchain install stable
    ```
 
-   #### Linux only! (remove `target.x86_64-unknown-linux-gnu` in config.toml to use gcc)
+   #### Linux only! (remove `target.x86_64-unknown-linux-gnu` in `.cargo/config.toml` to use gcc)
 
    3. [Clang 12](https://repology.org/project/llvm/versions)
    4. [mold](https://github.com/rui314/mold)
