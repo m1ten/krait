@@ -66,42 +66,42 @@ pub fn call_func(code: String, file: String, name: String, function: String) -> 
 }
 
 // function to convert struct to python variable code
-pub fn struct_to_py(struct_name: String, struct_contents: indexmap::IndexMap<String, String>) -> String {
-    let mut code = String::new();
-    code.push_str(&format!("{} = {}", struct_name, "{}"));
-    code.push_str("\n");
-    for data in struct_contents {
+// pub fn struct_to_py(struct_name: String, struct_contents: indexmap::IndexMap<String, String>) -> String {
+//     let mut code = String::new();
+//     code.push_str(&format!("{} = {}", struct_name, "{}"));
+//     code.push_str("\n");
+//     for data in struct_contents {
 
-        match data.1.parse::<i128>() {
-            Ok(i) => {
-                code.push_str(&format!("{}.{} = {}", struct_name, data.0, i));
-                code.push_str("\n");
-                continue;
-            },
-            Err(_) => ()
-        }
+//         match data.1.parse::<i128>() {
+//             Ok(i) => {
+//                 code.push_str(&format!("{}.{} = {}", struct_name, data.0, i));
+//                 code.push_str("\n");
+//                 continue;
+//             },
+//             Err(_) => ()
+//         }
 
-        match data.1.parse::<f64>() {
-            Ok(f) => {
-                code.push_str(&format!("{}.{} = {}", struct_name, data.0, f));
-                code.push_str("\n");
-                continue;
-            },
-            Err(_) => ()
-        }
+//         match data.1.parse::<f64>() {
+//             Ok(f) => {
+//                 code.push_str(&format!("{}.{} = {}", struct_name, data.0, f));
+//                 code.push_str("\n");
+//                 continue;
+//             },
+//             Err(_) => ()
+//         }
 
-        match data.1.parse::<bool>() {
-            Ok(b) => {
-                let b = if b { "True" } else { "False" };
-                code.push_str(&format!("{}.{} = {}", struct_name, data.0, b));
-                code.push_str("\n");
-                continue;
-            },
-            Err(_) => ()
-        }
+//         match data.1.parse::<bool>() {
+//             Ok(b) => {
+//                 let b = if b { "True" } else { "False" };
+//                 code.push_str(&format!("{}.{} = {}", struct_name, data.0, b));
+//                 code.push_str("\n");
+//                 continue;
+//             },
+//             Err(_) => ()
+//         }
 
-        code.push_str(&format!("{}.{} = '{}'", struct_name, data.0, data.1));
-        code.push_str("\n");
-    }
-    code
-}
+//         code.push_str(&format!("{}.{} = '{}'", struct_name, data.0, data.1));
+//         code.push_str("\n");
+//     }
+//     code
+// }

@@ -2,15 +2,24 @@ use wix::{clear, exit, question, WixPy};
 
 #[tokio::main]
 async fn main() {
+    
     let wix_py = WixPy::default();
 
     let args = wix::args::Arguments::new(wix_py.clone());
+
+    let path = match dirs::home_dir() {
+        Some(path) => path,
+        None => {
+            eprintln!("Error: Could not find home directory.");
+            exit!(1);
+        }
+    };
 
     println!("Wix!\n");
 
     if wix::setup::is_super() {
         eprintln!("Error: You are running wix as root.");
-        eprintln!("Please run wix as a normal user.");
+        eprintln!("Please run wix as a normal user to prevent damage.");
         exit!(1);
     }
 
@@ -27,11 +36,20 @@ async fn main() {
     }
 
     // check if config file exists
-    if !dirs::home_dir().unwrap().join("wix/wix.py").exists() {
+    if !path.clone().join("wix.py").exists() {
         // run setup?
-        println!("{:?}", wix_py.clone());
+        println!("{:#?}", wix_py.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(wix_py.clone(), args.clone());
+            wix::setup::run(path.clone(), wix_py.clone(), args.clone());
+        } else {
+            exit!(1);
+        }
+    }
+
+    if !wix::setup::is_venv() {
+        eprintln!("Error: wix is not in a virtual environment.");
+        if question!("Would you like to create a venv?") {
+           wix::setup::venv(path.clone().join("venv"));
         } else {
             exit!(1);
         }

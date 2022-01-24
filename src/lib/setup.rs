@@ -1,7 +1,7 @@
 use crate::{self as wix, args::Arguments, exit, question, WixPy};
-use std::{fs, process::Command, vec};
+use std::{fs, process::Command, vec, path::PathBuf};
 
-pub fn run(_wix_py: WixPy, _args: Arguments) {
+pub fn run(path: PathBuf, _wix_py: WixPy, _args: Arguments) {
     // TODO: Implement setup.rs
 
     if !question!("All pervious wix data will erased, continue?") {
@@ -10,28 +10,50 @@ pub fn run(_wix_py: WixPy, _args: Arguments) {
 
     // remove old wix data
     println!("\nRemoving old wix data...");
-    fs::remove_dir_all(dirs::home_dir().unwrap().join("wix")).unwrap_or(());
+    match fs::remove_dir_all(&path) {
+        Ok(_) => println!("\nOld wix data removed..."),
+        Err(e) => {
+            eprintln!("Error: Removing old wix data: {e}");
+            exit!(1);
+        }
+    }
 
-    // create new wix data
-    println!("Creating new wix data...");
+    // create new wix folders
+    println!("Creating new wix folders...");
     let folder: Vec<&str> = vec!["bin", "cache"];
     for f in folder {
-        fs::create_dir_all(dirs::home_dir().unwrap().join("wix/{}".replace("{}", f))).unwrap()
+        fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
     // create wix.py file
     println!("Creating wix.py file...");
+    let _ = wix::writefs(match path.clone().join("wix.py").to_str() {
+        Some(x) => x.to_string(),
+        None => {
+            eprintln!("Error: Creating wix.py file.");
+            exit!(1);
+        }
+    }, todo!());
+}
 
+pub fn venv(venv_path: PathBuf) -> bool {
+    let name: Vec<&str> = vec!["py", "python3", "python"];
 
-    // let _ = writefs(
-    //     dirs::home_dir()
-    //         .unwrap()
-    //         .join("wix/wix.py")
-    //         .to_str()
-    //         .unwrap()
-    //         .to_string(),
-    //     contents,
-    // );
+    for i in name {
+        let venv = Command::new(i)
+            .arg("-m")
+            .arg("venv")
+            .arg(venv_path.clone())
+            .output()
+            .expect("Failed to create virtual environment");
+
+        if venv.status.success() {
+            println!("Virtual environment created!");
+            return true;
+        }
+    }
+
+    false
 }
 
 // function to check if running as root/admin
@@ -51,14 +73,14 @@ pub fn is_super() -> bool {
 pub fn is_python_installed(v: &str) -> bool {
     let name: Vec<&str> = vec!["py", "python3", "python"];
     for n in name.iter() {
-            match Command::new(n).arg("--version").output() {
-                Ok(o) => {
-                    if String::from_utf8(o.stdout).unwrap().contains(v) {
-                        return true;
-                    }
+        match Command::new(n).arg("--version").output() {
+            Ok(o) => {
+                if String::from_utf8(o.stdout).unwrap().contains(v) {
+                    return true;
                 }
-                Err(_) => continue,
-            };
+            }
+            Err(_) => continue,
+        };
     }
     false
 }
@@ -66,6 +88,14 @@ pub fn is_python_installed(v: &str) -> bool {
 // check if there is a internet connection
 pub async fn is_internet_connected() -> bool {
     online::check(None).await.is_ok()
+}
+
+// check if wix is in a venv
+pub fn is_venv() -> bool {
+    match std::env::var("VIRTUAL_ENV") {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
 
 // names are not finalized yet
