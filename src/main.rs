@@ -9,7 +9,7 @@ async fn main() {
     let args = wix::args::Arguments::new(wix_config.clone());
 
     let path = match dirs::home_dir() {
-        Some(path) => path,
+        Some(path) => path.join("wix"),
         None => {
             eprintln!("Error: Could not find home directory.");
             exit!(1);
@@ -29,6 +29,8 @@ async fn main() {
         eprintln!("Please check your internet connection.");
         exit!(1);
     }
+
+    println!("{:?}", path);
 
     // check if config file exists
     if !path.clone().join("wix.py").exists() {
