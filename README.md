@@ -25,8 +25,7 @@ $ .\wix.exe
 
 1. Install dependencies
 
-   1. [Python 3.10](https://python.org/)
-   2. [Rust 1.58](https://blog.rust-lang.org/2022/01/13/Rust-1.58.0.html) using [`rustup`](https://www.rust-lang.org/tools/install)
+   1. [Rust 1.58](https://blog.rust-lang.org/2022/01/13/Rust-1.58.0.html) using [`rustup`](https://www.rust-lang.org/tools/install)
 
    ```sh
    $ rustup toolchain install stable
@@ -34,8 +33,8 @@ $ .\wix.exe
 
    #### Linux only! (remove `target.x86_64-unknown-linux-gnu` in `.cargo/config.toml` to use gcc)
 
-   3. [Clang 12](https://repology.org/project/llvm/versions)
-   4. [mold](https://github.com/rui314/mold)
+   2. [Clang 12](https://repology.org/project/llvm/versions)
+   3. [mold](https://github.com/rui314/mold)
 
 2. Clone the [source](https://github.com/m1ten/wix) using [`git`](https://git-scm.com/)
    ```sh
