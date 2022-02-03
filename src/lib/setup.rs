@@ -13,8 +13,12 @@ pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Arguments) {
     match fs::remove_dir_all(&path) {
         Ok(_) => println!("\nOld wix data removed..."),
         Err(e) => {
-            eprintln!("Error: Removing old wix data: {e}");
-            exit!(1);
+            if e.kind() == std::io::ErrorKind::NotFound {
+                println!("\nNo old wix data found...");
+            } else {
+                eprintln!("\nError removing old wix data: {}", e);
+                exit!(1);
+            }
         }
     }
 

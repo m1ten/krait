@@ -33,20 +33,11 @@ async fn main() {
     println!("{:?}", path);
 
     // check if config file exists
-    if !path.clone().join("wix.py").exists() {
+    if !path.clone().join("wix.toml").exists() {
         // run setup?
         println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
             wix::setup::run(path.clone(), wix_config.clone(), args.clone());
-        } else {
-            exit!(1);
-        }
-    }
-
-    if !wix::setup::is_venv() {
-        eprintln!("Error: wix is not in a virtual environment.");
-        if question!("Would you like to create a venv?") {
-           wix::setup::venv(path.clone().join("venv"));
         } else {
             exit!(1);
         }
