@@ -1,6 +1,5 @@
 pub mod args;
-pub mod pkg;
-pub mod py;
+// pub mod pkg;
 pub mod setup;
 
 use std::{
@@ -119,7 +118,15 @@ macro_rules! question {
 }
 
 #[derive(Debug, Clone)]
-pub struct WixPy {
+pub struct WixConfig {
+    pub general: WixGeneral,
+    pub package: WixPackage,
+    pub dir_posix: Option<WixDirPOSIX>,
+    pub dir_windows: Option<WixDirWindows>,
+}
+
+#[derive(Debug, Clone)]
+pub struct WixGeneral {
     // wix name
     pub name: String,
 
@@ -139,60 +146,65 @@ pub struct WixPy {
     pub git: String,
 
     // wix repository
-    pub repo: String,
+    pub repos: Vec<String>,
+}
 
-    // wix mirrors
-    pub mirrors: Vec<String>,
-
+#[derive(Debug, Clone)]
+pub struct WixPackage {
     // installed pkgs
     pub pkgs: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct WixDirPOSIX {
+    // wix directory for posix
+    pub dir_posix: String,
+
+    pub bin_dir_posix: String,
+
+    pub cache_dir_posix: String,
+
+    pub temp_dir_posix: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct WixDirWindows {
+    // wix directory for windows
+    pub dir_windows: String,
+
+    pub bin_dir_windows: String,
+
+    pub cache_dir_windows: String,
+
+    pub temp_dir_windows: String,
+}
+
 // set default values for config
-impl Default for WixPy {
+impl Default for WixConfig {
     fn default() -> Self {
-        WixPy {
-            name: "wix".to_string(),
-            author: "miten".to_string(),
-            ver: "0.1.0".to_string(),
-            desc: "cross platform package manager".to_string(),
-            license: "zlib".to_string(),
-            git: "https://github.com/m1ten/wix".to_string(),
-            repo: "https://github.com/m1ten/wix-pkgs/".to_string(),
-            mirrors: vec![] as Vec<String>,
-            pkgs: vec![] as Vec<String>,
+        WixConfig {
+            general: WixGeneral {
+                name: "wix".to_string(),
+                author: "miten".to_string(),
+                ver: "0.1.0".to_string(),
+                desc: "cross platform package manager".to_string(),
+                license: "zlib".to_string(),
+                git: "https://github.com/m1ten/wix".to_string(),
+                repos: vec!["https://github.com/m1ten/wix-pkgs/".to_string()],
+            },
+            package: WixPackage { pkgs: vec![] },
+            dir_posix: Some(WixDirPOSIX {
+                dir_posix: "~/wix".to_string(),
+                bin_dir_posix: "~/wix/bin".to_string(),
+                cache_dir_posix: "~/wix/cache".to_string(),
+                temp_dir_posix: "~/wix/temp".to_string(),
+            }),
+            dir_windows: Some(WixDirWindows {
+                dir_windows: "~/wix".to_string(),
+                bin_dir_windows: "~/wix/bin".to_string(),
+                cache_dir_windows: "~/wix/cache".to_string(),
+                temp_dir_windows: "~/wix/temp".to_string(),
+            }),
         }
     }
 }
-
-// impl Config {
-//     pub fn get_field_type(config: Option<Config>) -> IndexMap<String, String> {
-//         let config = match config {
-//             Some(i) => i,
-//             None => {
-//                 let mut map = IndexMap::new();
-//                 map.insert("name".to_string(), "String".to_string());
-//                 map.insert("author".to_string(), "String".to_string());
-//                 map.insert("ver".to_string(), "String".to_string());
-//                 map.insert("desc".to_string(), "String".to_string());
-//                 map.insert("license".to_string(), "String".to_string());
-//                 map.insert("git".to_string(), "String".to_string());
-//                 map.insert("repo".to_string(), "String".to_string());
-//                 map.insert("mirrors".to_string(), "Vec<String>".to_string());
-//                 map.insert("pkgs".to_string(), "Vec<String>".to_string());
-
-//                 return map;
-//             }
-//         };
-//         let mut map = IndexMap::new();
-//         map.insert("name".to_string(), config.name.clone());
-//         map.insert("author".to_string(), config.author.clone());
-//         map.insert("ver".to_string(), config.ver.clone());
-//         map.insert("desc".to_string(), config.desc.clone());
-//         map.insert("license".to_string(), config.license.clone());
-//         map.insert("git".to_string(), config.git.clone());
-//         map.insert("repo".to_string(), config.repo.clone());
-//         map.insert("mirrors".to_string(), config.mirrors.clone().to_string());
-//         map
-//     }
-// }

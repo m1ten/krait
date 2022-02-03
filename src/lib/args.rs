@@ -13,11 +13,11 @@ pub struct Arguments {
 
 impl Arguments {
     // function to get wix args
-    pub fn new(wix_py: wix::WixPy) -> Arguments {
-        let title = format!("- {} - {}", wix_py.ver, wix_py.desc);
+    pub fn new(wix_config: wix::WixConfig) -> Arguments {
+        let title = format!("- {} - {}", wix_config.general.ver, wix_config.general.desc);
 
         // get custom args
-        let mut app = App::new(wix_py.name.as_str())
+        let mut app = App::new(wix_config.general.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::with_name("assume-yes")

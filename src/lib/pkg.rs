@@ -15,7 +15,7 @@ pub struct Pkg {
     pub path: Option<String>,
 
     // package url (git, http, etc., default: git "wix-pkgs/rust-lang/latest.py")
-    pub url: Option<String>,
+    pub urls: Option<Vec<String>>,
 
     // package type (e.g. binary, git etc.) (optional, default: binary)
     pub _type: Option<String>,
@@ -35,6 +35,21 @@ pub struct Pkg {
     // package install status (optional, default: false)
     pub installed: Option<bool>,
 
+    // supported platforms (optional, default: all)
+    pub platforms: Option<Vec<String>>,
+
+    // provides (optional, default: none)
+    pub provides: Option<Vec<String>>,
+
+    // conflicts (optional, default: none)
+    pub conflicts: Option<Vec<String>>,
+
+    // maintainer (optional, default: none)
+    pub maintainers: Option<Vec<String>>,
+
+    // license (optional, default: none)
+    pub license: Option<String>,
+
     // os (required)
     pub os: String,
 
@@ -49,13 +64,18 @@ impl Default for Pkg {
             ver: Some("latest".to_string()),
             script: None,
             path: None,
-            url: None,
+            urls: None,
             _type: Some("binary".to_string()),
             verified: Some(false),
             deps: None,
             desc: None,
             hash: None,
             installed: Some(false),
+            platforms: None,
+            provides: None,
+            conflicts: None,
+            maintainers: None,
+            license: None,
             os: wix::setup::get_os(),
             arch: wix::setup::get_arch(),
         }

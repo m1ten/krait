@@ -1,11 +1,12 @@
-use wix::{clear, exit, question, WixPy};
+use wix::{clear, exit, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
     
-    let wix_py = WixPy::default();
+    // get default wix.toml
+    let wix_config = WixConfig::default();
 
-    let args = wix::args::Arguments::new(wix_py.clone());
+    let args = wix::args::Arguments::new(wix_config.clone());
 
     let path = match dirs::home_dir() {
         Some(path) => path,
@@ -23,12 +24,6 @@ async fn main() {
         exit!(1);
     }
 
-    if !wix::setup::is_python_installed("3.10") {
-        eprintln!("Error: Python >=3.10 is not installed.");
-        eprintln!("Please install and add Python to path.");
-        exit!(127);
-    }
-
     if !wix::setup::is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
         eprintln!("Please check your internet connection.");
@@ -38,9 +33,9 @@ async fn main() {
     // check if config file exists
     if !path.clone().join("wix.py").exists() {
         // run setup?
-        println!("{:#?}", wix_py.clone());
+        println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(path.clone(), wix_py.clone(), args.clone());
+            wix::setup::run(path.clone(), wix_config.clone(), args.clone());
         } else {
             exit!(1);
         }
@@ -58,37 +53,37 @@ async fn main() {
     // TODO: check if wix.py is valid and up to date
 
 
-    let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
+    // let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
 
-    for arg_p in args.pkgs.clone() {
-        let name = arg_p.0;
-        let ver = arg_p.1;
+    // for arg_p in args.pkgs.clone() {
+    //     let name = arg_p.0;
+    //     let ver = arg_p.1;
 
-        let pkg = wix::pkg::Pkg {
-            name,
-            ver: Some(ver),
-            ..Default::default()
-        }
-        .search()
-        .await
-        .unwrap();
+    //     let pkg = wix::pkg::Pkg {
+    //         name,
+    //         ver: Some(ver),
+    //         ..Default::default()
+    //     }
+    //     .search()
+    //     .await
+    //     .unwrap();
 
-        pkgs.push(pkg);
-    }
+    //     pkgs.push(pkg);
+    // }
 
     match args.status.as_str() {
         "search" => {
-            println!("{:?}", pkgs);
+            // println!("{:?}", pkgs);
             exit!(0);
         }
         "clean" => {
             println!("Cleaning up.");
-            std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(
-                |err| {
-                    eprintln!("Error Cleaning Cache: {}", err);
-                    exit!(1);
-                },
-            );
+            // std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(
+            //     |err| {
+            //         eprintln!("Error Cleaning Cache: {}", err);
+            //         exit!(1);
+            //     },
+            // );
 
             println!("Cache Cleaned!");
             exit!(0);

@@ -1,7 +1,7 @@
-use crate::{self as wix, args::Arguments, exit, question, WixPy};
+use crate::{self as wix, args::Arguments, exit, question, WixConfig};
 use std::{fs, process::Command, vec, path::PathBuf};
 
-pub fn run(path: PathBuf, _wix_py: WixPy, _args: Arguments) {
+pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Arguments) {
     // TODO: Implement setup.rs
 
     if !question!("All pervious wix data will erased, continue?") {
