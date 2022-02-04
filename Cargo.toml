@@ -12,8 +12,8 @@ license = "Zlib"
 name = "wix"
 path = "src/lib/mod.rs"
 
-[dependencies] 
-clap = "2.34.0"
+[dependencies]
+clap = "3.0.14"
 reqwest = { version = "0.11.9", features = ["blocking"] }
 indexmap = "1.8.0"
 which = "4.2.2"

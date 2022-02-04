@@ -1,12 +1,11 @@
-use wix::{clear, exit, question, WixConfig};
+use wix::{args::Args, exit, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
-    
-    // get default wix.toml
+    // get default config.wix
     let wix_config = WixConfig::default();
 
-    let args = wix::args::Arguments::new(wix_config.clone());
+    let args = Args::new(wix_config.clone());
 
     let path = match dirs::home_dir() {
         Some(path) => path.join("wix"),
@@ -15,8 +14,6 @@ async fn main() {
             exit!(1);
         }
     };
-
-    println!("Wix!\n");
 
     if wix::setup::is_super() {
         eprintln!("Error: You are running wix as root.");
@@ -30,10 +27,8 @@ async fn main() {
         exit!(1);
     }
 
-    println!("{:?}", path);
-
     // check if config file exists
-    if !path.clone().join("wix.toml").exists() {
+    if !path.clone().join("config.wix").exists() {
         // run setup?
         println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
@@ -43,8 +38,7 @@ async fn main() {
         }
     }
 
-    // TODO: check if wix.py is valid and up to date
-
+    // TODO: check if config.wix is valid and up to date
 
     // let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
 
@@ -71,20 +65,36 @@ async fn main() {
         }
         "clean" => {
             println!("Cleaning up.");
-            // std::fs::remove_dir_all(dirs::home_dir().unwrap().join("wix/cache/")).unwrap_or_else(
-            //     |err| {
-            //         eprintln!("Error Cleaning Cache: {}", err);
-            //         exit!(1);
-            //     },
-            // );
 
-            println!("Cache Cleaned!");
-            exit!(0);
+            let cache = path.clone().join("cache");
+
+            println!("{:#?}", cache);
+
+            match std::fs::remove_dir_all(path.clone().join("cache")) {
+                Ok(_) => {
+                    println!("Cache Cleaned!");
+                    exit!(0);
+                }
+                Err(_) => {
+                    println!("Error: Could not remove cache directory.");
+                    exit!(1);
+                }
+            }
         }
         _ => {
-            clear!();
-            println!("{}", args.help);
-            exit!(0);
+            // call self exe with arg '--help'
+            let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
+            cmd.arg("--help");
+            cmd.spawn()
+                .unwrap_or_else(|err| {
+                    eprintln!("Error: {}", err);
+                    exit!(1);
+                })
+                .wait()
+                .unwrap_or_else(|err| {
+                    eprintln!("Error: {}", err);
+                    exit!(1);
+                });
         }
     }
 }

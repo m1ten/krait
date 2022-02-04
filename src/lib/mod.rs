@@ -68,13 +68,6 @@ macro_rules! scanln {
 #[macro_export]
 macro_rules! clear {
     () => {{
-        // if cfg!(target_os = "windows") {
-        // 	print!("\x1B[2J");
-        // } else {
-        // 	print!("\x1B[2J\x1B[1;1H");
-        // }
-        // std::io::Write::flush(&mut std::io::stdout()).unwrap();
-
         use std::process::Command;
 
         if cfg!(target_os = "windows") {
@@ -119,14 +112,13 @@ macro_rules! question {
 
 #[derive(Debug, Clone)]
 pub struct WixConfig {
-    pub general: WixGeneral,
-    pub package: WixPackage,
-    pub dir_posix: Option<WixDirPOSIX>,
-    pub dir_windows: Option<WixDirWindows>,
+    pub gen: WixGen,
+    pub pkg: WixPkg,
+    pub dir: WixDir,
 }
 
 #[derive(Debug, Clone)]
-pub struct WixGeneral {
+pub struct WixGen {
     // wix name
     pub name: String,
 
@@ -150,13 +142,13 @@ pub struct WixGeneral {
 }
 
 #[derive(Debug, Clone)]
-pub struct WixPackage {
+pub struct WixPkg {
     // installed pkgs
     pub pkgs: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
-pub struct WixDirPOSIX {
+pub struct WixDir {
     // wix directory for posix
     pub dir_posix: String,
 
@@ -165,10 +157,7 @@ pub struct WixDirPOSIX {
     pub cache_dir_posix: String,
 
     pub temp_dir_posix: String,
-}
 
-#[derive(Debug, Clone)]
-pub struct WixDirWindows {
     // wix directory for windows
     pub dir_windows: String,
 
@@ -183,7 +172,7 @@ pub struct WixDirWindows {
 impl Default for WixConfig {
     fn default() -> Self {
         WixConfig {
-            general: WixGeneral {
+            gen: WixGen {
                 name: "wix".to_string(),
                 author: "miten".to_string(),
                 ver: "0.1.0".to_string(),
@@ -192,19 +181,17 @@ impl Default for WixConfig {
                 git: "https://github.com/m1ten/wix".to_string(),
                 repos: vec!["https://github.com/m1ten/wix-pkgs/".to_string()],
             },
-            package: WixPackage { pkgs: vec![] },
-            dir_posix: Some(WixDirPOSIX {
+            pkg: WixPkg { pkgs: vec![] },
+            dir: WixDir {
                 dir_posix: "~/wix".to_string(),
                 bin_dir_posix: "~/wix/bin".to_string(),
                 cache_dir_posix: "~/wix/cache".to_string(),
                 temp_dir_posix: "~/wix/temp".to_string(),
-            }),
-            dir_windows: Some(WixDirWindows {
                 dir_windows: "~/wix".to_string(),
                 bin_dir_windows: "~/wix/bin".to_string(),
                 cache_dir_windows: "~/wix/cache".to_string(),
                 temp_dir_windows: "~/wix/temp".to_string(),
-            }),
+            },
         }
     }
 }
