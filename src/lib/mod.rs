@@ -1,5 +1,5 @@
 pub mod args;
-// pub mod pkg;
+pub mod pkg;
 pub mod setup;
 
 use std::{
