@@ -1,18 +1,47 @@
-use crate::{self as wix};
-
 #[derive(Debug, Clone)]
 pub struct Pkg {
+    // pkg data as struct
+    pub pkg_data: PkgData,
+
+    // package file content
+    pub content: Option<String>,
+
+    // package path (e.g. "wix/cache/rust-lang/latest.py")
+    pub path: Option<String>,
+}
+
+impl Default for Pkg {
+    fn default() -> Self {
+        Pkg {
+            pkg_data: PkgData::default(),
+            content: None,
+            path: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PkgData {
+    pub info: PkgInfo,
+
+    // all platforms and archs
+}
+
+impl Default for PkgData {
+    fn default() -> Self {
+        PkgData {
+            info: PkgInfo::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PkgInfo {
     // package name (e.g. "rust-lang")
     pub name: String,
 
     // package version (e.g. "1.0.0" or "latest")
     pub ver: Option<String>,
-
-    // package script
-    pub script: Option<String>,
-
-    // package path (e.g. "wix/cache/rust-lang/latest.py")
-    pub path: Option<String>,
 
     // package url (git, http, etc., default: git "wix-pkgs/rust-lang/latest.py")
     pub urls: Option<Vec<String>>,
@@ -52,21 +81,13 @@ pub struct Pkg {
 
     // license (optional, default: none)
     pub license: Option<String>,
-
-    // os (required)
-    pub os: String,
-
-    // arch (required)
-    pub arch: String,
 }
 
-impl Default for Pkg {
+impl Default for PkgInfo {
     fn default() -> Self {
-        Pkg {
+        PkgInfo {
             name: String::new(),
             ver: Some("latest".to_string()),
-            script: None,
-            path: None,
             urls: None,
             _type: Some("binary".to_string()),
             verified: Some(false),
@@ -80,11 +101,10 @@ impl Default for Pkg {
             conflicts: None,
             maintainers: None,
             license: None,
-            os: wix::setup::get_os(),
-            arch: wix::setup::get_arch(),
         }
     }
 }
+
 
 impl Pkg {
     // search self

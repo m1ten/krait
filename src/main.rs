@@ -2,6 +2,7 @@ use wix::{args::Args, exit, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
+
     // get default config.wix
     let wix_config = WixConfig::default();
 

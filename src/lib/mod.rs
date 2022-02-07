@@ -7,6 +7,8 @@ use std::{
     io::{self, Read, Write},
 };
 
+use serde::{Deserialize, Serialize};
+
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
     let mut file = File::open(path)?;
@@ -110,25 +112,27 @@ macro_rules! question {
     }};
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WixConfig {
     pub gen: WixGen,
     pub pkg: WixPkg,
     pub dir: WixDir,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WixGen {
     // wix name
     pub name: String,
 
     // wix author
+    #[serde(default)]
     pub author: String,
 
     // wix version
     pub ver: String,
 
     // wix description
+    #[serde(default)]
     pub desc: String,
 
     // wix license
@@ -141,30 +145,40 @@ pub struct WixGen {
     pub repos: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WixPkg {
     // installed pkgs
     pub pkgs: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WixDir {
     // wix directory for posix
+
+    #[serde(default)]
     pub dir_posix: String,
 
+    #[serde(default)]
     pub bin_dir_posix: String,
 
+    #[serde(default)]
     pub cache_dir_posix: String,
 
+    #[serde(default)]
     pub temp_dir_posix: String,
 
     // wix directory for windows
+
+    #[serde(default)]
     pub dir_windows: String,
 
+    #[serde(default)]
     pub bin_dir_windows: String,
 
+    #[serde(default)]
     pub cache_dir_windows: String,
 
+    #[serde(default)]
     pub temp_dir_windows: String,
 }
 

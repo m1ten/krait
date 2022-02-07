@@ -1,5 +1,5 @@
 use crate::{self as wix, args::Args, exit, question, WixConfig};
-use std::{fs, process::Command, vec, path::PathBuf};
+use std::{fs, vec, path::PathBuf};
 
 pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Args) {
     // TODO: Implement setup.rs
@@ -29,35 +29,17 @@ pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Args) {
         fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
-    // create wix.py file
-    println!("Creating wix.py file...");
-    let _ = wix::writefs(match path.clone().join("wix.py").to_str() {
+
+
+    // create config.wix file
+    println!("Creating config.wix file...");
+    let _ = wix::writefs(match path.clone().join("config.wix").to_str() {
         Some(x) => x.to_string(),
         None => {
-            eprintln!("Error: Creating wix.py file.");
+            eprintln!("Error: Creating config.wix file.");
             exit!(1);
         }
     }, todo!());
-}
-
-pub fn venv(venv_path: PathBuf) -> bool {
-    let name: Vec<&str> = vec!["py", "python3", "python"];
-
-    for i in name {
-        let venv = Command::new(i)
-            .arg("-m")
-            .arg("venv")
-            .arg(venv_path.clone())
-            .output()
-            .expect("Failed to create virtual environment");
-
-        if venv.status.success() {
-            println!("Virtual environment created!");
-            return true;
-        }
-    }
-
-    false
 }
 
 // function to check if running as root/admin
