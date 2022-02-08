@@ -2,7 +2,7 @@
 # Package information (variable names are case sensitive, but not the values)
 # file name must be the same as the package name
 name = "dash"                                # name of the package (not case sensitive)
-alias = "dash-wix"                           # alias of the package (optional)
+alias = "dash-neo"                           # alias of the package (optional)
 version = "0.1.0"                            # version of the package
 description = "Dash is an OS setup utility." # description of the package (optional)
 license = "zlib"                             # license of the package (optional)
@@ -14,7 +14,7 @@ mirrors = [
 	"pkg-mirror-1",
 	"pkg-mirror-2",
 ] # Mirror list in preferred order (optional)
-dependency = "wix" # For one dependency, use this variable name
+dependency = "neo" # For one dependency, use this variable name
 dependencies = ["pkg-dep-1", "pkg-dep-1"] # Multiple dependency list 
 # For one optional dependency, use this 'optional_depedency' variable name
 optional_dependencies = [
@@ -22,7 +22,7 @@ optional_dependencies = [
 	"pkg-opt-dep-2",
 ] # Multiple optional dependencies
 supported_os = ["posix", "windows"] # Supported OS list
-# For a full list of supported variables, see https://github.com/m1ten/wix/wiki/
+# For a full list of supported variables, see https://github.com/m1ten/neo/wiki/
 
 [dash.posix.install]
 cmds = [

@@ -1,8 +1,8 @@
-use crate::{self as wix};
+use crate::{self as neo};
 use clap::{App, Arg};
 use indexmap::IndexMap;
 
-// wix args struct
+// neo args struct
 #[derive(Debug, Clone)]
 pub struct Args {
     pub assume_yes: bool,
@@ -11,12 +11,12 @@ pub struct Args {
 }
 
 impl Args {
-    // function to get wix args
-    pub fn new(wix_config: wix::WixConfig) -> Args {
-        let title = format!("- {} - {}", wix_config.gen.ver, wix_config.gen.desc);
+    // function to get neo args
+    pub fn new(neo_config: neo::NeoConfig) -> Args {
+        let title = format!("- {} - {}", neo_config.gen.ver, neo_config.gen.desc);
 
         // get custom args
-        let app = App::new(wix_config.gen.name.as_str())
+        let app = App::new(neo_config.gen.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")

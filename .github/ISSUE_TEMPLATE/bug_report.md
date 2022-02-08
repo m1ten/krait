@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Platform (please complete the following information):**
  - OS: [e.g. Windows 11]
- - Wix Version: [e.g. 0.1.0]
+ - Neo Version: [e.g. 0.1.0]
 
 **Additional context**
 Add any other context about the problem here.

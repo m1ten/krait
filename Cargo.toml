@@ -1,15 +1,15 @@
 [package]
-name = "wix"
+name = "neo"
 version = "0.1.0"
 authors = ["miten"]
 edition = "2021"
 description = "cross platform package manager"
 readme = "README.md"
-repository = "https://github.com/m1ten/wix"
+repository = "https://github.com/m1ten/neo"
 license = "Zlib"
 
 [lib]
-name = "wix"
+name = "neo"
 path = "src/lib/mod.rs"
 
 [dependencies]

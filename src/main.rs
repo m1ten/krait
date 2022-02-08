@@ -1,18 +1,18 @@
-use wix::{args::Args, exit, question, WixConfig};
+use neo::{args::Args, exit, question, NeoConfig};
 
 #[tokio::main]
 async fn main() {
     let path = match dirs::home_dir() {
-        Some(path) => path.join("wix"),
+        Some(path) => path.join("neo"),
         None => {
             eprintln!("Error: Could not find home directory.");
             exit!(1);
         }
     };
 
-    // get default config.wix
-    let wix_config = WixConfig {
-        dir: wix::WixDir {
+    // get default config.neo
+    let neo_config = NeoConfig {
+        dir: neo::NeoDir {
             dir: path.clone(),
             bin_dir: path.clone().join("bin"),
             cache_dir: path.clone().join("cache"),
@@ -21,41 +21,41 @@ async fn main() {
         ..Default::default()
     };
 
-    let args = Args::new(wix_config.clone());
+    let args = Args::new(neo_config.clone());
 
-    if wix::setup::is_super() {
-        eprintln!("Error: You are running wix as root.");
-        eprintln!("Please run wix as a normal user to prevent damage.");
+    if neo::setup::is_super() {
+        eprintln!("Error: You are running neo as root.");
+        eprintln!("Please run neo as a normal user to prevent damage.");
         exit!(1);
     }
 
-    if !wix::setup::is_internet_connected().await {
+    if !neo::setup::is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
         eprintln!("Please check your internet connection.");
         exit!(1);
     }
 
     // check if config file exists
-    if !path.clone().join("config.wix").exists() {
+    if !path.clone().join("config.neo").exists() {
         // run setup?
-        // println!("{:#?}", wix_config.clone());
+        // println!("{:#?}", neo_config.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(path.clone(), wix_config.clone(), args.clone());
+            neo::setup::run(path.clone(), neo_config.clone(), args.clone());
             exit!(0);
         } else {
             exit!(1);
         }
     }
 
-    // TODO: check if config.wix is valid and up to date
+    // TODO: check if config.neo is valid and up to date
 
-    // let mut pkgs: Vec<wix::pkg::Pkg> = Vec::new();
+    // let mut pkgs: Vec<neo::pkg::Pkg> = Vec::new();
 
     // for arg_p in args.pkgs.clone() {
     //     let name = arg_p.0;
     //     let ver = arg_p.1;
 
-    //     let pkg = wix::pkg::Pkg {
+    //     let pkg = neo::pkg::Pkg {
     //         name,
     //         ver: Some(ver),
     //         ..Default::default()

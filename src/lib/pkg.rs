@@ -6,7 +6,7 @@ pub struct Pkg {
     // package file content
     pub content: Option<String>,
 
-    // package path (e.g. "wix/cache/rust-lang/latest.py")
+    // package path (e.g. "neo/cache/rust-lang/latest.py")
     pub path: Option<String>,
 }
 
@@ -43,7 +43,7 @@ pub struct PkgInfo {
     // package version (e.g. "1.0.0" or "latest")
     pub ver: Option<String>,
 
-    // package url (git, http, etc., default: git "wix-pkgs/rust-lang/latest.py")
+    // package url (git, http, etc., default: git "neo-pkgs/rust-lang/latest.py")
     pub urls: Option<Vec<String>>,
 
     // package type (e.g. binary, git etc.) (optional, default: binary)

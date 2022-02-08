@@ -54,7 +54,7 @@ macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        wix::scan::<$_type>(' ' as u8).expect("scan failed")
+        neo::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -63,7 +63,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        wix::scan::<String>('\n' as u8).expect("scanln failed")
+        neo::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
@@ -90,7 +90,7 @@ macro_rules! exit {
             "enter"
         };
         let msg = format!("\nPress {} to exit.\n", key);
-        wix::scanln!(msg);
+        neo::scanln!(msg);
         std::process::exit($code);
     }};
 }
@@ -101,7 +101,7 @@ macro_rules! question {
         loop {
             print!("{} [Y/n] ", $msg);
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
-            let answer = wix::scan::<String>('\n' as u8)
+            let answer = neo::scan::<String>('\n' as u8)
                 .expect("question failed")
                 .to_lowercase();
             if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
@@ -114,47 +114,47 @@ macro_rules! question {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct WixConfig {
-    pub gen: WixGen,
-    pub pkg: WixPkg,
-    pub dir: WixDir,
+pub struct NeoConfig {
+    pub gen: NeoGen,
+    pub pkg: NeoPkg,
+    pub dir: NeoDir,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct WixGen {
-    // wix name
+pub struct NeoGen {
+    // neo name
     pub name: String,
 
-    // wix author
+    // neo author
     #[serde(default)]
     pub author: String,
 
-    // wix version
+    // neo version
     pub ver: String,
 
-    // wix description
+    // neo description
     #[serde(default)]
     pub desc: String,
 
-    // wix license
+    // neo license
     pub license: String,
 
-    // wix git repository
+    // neo git repository
     pub git: String,
 
-    // wix repository
+    // neo repository
     pub repos: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct WixPkg {
+pub struct NeoPkg {
     // installed pkgs
     pub pkgs: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct WixDir {
-    // wix directory for posix
+pub struct NeoDir {
+    // neo directory for posix
     #[serde(default)]
     pub dir: PathBuf,
 
@@ -169,24 +169,24 @@ pub struct WixDir {
 }
 
 // set default values for config
-impl Default for WixConfig {
+impl Default for NeoConfig {
     fn default() -> Self {
-        WixConfig {
-            gen: WixGen {
-                name: "wix".to_string(),
+        NeoConfig {
+            gen: NeoGen {
+                name: "neo".to_string(),
                 author: "miten".to_string(),
                 ver: "0.1.0".to_string(),
                 desc: "cross platform package manager".to_string(),
                 license: "zlib".to_string(),
-                git: "https://github.com/m1ten/wix".to_string(),
-                repos: vec!["https://github.com/m1ten/wix-pkgs".to_string()],
+                git: "https://github.com/m1ten/neo".to_string(),
+                repos: vec!["https://github.com/m1ten/neo-pkgs".to_string()],
             },
-            pkg: WixPkg { pkgs: vec![] },
-            dir: WixDir {
-                dir: "~/wix".into(),
-                bin_dir: "~/wix/bin".into(),
-                cache_dir: "~/wix/cache".into(),
-                temp_dir: "~/wix/temp".into(),
+            pkg: NeoPkg { pkgs: vec![] },
+            dir: NeoDir {
+                dir: "~/neo".into(),
+                bin_dir: "~/neo/bin".into(),
+                cache_dir: "~/neo/cache".into(),
+                temp_dir: "~/neo/temp".into(),
             },
         }
     }

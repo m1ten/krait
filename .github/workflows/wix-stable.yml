@@ -1,4 +1,4 @@
-name: compile and release wix stable
+name: compile and release neo stable
 
 on:
   push:
@@ -48,8 +48,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/wix.exe
-        asset_name: wix-windows-x86_64.exe
+        file: target/release/neo.exe
+        asset_name: neo-windows-x86_64.exe
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
@@ -93,8 +93,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/wix
-        asset_name: wix-linux-x86_64
+        file: target/release/neo
+        asset_name: neo-linux-x86_64
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
@@ -128,8 +128,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/wix
-        asset_name: wix-macos-x86_64
+        file: target/release/neo
+        asset_name: neo-macos-x86_64
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
