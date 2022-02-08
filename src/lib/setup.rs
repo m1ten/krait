@@ -1,20 +1,33 @@
 use crate::{self as wix, args::Args, exit, question, WixConfig};
-use std::{fs, vec, path::PathBuf};
+use std::{fs, path::PathBuf, vec};
 
-pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Args) {
+pub fn run(path: PathBuf, wix_config: WixConfig, _args: Args) {
     // TODO: Implement setup.rs
 
-    if !question!("All pervious wix data will erased, continue?") {
+    // struct to toml
+    let config_toml =
+        toml::to_string(&wix_config).expect("Error: Could not convert wix config to toml");
+
+    bat::PrettyPrinter::new()
+        .input_from_bytes(config_toml.as_bytes())
+        .language("toml")
+        .line_numbers(true)
+        .grid(true)
+        .theme("Visual Studio Dark+")
+        .print()
+        .expect("Error: Could not print toml");
+
+    if !question!("All previous wix data will be erased, continue?") {
         exit!(1);
     }
 
     // remove old wix data
     println!("\nRemoving old wix data...");
     match fs::remove_dir_all(&path) {
-        Ok(_) => println!("\nOld wix data removed..."),
+        Ok(_) => println!("Old wix data removed..."),
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
-                println!("\nNo old wix data found...");
+                println!("No old wix data found...");
             } else {
                 eprintln!("\nError removing old wix data: {}", e);
                 exit!(1);
@@ -29,17 +42,20 @@ pub fn run(path: PathBuf, _wix_config: WixConfig, _args: Args) {
         fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
-
-
     // create config.wix file
     println!("Creating config.wix file...");
-    let _ = wix::writefs(match path.clone().join("config.wix").to_str() {
-        Some(x) => x.to_string(),
-        None => {
-            eprintln!("Error: Creating config.wix file.");
-            exit!(1);
-        }
-    }, todo!());
+    let _ = wix::writefs(
+        match path.clone().join("config.wix").to_str() {
+            Some(x) => x.to_string(),
+            None => {
+                eprintln!("Error: Creating config.wix file.");
+                exit!(1);
+            }
+        },
+        config_toml,
+    );
+
+    println!("\nSetup complete!");
 }
 
 // function to check if running as root/admin

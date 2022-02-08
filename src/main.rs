@@ -2,12 +2,6 @@ use wix::{args::Args, exit, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
-
-    // get default config.wix
-    let wix_config = WixConfig::default();
-
-    let args = Args::new(wix_config.clone());
-
     let path = match dirs::home_dir() {
         Some(path) => path.join("wix"),
         None => {
@@ -15,6 +9,19 @@ async fn main() {
             exit!(1);
         }
     };
+
+    // get default config.wix
+    let wix_config = WixConfig {
+        dir: wix::WixDir {
+            dir: path.clone(),
+            bin_dir: path.clone().join("bin"),
+            cache_dir: path.clone().join("cache"),
+            temp_dir: path.clone().join("temp"),
+        },
+        ..Default::default()
+    };
+
+    let args = Args::new(wix_config.clone());
 
     if wix::setup::is_super() {
         eprintln!("Error: You are running wix as root.");
@@ -31,9 +38,10 @@ async fn main() {
     // check if config file exists
     if !path.clone().join("config.wix").exists() {
         // run setup?
-        println!("{:#?}", wix_config.clone());
+        // println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
             wix::setup::run(path.clone(), wix_config.clone(), args.clone());
+            exit!(0);
         } else {
             exit!(1);
         }

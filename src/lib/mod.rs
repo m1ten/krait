@@ -5,6 +5,7 @@ pub mod setup;
 use std::{
     fs::File,
     io::{self, Read, Write},
+    path::PathBuf,
 };
 
 use serde::{Deserialize, Serialize};
@@ -154,32 +155,17 @@ pub struct WixPkg {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WixDir {
     // wix directory for posix
+    #[serde(default)]
+    pub dir: PathBuf,
 
     #[serde(default)]
-    pub dir_posix: String,
+    pub bin_dir: PathBuf,
 
     #[serde(default)]
-    pub bin_dir_posix: String,
+    pub cache_dir: PathBuf,
 
     #[serde(default)]
-    pub cache_dir_posix: String,
-
-    #[serde(default)]
-    pub temp_dir_posix: String,
-
-    // wix directory for windows
-
-    #[serde(default)]
-    pub dir_windows: String,
-
-    #[serde(default)]
-    pub bin_dir_windows: String,
-
-    #[serde(default)]
-    pub cache_dir_windows: String,
-
-    #[serde(default)]
-    pub temp_dir_windows: String,
+    pub temp_dir: PathBuf,
 }
 
 // set default values for config
@@ -193,18 +179,14 @@ impl Default for WixConfig {
                 desc: "cross platform package manager".to_string(),
                 license: "zlib".to_string(),
                 git: "https://github.com/m1ten/wix".to_string(),
-                repos: vec!["https://github.com/m1ten/wix-pkgs/".to_string()],
+                repos: vec!["https://github.com/m1ten/wix-pkgs".to_string()],
             },
             pkg: WixPkg { pkgs: vec![] },
             dir: WixDir {
-                dir_posix: "~/wix".to_string(),
-                bin_dir_posix: "~/wix/bin".to_string(),
-                cache_dir_posix: "~/wix/cache".to_string(),
-                temp_dir_posix: "~/wix/temp".to_string(),
-                dir_windows: "~/wix".to_string(),
-                bin_dir_windows: "~/wix/bin".to_string(),
-                cache_dir_windows: "~/wix/cache".to_string(),
-                temp_dir_windows: "~/wix/temp".to_string(),
+                dir: "~/wix".into(),
+                bin_dir: "~/wix/bin".into(),
+                cache_dir: "~/wix/cache".into(),
+                temp_dir: "~/wix/temp".into(),
             },
         }
     }
