@@ -178,15 +178,15 @@ impl Default for NeoConfig {
                 ver: "0.1.0".to_string(),
                 desc: "cross platform package manager".to_string(),
                 license: "zlib".to_string(),
-                git: "https://github.com/m1ten/neo".to_string(),
+                git: "https://github.com/m1ten/neopkg".to_string(),
                 repos: vec!["https://github.com/m1ten/neo-pkgs".to_string()],
             },
             pkg: NeoPkg { pkgs: vec![] },
             dir: NeoDir {
-                dir: "~/neo".into(),
-                bin_dir: "~/neo/bin".into(),
-                cache_dir: "~/neo/cache".into(),
-                temp_dir: "~/neo/temp".into(),
+                dir: "~/neopkg".into(),
+                bin_dir: "~/neopkg/bin".into(),
+                cache_dir: "~/neopkg/cache".into(),
+                temp_dir: "~/neopkg/temp".into(),
             },
         }
     }

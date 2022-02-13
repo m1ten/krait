@@ -3,7 +3,7 @@ use neo::{args::Args, exit, question, NeoConfig};
 #[tokio::main]
 async fn main() {
     let path = match dirs::home_dir() {
-        Some(path) => path.join("neo"),
+        Some(path) => path.join("neopkg"),
         None => {
             eprintln!("Error: Could not find home directory.");
             exit!(1);
@@ -24,8 +24,8 @@ async fn main() {
     let args = Args::new(neo_config.clone());
 
     if neo::setup::is_super() {
-        eprintln!("Error: You are running neo as root.");
-        eprintln!("Please run neo as a normal user to prevent damage.");
+        eprintln!("Error: You are running neopkg as root.");
+        eprintln!("Please run neopkg as a normal user to prevent damage.");
         exit!(1);
     }
 
@@ -36,7 +36,7 @@ async fn main() {
     }
 
     // check if config file exists
-    if !path.clone().join("config.neo").exists() {
+    if !path.clone().join("neopkg.yml").exists() {
         // run setup?
         // println!("{:#?}", neo_config.clone());
         if question!("Would you like to run setup?") {
@@ -47,7 +47,7 @@ async fn main() {
         }
     }
 
-    // TODO: check if config.neo is valid and up to date
+    // TODO: check if neopkg.yml is valid and up to date
 
     // let mut pkgs: Vec<neo::pkg::Pkg> = Vec::new();
 
