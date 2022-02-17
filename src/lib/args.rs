@@ -1,5 +1,5 @@
 use crate::{self as neo};
-use clap::{App, Arg};
+use clap::{Command, Arg};
 use indexmap::IndexMap;
 
 // neo args struct
@@ -16,7 +16,7 @@ impl Args {
         let title = format!("- {} - {}", neo_config.gen.ver, neo_config.gen.desc);
 
         // get custom args
-        let app = App::new(neo_config.gen.name.as_str())
+        let app = Command::new(neo_config.gen.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")
@@ -27,7 +27,7 @@ impl Args {
                     .takes_value(false),
             )
             .subcommand(
-                App::new("install")
+                Command::new("install")
                     .about("install a package")
                     .visible_aliases(&["i", "in"])
                     .args(&[Arg::new("package")
@@ -37,7 +37,7 @@ impl Args {
                         .min_values(1)]),
             )
             .subcommand(
-                App::new("uninstall")
+                Command::new("uninstall")
                     .about("uninstall a package")
                     .visible_aliases(&["u", "un", "ui", "r", "rm", "remove"])
                     .arg(
@@ -49,7 +49,7 @@ impl Args {
                     ),
             )
             .subcommand(
-                App::new("search")
+                Command::new("search")
                     .about("search for a package")
                     .visible_aliases(&["s", "se", "sea"])
                     .arg(
@@ -61,7 +61,7 @@ impl Args {
                     ),
             )
             .subcommand(
-                App::new("update")
+                Command::new("update")
                     .about("update a package")
                     .visible_aliases(&["up", "upd"])
                     .arg(
@@ -73,7 +73,7 @@ impl Args {
                     ),
             )
             .subcommand(
-                App::new("clean")
+                Command::new("clean")
                     .about("clean the cache")
                     .visible_aliases(&["cl", "cle", "cls", "clear"]),
             );

@@ -11,10 +11,10 @@ neo - cross platform package manager
 
 ## Installation
 
-Download the latest binary from [releases](https://github.com/m1ten/neo/releases)
+Download the latest binary from [releases](https://github.com/m1ten/neopkg/releases)
 
 ```sh
-# Unix-Like: Give execution permission to neo and run
+# POSIX: Give execution permission to neo and run
 $ chmod +x neo && ./neo
 
 # Windows: Run the exe
@@ -36,9 +36,9 @@ $ .\neo.exe
    2. [Clang 12](https://repology.org/project/llvm/versions)
    3. [mold](https://github.com/rui314/mold)
 
-2. Clone the [source](https://github.com/m1ten/neo) using [`git`](https://git-scm.com/)
+2. Clone the [source](https://github.com/m1ten/neopkg) using [`git`](https://git-scm.com/)
    ```sh
-   $ git clone https://github.com/m1ten/neo.git
+   $ git clone https://github.com/m1ten/neopkg.git
    $ cd neo
    ```
 3. Build and run using [`cargo`](https://doc.rust-lang.org/stable/cargo/)
@@ -48,4 +48,4 @@ $ .\neo.exe
 
 ## License
 
-neo is licensed under [zlib](./LICENSE).
+neo is licensed under [Apache-2.0](./LICENSE).
