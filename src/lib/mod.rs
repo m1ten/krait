@@ -9,6 +9,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
@@ -113,81 +114,78 @@ macro_rules! question {
     }};
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NeoConfig {
-    pub gen: NeoGen,
+    #[default(NeoInfo::default())]
+    pub info: NeoInfo,
+
+    #[default(NeoPkg::default())]
     pub pkg: NeoPkg,
+
+    #[default(NeoDir::default())]
     pub dir: NeoDir,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NeoGen {
+#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
+pub struct NeoInfo {
     // neo name
+    #[default(String::from("neo"))]
     pub name: String,
 
     // neo author
+    #[default(String::from("miten"))]
     #[serde(default)]
     pub author: String,
 
     // neo version
+    #[default(String::from("0.1.0"))]
     pub ver: String,
 
     // neo description
+    #[default(String::from("cross platform package manager"))]
     #[serde(default)]
     pub desc: String,
 
     // neo license
+    #[default(String::from("Apache-2.0"))]
     pub license: String,
 
     // neo git repository
+    #[default(String::from("https://github.com/m1ten/neopkg"))]
     pub git: String,
 
     // neo repository
+    #[default(vec![String::from("https://github.com/m1ten/neopkgs")])]
     pub repos: Vec<String>,
+
+    // neo default flags/args
+    #[default(None)]
+    #[serde(alias = "args")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<Vec<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NeoPkg {
     // installed pkgs
-    pub pkgs: Vec<String>,
+    #[default(None)]
+    #[serde(alias = "packages")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pkgs: Option<Vec<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NeoDir {
     // neo directory for posix
+    #[default(dirs::home_dir().unwrap().join("neopkg"))]
     #[serde(default)]
     pub dir: PathBuf,
 
+    #[default(dirs::home_dir().unwrap().join("neopkg/bin"))]
     #[serde(default)]
     pub bin_dir: PathBuf,
 
+    #[default(dirs::home_dir().unwrap().join("neopkg/cache"))]
     #[serde(default)]
     pub cache_dir: PathBuf,
-
-    #[serde(default)]
-    pub temp_dir: PathBuf,
-}
-
-// set default values for config
-impl Default for NeoConfig {
-    fn default() -> Self {
-        NeoConfig {
-            gen: NeoGen {
-                name: "neo".to_string(),
-                author: "miten".to_string(),
-                ver: "0.1.0".to_string(),
-                desc: "cross platform package manager".to_string(),
-                license: "zlib".to_string(),
-                git: "https://github.com/m1ten/neopkg".to_string(),
-                repos: vec!["https://github.com/m1ten/neo-pkgs".to_string()],
-            },
-            pkg: NeoPkg { pkgs: vec![] },
-            dir: NeoDir {
-                dir: "~/neopkg".into(),
-                bin_dir: "~/neopkg/bin".into(),
-                cache_dir: "~/neopkg/cache".into(),
-                temp_dir: "~/neopkg/temp".into(),
-            },
-        }
-    }
 }

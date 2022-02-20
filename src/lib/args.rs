@@ -13,10 +13,10 @@ pub struct Args {
 impl Args {
     // function to get neo args
     pub fn new(neo_config: neo::NeoConfig) -> Args {
-        let title = format!("- {} - {}", neo_config.gen.ver, neo_config.gen.desc);
+        let title = format!("- {} - {}", neo_config.info.ver, neo_config.info.desc);
 
         // get custom args
-        let app = Command::new(neo_config.gen.name.as_str())
+        let app = Command::new(neo_config.info.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")
