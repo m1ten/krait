@@ -70,13 +70,15 @@ pub struct PkgMain {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub srcs: Option<Vec<PkgSrc>>,
 
+    // use | to separate multiple commands
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub install: Option<Vec<String>>,
+    pub install: Option<String>,
 
+    // use | to separate multiple commands
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uninstall: Option<Vec<String>>,
+    pub uninstall: Option<String>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
