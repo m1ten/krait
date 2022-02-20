@@ -32,9 +32,9 @@ pub struct PkgInfo {
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct PkgMain {
     // any os that is posix AND/OR windows compliant
-    #[default(HashMap::from([(String::from("any"), vec![String::from("any")])]))]
+    #[default(None)]
     #[serde(alias = "support")]
-    pub supports: HashMap<String, Vec<String>>,
+    pub supports: Option<HashMap<String, Vec<String>>>,
 
     // some programs have multiple repositories for each os
     #[default(None)]
