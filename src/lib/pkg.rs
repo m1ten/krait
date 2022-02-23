@@ -42,11 +42,13 @@ pub struct PkgMain {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repos: Option<Vec<String>>,
 
+    // dep and version
     #[default(None)]
     #[serde(alias = "dep", alias = "dependency", alias = "dependencies")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub deps: Option<Vec<String>>,
+    pub deps: Option<HashMap<String, String>>,
 
+    // dep and version
     #[default(None)]
     #[serde(
         alias = "dev_dep",
@@ -54,7 +56,7 @@ pub struct PkgMain {
         alias = "dev_dependencies"
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub dev_deps: Option<Vec<String>>,
+    pub dev_deps: Option<HashMap<String, String>>,
 
     // whether the package is installed from git or binary
     #[default(String::from("binary"))]
@@ -85,14 +87,26 @@ pub struct PkgMain {
 pub struct PkgSrc {
     // more than one url can be specified
     // order is important for mirrors
-    #[serde(alias = "url", alias = "link", alias = "links")]
-    pub urls: Vec<String>,
+    // direct path required for binary
+    #[serde(alias = "paths", alias = "url", alias = "link", alias = "links")]
+    pub path: Vec<String>,
+
+    #[default(Some(false))]
+    #[serde(alias = "exec")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exec: Option<bool>,
+
+    // install and uninstall args 
+    #[default(None)]
+    #[serde(alias = "arg", alias = "argument", alias = "arguments")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub args: Option<HashMap<Vec<String>, Vec<String>>>,
 
     // hashes of the file (sha256, sha1, md5, etc)
     // e.g. (sha256: "...")
     // although not required, it is recommended to use
     #[default(None)]
-    #[serde(alias = "hash", alias = "hashes")]
+    #[serde(alias = "hash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hashes: Option<HashMap<String, String>>,
 }
