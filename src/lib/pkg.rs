@@ -42,6 +42,12 @@ pub struct PkgMain {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repos: Option<Vec<String>>,
 
+    // some programs have multiple versions for each os
+    #[default(None)]
+    #[serde(alias = "version")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ver: Option<String>,
+
     // dep and version
     #[default(None)]
     #[serde(alias = "dep", alias = "dependency", alias = "dependencies")]
@@ -72,15 +78,21 @@ pub struct PkgMain {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub srcs: Option<Vec<PkgSrc>>,
 
-    // use | to separate multiple commands
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub install: Option<String>,
+    pub build: Option<Vec<Action>>,
 
-    // use | to separate multiple commands
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uninstall: Option<String>,
+    pub install: Option<Vec<Action>>,
+
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uninstall: Option<Vec<Action>>,
+
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub test: Option<Vec<Action>>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -91,16 +103,16 @@ pub struct PkgSrc {
     #[serde(alias = "paths", alias = "url", alias = "link", alias = "links")]
     pub path: Vec<String>,
 
-    #[default(Some(false))]
-    #[serde(alias = "exec")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exec: Option<bool>,
+    // #[default(Some(false))]
+    // #[serde(alias = "exec")]
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub exec: Option<bool>,
 
     // install and uninstall args 
-    #[default(None)]
-    #[serde(alias = "arg", alias = "argument", alias = "arguments")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub args: Option<HashMap<Vec<String>, Vec<String>>>,
+    // #[default(None)]
+    // #[serde(alias = "arg", alias = "argument", alias = "arguments")]
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub args: Option<HashMap<Vec<String>, Vec<String>>>,
 
     // hashes of the file (sha256, sha1, md5, etc)
     // e.g. (sha256: "...")
@@ -109,4 +121,17 @@ pub struct PkgSrc {
     #[serde(alias = "hash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hashes: Option<HashMap<String, String>>,
+}
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+pub struct Action {
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    // use | to separate multiple commands
+    #[default(None)]
+    #[serde(alias = "cmd", alias = "cmds", alias = "command", alias = "commands")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run: Option<String>
 }
