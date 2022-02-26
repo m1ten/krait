@@ -8,8 +8,9 @@ use smart_default::SmartDefault;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct PkgInfo {
-    #[default(String::new())]
-    pub name: String,
+    #[default(vec![String::new()])]
+    #[serde(alias = "names")]
+    pub name: Vec<String>,
 
     #[default(String::new())]
     #[serde(alias = "version")]
@@ -128,6 +129,12 @@ pub struct Action {
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+
+    // specific a condition
+    #[default(None)]
+    #[serde(rename = "if")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub _if: Option<String>,
 
     // use | to separate multiple commands
     #[default(None)]
