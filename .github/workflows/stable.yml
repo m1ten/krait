@@ -68,6 +68,7 @@ jobs:
         git checkout v1.0.2
         make -j$(nproc) CXX=clang++
         sudo make install
+        ln -s /usr/local/bin/mold /usr/bin/mold
 
     - name: Install Rust nightly
       uses: actions-rs/toolchain@v1
