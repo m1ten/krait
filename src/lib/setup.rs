@@ -37,12 +37,12 @@ pub fn run(path: PathBuf, neo_config: NeoConfig, _args: Args) {
 
     // create new neopkg folders
     println!("Creating new neopkg folders...");
-    let folder: Vec<&str> = vec!["bin", "cache"];
+    let folder: Vec<&str> = vec!["pkg", "cache"];
     for f in folder {
         fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
-    // create config.neopkg file
+    // create neopkg.yml file
     println!("Creating neopkg.yml file...");
     let _ = neopkg::writefs(
         match path.clone().join("neopkg.yml").to_str() {

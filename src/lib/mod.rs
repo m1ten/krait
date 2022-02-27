@@ -138,7 +138,7 @@ pub struct NeoInfo {
     pub author: String,
 
     // neopkg version
-    #[default(String::from("0.1.0"))]
+    #[default(String::from("0.0.1"))]
     pub ver: String,
 
     // neopkg description
@@ -181,9 +181,9 @@ pub struct NeoDir {
     #[serde(default)]
     pub dir: PathBuf,
 
-    #[default(dirs::home_dir().unwrap().join("neopkg/bin"))]
+    #[default(dirs::home_dir().unwrap().join("neopkg/pkg"))]
     #[serde(default)]
-    pub bin_dir: PathBuf,
+    pub pkg_dir: PathBuf,
 
     #[default(dirs::home_dir().unwrap().join("neopkg/cache"))]
     #[serde(default)]

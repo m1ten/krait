@@ -3,7 +3,7 @@
 | This project is incomplete and may not work as expected. |
 
 # neopkg 
-[![Workflow Status](https://img.shields.io/github/workflow/status/m1ten/neopkg/compile%20and%20release%20neo%20unstable?logo=github)](https://github.com/m1ten/neopkg/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-nightly-orange?logo=rust)](https://www.rust-lang.org/) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE)
+[![Workflow Status](https://img.shields.io/github/workflow/status/m1ten/neopkg/compile%20and%20release%20neo%20unstable?logo=github)](https://github.com/m1ten/neopkg/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-nightly-orange?logo=rust)](https://www.rust-lang.org/) [![crates.io](https://img.shields.io/crates/v/neopkg)](https://crates.io/crates/neopkg) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE) 
 
 cross platform package manager
 
