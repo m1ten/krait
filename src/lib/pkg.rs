@@ -1,10 +1,35 @@
 // Fields that should be added:
 // - maintainer/contributor (type: string)
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+
+use crate::NPConfig;
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+pub struct Pkg {
+    // name received from cli
+    #[default("")]
+    pub name: String,
+
+    // version received from cli
+    #[default("latest")]
+    pub ver: String,
+
+    #[default(None)]
+    pub url: Option<String>,
+
+    #[default(None)]
+    pub branch: Option<String>,
+
+    #[default(None)]
+    pub contents: Option<PathBuf>,
+
+    #[default(None)]
+    pub info: Option<PkgInfo>,
+}
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct PkgInfo {
@@ -81,19 +106,19 @@ pub struct PkgMain {
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub build: Option<Vec<Action>>,
+    pub build: Option<Vec<PkgAction>>,
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub install: Option<Vec<Action>>,
+    pub install: Option<Vec<PkgAction>>,
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub uninstall: Option<Vec<Action>>,
+    pub uninstall: Option<Vec<PkgAction>>,
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub test: Option<Vec<Action>>,
+    pub test: Option<Vec<PkgAction>>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -109,7 +134,7 @@ pub struct PkgSrc {
     // #[serde(skip_serializing_if = "Option::is_none")]
     // pub exec: Option<bool>,
 
-    // install and uninstall args 
+    // install and uninstall args
     // #[default(None)]
     // #[serde(alias = "arg", alias = "argument", alias = "arguments")]
     // #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +150,7 @@ pub struct PkgSrc {
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct Action {
+pub struct PkgAction {
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -134,11 +159,19 @@ pub struct Action {
     #[default(None)]
     #[serde(rename = "if")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub _if: Option<String>,
+    pub _if: Option<Vec<String>>,
 
     // use | to separate multiple commands
     #[default(None)]
     #[serde(alias = "cmd", alias = "cmds", alias = "command", alias = "commands")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub run: Option<String>
+    pub run: Option<String>,
+}
+
+impl Pkg {
+    pub async fn search(self, np_config: NPConfig, _print: bool) -> Self {
+        // search for the package on github repo 
+
+        self
+    }
 }

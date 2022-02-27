@@ -12,11 +12,11 @@ pub struct Args {
 
 impl Args {
     // function to get neopkg args
-    pub fn new(neo_config: neopkg::NeoConfig) -> Args {
-        let title = format!("- {} - {}", neo_config.info.ver, neo_config.info.desc);
+    pub fn new(np_config: neopkg::NPConfig) -> Args {
+        let title = format!("- {} - {}", np_config.info.ver, np_config.info.desc);
 
         // get custom args
-        let app = Command::new(neo_config.info.name.as_str())
+        let app = Command::new(np_config.info.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")

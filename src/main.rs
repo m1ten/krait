@@ -1,4 +1,4 @@
-use neopkg::{args::Args, exit, question, NeoConfig};
+use neopkg::{args::Args, exit, question, NPConfig};
 
 #[tokio::main]
 async fn main() {
@@ -10,9 +10,9 @@ async fn main() {
         }
     };
 
-    let neo_config = NeoConfig::default();
+    let np_config = NPConfig::default();
 
-    let args = Args::new(neo_config.clone());
+    let args = Args::new(np_config.clone());
 
     if neopkg::setup::is_super() {
         eprintln!("Error: You are running neopkg as root.");
@@ -29,9 +29,9 @@ async fn main() {
     // check if config file exists
     if !path.clone().join("neopkg.yml").exists() {
         // run setup?
-        // println!("{:#?}", neo_config.clone());
+        // println!("{:#?}", np_config.clone());
         if question!("Would you like to run setup?") {
-            neopkg::setup::run(path.clone(), neo_config.clone(), args.clone());
+            neopkg::setup::run(path.clone(), np_config.clone(), args.clone());
             exit!(0);
         } else {
             exit!(1);

@@ -115,19 +115,19 @@ macro_rules! question {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NeoConfig {
-    #[default(NeoInfo::default())]
-    pub info: NeoInfo,
+pub struct NPConfig {
+    #[default(NPInfo::default())]
+    pub info: NPInfo,
 
-    #[default(NeoPkg::default())]
-    pub pkg: NeoPkg,
+    #[default(NP::default())]
+    pub pkg: NP,
 
-    #[default(NeoDir::default())]
-    pub dir: NeoDir,
+    #[default(NPDir::default())]
+    pub dir: NPDir,
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NeoInfo {
+pub struct NPInfo {
     // neopkg name
     #[default(String::from("neopkg"))]
     pub name: String,
@@ -166,7 +166,7 @@ pub struct NeoInfo {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NeoPkg {
+pub struct NP {
     // installed pkgs
     #[default(None)]
     #[serde(alias = "packages")]
@@ -175,7 +175,7 @@ pub struct NeoPkg {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NeoDir {
+pub struct NPDir {
     // neopkg directory for posix
     #[default(dirs::home_dir().unwrap().join("neopkg"))]
     #[serde(default)]

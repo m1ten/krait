@@ -1,12 +1,12 @@
-use crate::{self as neopkg, args::Args, exit, question, NeoConfig};
+use crate::{self as neopkg, args::Args, exit, question, NPConfig};
 use std::{fs, path::PathBuf, vec};
 
-pub fn run(path: PathBuf, neo_config: NeoConfig, _args: Args) {
+pub fn run(path: PathBuf, np_config: NPConfig, _args: Args) {
     // TODO: Implement setup.rs
 
     // struct to yaml
     let config_yaml =
-        serde_yaml::to_string(&neo_config).expect("Error: Could not convert neopkg config to yaml.");
+        serde_yaml::to_string(&np_config).expect("Error: Could not convert neopkg config to yaml.");
 
     bat::PrettyPrinter::new()
         .input_from_bytes(config_yaml.as_bytes())
