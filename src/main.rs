@@ -1,4 +1,4 @@
-use neo::{args::Args, exit, question, NeoConfig};
+use neopkg::{args::Args, exit, question, NeoConfig};
 
 #[tokio::main]
 async fn main() {
@@ -14,13 +14,13 @@ async fn main() {
 
     let args = Args::new(neo_config.clone());
 
-    if neo::setup::is_super() {
+    if neopkg::setup::is_super() {
         eprintln!("Error: You are running neopkg as root.");
         eprintln!("Please run neopkg as a normal user to prevent damage.");
         exit!(1);
     }
 
-    if !neo::setup::is_internet_connected().await {
+    if !neopkg::setup::is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
         eprintln!("Please check your internet connection.");
         exit!(1);
@@ -31,7 +31,7 @@ async fn main() {
         // run setup?
         // println!("{:#?}", neo_config.clone());
         if question!("Would you like to run setup?") {
-            neo::setup::run(path.clone(), neo_config.clone(), args.clone());
+            neopkg::setup::run(path.clone(), neo_config.clone(), args.clone());
             exit!(0);
         } else {
             exit!(1);
@@ -40,13 +40,13 @@ async fn main() {
 
     // TODO: check if neopkg.yml is valid and up to date
 
-    // let mut pkgs: Vec<neo::pkg::Pkg> = Vec::new();
+    // let mut pkgs: Vec<neopkg::pkg::Pkg> = Vec::new();
 
     // for arg_p in args.pkgs.clone() {
     //     let name = arg_p.0;
     //     let ver = arg_p.1;
 
-    //     let pkg = neo::pkg::Pkg {
+    //     let pkg = neopkg::pkg::Pkg {
     //         name,
     //         ver: Some(ver),
     //         ..Default::default()

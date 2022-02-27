@@ -1,4 +1,4 @@
-name: compile and release neo unstable
+name: compile and release neopkg unstable
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
     - name: Delete Old Prerelease
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
       with:
-        tag_name: neo-unstable
+        tag_name: neopkg-unstable
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,7 +39,7 @@ jobs:
       with:
         prerelease: true
         bodyFile: ReleaseNotes.md
-        tag: "neo-unstable"
+        tag: "neopkg-unstable"
         token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
@@ -66,9 +66,9 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neo.exe
-        asset_name: neo-windows-x86_64.exe
-        tag: "neo-unstable"
+        file: target/release/neopkg.exe
+        asset_name: neopkg-windows-x86_64.exe
+        tag: "neopkg-unstable"
         overwrite: false
         prerelease: true
       
@@ -96,9 +96,9 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neo
-        asset_name: neo-linux-x86_64
-        tag: "neo-unstable"
+        file: target/release/neopkg
+        asset_name: neopkg-linux-x86_64
+        tag: "neopkg-unstable"
         overwrite: false
         prerelease: true
     
@@ -127,8 +127,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neo
-        asset_name: neo-macos-x86_64
-        tag: "neo-unstable"
+        file: target/release/neopkg
+        asset_name: neopkg-macos-x86_64
+        tag: "neopkg-unstable"
         overwrite: false
         prerelease: true

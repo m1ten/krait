@@ -55,7 +55,7 @@ macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        neo::scan::<$_type>(' ' as u8).expect("scan failed")
+        neopkg::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -64,7 +64,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        neo::scan::<String>('\n' as u8).expect("scanln failed")
+        neopkg::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
@@ -91,7 +91,7 @@ macro_rules! exit {
             "enter"
         };
         let msg = format!("\nPress {} to exit.\n", key);
-        neo::scanln!(msg);
+        neopkg::scanln!(msg);
         std::process::exit($code);
     }};
 }
@@ -102,7 +102,7 @@ macro_rules! question {
         loop {
             print!("{} [Y/n] ", $msg);
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
-            let answer = neo::scan::<String>('\n' as u8)
+            let answer = neopkg::scan::<String>('\n' as u8)
                 .expect("question failed")
                 .to_lowercase();
             if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
@@ -128,37 +128,37 @@ pub struct NeoConfig {
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NeoInfo {
-    // neo name
-    #[default(String::from("neo"))]
+    // neopkg name
+    #[default(String::from("neopkg"))]
     pub name: String,
 
-    // neo author
+    // neopkg author
     #[default(String::from("miten"))]
     #[serde(default)]
     pub author: String,
 
-    // neo version
+    // neopkg version
     #[default(String::from("0.1.0"))]
     pub ver: String,
 
-    // neo description
+    // neopkg description
     #[default(String::from("cross platform package manager"))]
     #[serde(default)]
     pub desc: String,
 
-    // neo license
+    // neopkg license
     #[default(String::from("Apache-2.0"))]
     pub license: String,
 
-    // neo git repository
+    // neopkg git repository
     #[default(String::from("https://github.com/m1ten/neopkg"))]
     pub git: String,
 
-    // neo repository
+    // neopkg repository
     #[default(vec![String::from("https://github.com/m1ten/neopkgs")])]
     pub repos: Vec<String>,
 
-    // neo default flags/args
+    // neopkg default flags/args
     #[default(None)]
     #[serde(alias = "args")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -176,7 +176,7 @@ pub struct NeoPkg {
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NeoDir {
-    // neo directory for posix
+    // neopkg directory for posix
     #[default(dirs::home_dir().unwrap().join("neopkg"))]
     #[serde(default)]
     pub dir: PathBuf,

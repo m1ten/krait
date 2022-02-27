@@ -1,5 +1,5 @@
 [package]
-name = "neo"
+name = "neopkg"
 version = "0.1.0"
 authors = ["miten"]
 edition = "2021"
@@ -9,7 +9,7 @@ repository = "https://github.com/m1ten/neopkg"
 license = "Apache-2.0"
 
 [lib]
-name = "neo"
+name = "neopkg"
 path = "src/lib/mod.rs"
 
 [dependencies]

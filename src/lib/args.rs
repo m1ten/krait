@@ -1,8 +1,8 @@
-use crate::{self as neo};
+use crate::{self as neopkg};
 use clap::{Command, Arg};
 use indexmap::IndexMap;
 
-// neo args struct
+// neopkg args struct
 #[derive(Debug, Clone)]
 pub struct Args {
     pub assume_yes: bool,
@@ -11,8 +11,8 @@ pub struct Args {
 }
 
 impl Args {
-    // function to get neo args
-    pub fn new(neo_config: neo::NeoConfig) -> Args {
+    // function to get neopkg args
+    pub fn new(neo_config: neopkg::NeoConfig) -> Args {
         let title = format!("- {} - {}", neo_config.info.ver, neo_config.info.desc);
 
         // get custom args

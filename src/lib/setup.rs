@@ -1,4 +1,4 @@
-use crate::{self as neo, args::Args, exit, question, NeoConfig};
+use crate::{self as neopkg, args::Args, exit, question, NeoConfig};
 use std::{fs, path::PathBuf, vec};
 
 pub fn run(path: PathBuf, neo_config: NeoConfig, _args: Args) {
@@ -17,11 +17,11 @@ pub fn run(path: PathBuf, neo_config: NeoConfig, _args: Args) {
         .print()
         .expect("Error: Could not print yaml.");
 
-    if !question!("All previous neo data will be erased, continue?") {
+    if !question!("All previous neopkg data will be erased, continue?") {
         exit!(1);
     }
 
-    // remove old neo data
+    // remove old neopkg data
     println!("\nRemoving old neopkg data...");
     match fs::remove_dir_all(&path) {
         Ok(_) => println!("Old neopkg data removed..."),
@@ -35,16 +35,16 @@ pub fn run(path: PathBuf, neo_config: NeoConfig, _args: Args) {
         }
     }
 
-    // create new neo folders
+    // create new neopkg folders
     println!("Creating new neopkg folders...");
     let folder: Vec<&str> = vec!["bin", "cache"];
     for f in folder {
         fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
-    // create config.neo file
+    // create config.neopkg file
     println!("Creating neopkg.yml file...");
-    let _ = neo::writefs(
+    let _ = neopkg::writefs(
         match path.clone().join("neopkg.yml").to_str() {
             Some(x) => x.to_string(),
             None => {
