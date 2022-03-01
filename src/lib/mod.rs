@@ -114,6 +114,22 @@ macro_rules! question {
     }};
 }
 
+#[macro_export]
+macro_rules! dbg {
+    ($($x:tt)*) => {
+        {
+            #[cfg(debug_assertions)]
+            {
+                std::dbg!($($x)*)
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                ($($x)*)
+            }
+        }
+    }
+}
+
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct NPConfig {
     #[default(NPInfo::default())]
@@ -133,7 +149,7 @@ pub struct NPInfo {
     pub name: String,
 
     // neopkg author
-    #[default(String::from("miten"))]
+    #[default(String::from("miten <git.pub@icloud.com>"))]
     #[serde(default)]
     pub author: String,
 

@@ -3,10 +3,14 @@
 
 use std::{collections::HashMap, path::PathBuf};
 
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use tokio::fs;
 
-use crate::NPConfig;
+use crate::{self as neopkg};
+
+use neopkg::{dbg, exit, NPConfig};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -22,13 +26,13 @@ pub struct Pkg {
     pub url: Option<String>,
 
     #[default(None)]
-    pub branch: Option<String>,
+    pub path: Option<PathBuf>,
 
     #[default(None)]
-    pub contents: Option<PathBuf>,
+    pub info_str: Option<String>,
 
     #[default(None)]
-    pub info: Option<PkgInfo>,
+    pub info_yml: Option<PkgInfo>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -60,7 +64,7 @@ pub struct PkgMain {
     // any os that is posix AND/OR windows compliant
     #[default(None)]
     #[serde(alias = "support")]
-    pub supports: Option<HashMap<String, Vec<String>>>,
+    pub supports: Option<Vec<HashMap<String, Vec<String>>>>,
 
     // some programs have multiple repositories for each os
     #[default(None)]
@@ -78,7 +82,7 @@ pub struct PkgMain {
     #[default(None)]
     #[serde(alias = "dep", alias = "dependency", alias = "dependencies")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub deps: Option<HashMap<String, String>>,
+    pub deps: Option<Vec<HashMap<String, String>>>,
 
     // dep and version
     #[default(None)]
@@ -88,7 +92,7 @@ pub struct PkgMain {
         alias = "dev_dependencies"
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub dev_deps: Option<HashMap<String, String>>,
+    pub dev_deps: Option<Vec<HashMap<String, String>>>,
 
     // whether the package is installed from git or binary
     #[default(String::from("binary"))]
@@ -146,7 +150,7 @@ pub struct PkgSrc {
     #[default(None)]
     #[serde(alias = "hash")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub hashes: Option<HashMap<String, String>>,
+    pub hashes: Option<Vec<HashMap<String, String>>>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -169,9 +173,162 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn search(self, np_config: NPConfig, _print: bool) -> Self {
-        // search for the package on github repo 
+    pub async fn fill(self, np_config: NPConfig) -> Result<Self, String> {
+        // search for the package on github repo
+        let repos = np_config.info.repos;
+        let mut vec_3: Vec<(String, String, String)> = Vec::new();
 
-        self
+        for repo in repos {
+            let lc = &repo.to_lowercase();
+            let re =
+                Regex::new(r"[a-z0-9]+://(?P<domain>[^/]+)/(?P<owner>[^/]+)/(?P<repo>[^/]+)/?")
+                    .unwrap();
+
+            let re_cap = match re.captures(lc) {
+                Some(c) => c,
+                None => continue,
+            };
+
+            let domain = re_cap.name("domain").unwrap().as_str();
+
+            if domain != "github.com" {
+                continue;
+            }
+
+            let owner = re_cap.name("owner").unwrap().as_str();
+            let repo = re_cap.name("repo").unwrap().as_str();
+
+            vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
+        }
+
+        if vec_3.is_empty() {
+            println!("No github repositories found.");
+            exit!(1);
+        }
+
+        let owner = &vec_3[0].1;
+        let repo = &vec_3[0].2;
+        let name = &self.name;
+
+        dbg!(format!("Searching for {owner}/{repo}."));
+
+        // search for the package on github repo
+        let api_url =
+            format!("https://api.github.com/repos/{owner}/{repo}/contents/manifests/{name}",);
+
+        // download the folder
+        let client = reqwest::Client::new();
+        let json = match client
+            .get(&api_url)
+            .header(reqwest::header::USER_AGENT, "neopkg")
+            .send()
+            .await
+        {
+            Ok(r) => match r.json::<serde_yaml::Value>().await {
+                Ok(j) => j,
+                Err(e) => return Err(format!("{}", e)),
+            },
+            Err(e) => return Err(format!("{}", e)),
+        };
+
+        let mut i = 0;
+        // name and download_url
+        let mut files: Vec<HashMap<String, String>> = Vec::new();
+        loop {
+            let name = match json[i]["name"].as_str() {
+                Some(n) => (n),
+                None => break,
+            };
+
+            let down = match json[i]["download_url"].as_str() {
+                Some(d) => (d),
+                None => break,
+            };
+
+            let mut hashmap = HashMap::new();
+            hashmap.insert(name.to_string(), down.to_string());
+
+            files.push(hashmap);
+
+            i += 1;
+        }
+
+        dbg!(format!("Found {} files.", files.len()));
+
+        // create folder for the package
+        let cache = PathBuf::from(np_config.dir.cache_dir.join(name));
+
+        dbg!(&cache);
+
+        let mut info_str: Option<String> = None;
+        let mut info_yml: Option<PkgInfo> = None;
+        let mut down_url: Option<String> = None; 
+
+        for f in &files {
+            let ext = f.keys().next().unwrap();
+            let url = f.values().next().unwrap();
+
+            dbg!(format!("Downloading {url}."));
+            let content = match client
+                .get(url)
+                .header(reqwest::header::USER_AGENT, "neopkg")
+                .send()
+                .await
+            {
+                Ok(r) => match r.text().await {
+                    Ok(c) => c,
+                    Err(e) => return Err(format!("{}", e)),
+                },
+                Err(e) => return Err(format!("{}", e)),
+            };
+
+            if ext.to_string() == format!("{}.yml", name) {
+                info_str = Some(content.clone());
+                info_yml = match serde_yaml::from_str(&info_str.as_ref().unwrap()) {
+                    Ok(i) => Some(i),
+                    Err(e) => return Err(format!("{}", e)),
+                };
+                down_url = Some(url.to_string());
+            }
+
+            // write to file
+            dbg!(format!("Writing {ext}."));
+            let cache_str = match cache.join(ext).to_str() {
+                Some(c) => c.to_string(),
+                None => return Err(format!("Invalid path.")),
+            };
+            dbg!(format!("{cache_str}"));
+
+            // create folder if not exists
+            if !cache.exists() {
+                dbg!(format!("Creating folder {}.", cache.display()));
+                let _ = match fs::create_dir_all(&cache).await {
+                    Ok(_) => (),
+                    Err(e) => return Err(format!("{}", e)),
+                };
+            }
+
+            let _ = match neopkg::writefs(cache_str, content) {
+                Ok(_) => (),
+                Err(e) => return Err(format!("{}", e)),
+            };
+        }
+
+        if info_str.is_none() || info_yml.is_none() {
+            return Err(format!("No info.yml found."));
+        }
+
+        dbg!(format!("Downloaded {} files.", files.len()));
+
+        let pkg = Pkg {
+            name: self.name,
+            ver: self.ver,
+            url: Some(down_url.unwrap()),
+            path: Some(cache),
+            info_str: Some(info_str.unwrap()),
+            info_yml: Some(info_yml.unwrap()),
+        };
+
+        Ok(pkg)
     }
 }

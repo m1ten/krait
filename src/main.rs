@@ -40,27 +40,32 @@ async fn main() {
 
     // TODO: check if neopkg.yml is valid and up to date
 
-    // let mut pkgs: Vec<neopkg::pkg::Pkg> = Vec::new();
+    let mut pkgs: Vec<neopkg::pkg::Pkg> = Vec::new();
 
-    // for arg_p in args.pkgs.clone() {
-    //     let name = arg_p.0;
-    //     let ver = arg_p.1;
+    for arg_p in args.pkgs.clone() {
+        let name = arg_p.0;
+        let ver = arg_p.1;
 
-    //     let pkg = neopkg::pkg::Pkg {
-    //         name,
-    //         ver: Some(ver),
-    //         ..Default::default()
-    //     }
-    //     .search()
-    //     .await
-    //     .unwrap();
+        let pkg = match (neopkg::pkg::Pkg {
+            name,
+            ver,
+            ..Default::default()
+        })
+        .fill(np_config.clone())
+        .await
+        {
+            Ok(p) => p,
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                exit!(1);
+            }
+        };
 
-    //     pkgs.push(pkg);
-    // }
+        pkgs.push(pkg);
+    }
 
     match args.status.as_str() {
         "search" => {
-            // println!("{:?}", pkgs);
             exit!(0);
         }
         "clean" => {
