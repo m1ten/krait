@@ -10,7 +10,7 @@ use tokio::fs;
 
 use crate::{self as neopkg};
 
-use neopkg::{dbg, exit, NPConfig};
+use neopkg::{dbg, exit};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -173,9 +173,56 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn fill(self, np_config: NPConfig) -> Result<Self, String> {
+    pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
+        // check if the package is already in the cache
+        // create folder for the package
+        let cache = cache_dir.join(&self.name);
+
+        dbg!(&cache);
+
+        if cache.exists() && cache.is_dir() {
+            // get pkg.yml from cache
+            let pkg_yml = cache.join("pkg.yml");
+
+            // read pkg.yml
+            let pkg_yml = match fs::read_to_string(&pkg_yml).await {
+                Ok(s) => match serde_yaml::from_str(&s) {
+                    Ok(y) => (s, y),
+                    Err(_) => ("err".to_string(), PkgInfo::default()),
+                },
+                Err(_) => ("err".to_string(), PkgInfo::default()),
+            };
+
+            let ver: String;
+            // check if self.ver is latest
+            if self.ver == "latest" {
+                ver = pkg_yml.1.ver.clone();
+            } else {
+                ver = self.ver.clone();
+            }
+
+            // check if self.ver matches pkg.yml.ver
+            if ver == pkg_yml.1.ver {
+                let pkg = Pkg {
+                    name: self.name,
+                    ver: self.ver,
+                    url: None,
+                    path: Some(cache),
+                    info_str: Some(pkg_yml.0),
+                    info_yml: Some(pkg_yml.1),
+                };
+
+                return Ok(pkg);
+            } else {
+                // if not, delete the cache folder
+                let _ = match fs::remove_dir_all(&cache).await {
+                    Ok(_) => (),
+                    Err(_) => return Err("could not delete cache folder".to_string()),
+                };
+            }
+        }
+
         // search for the package on github repo
-        let repos = np_config.info.repos;
         let mut vec_3: Vec<(String, String, String)> = Vec::new();
 
         for repo in repos {
@@ -208,13 +255,14 @@ impl Pkg {
 
         let owner = &vec_3[0].1;
         let repo = &vec_3[0].2;
-        let name = &self.name;
 
         dbg!(format!("Searching for {owner}/{repo}."));
 
         // search for the package on github repo
-        let api_url =
-            format!("https://api.github.com/repos/{owner}/{repo}/contents/manifests/{name}",);
+        let api_url = format!(
+            "https://api.github.com/repos/{owner}/{repo}/contents/manifests/{name}",
+            name = self.name
+        );
 
         // download the folder
         let client = reqwest::Client::new();
@@ -255,14 +303,9 @@ impl Pkg {
 
         dbg!(format!("Found {} files.", files.len()));
 
-        // create folder for the package
-        let cache = PathBuf::from(np_config.dir.cache_dir.join(name));
-
-        dbg!(&cache);
-
         let mut info_str: Option<String> = None;
         let mut info_yml: Option<PkgInfo> = None;
-        let mut down_url: Option<String> = None; 
+        let mut down_url: Option<String> = None;
 
         for f in &files {
             let ext = f.keys().next().unwrap();
@@ -282,7 +325,7 @@ impl Pkg {
                 Err(e) => return Err(format!("{}", e)),
             };
 
-            if ext.to_string() == format!("{}.yml", name) {
+            if ext.to_string() == format!("{}.yml", self.name) {
                 info_str = Some(content.clone());
                 info_yml = match serde_yaml::from_str(&info_str.as_ref().unwrap()) {
                     Ok(i) => Some(i),

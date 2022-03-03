@@ -1,4 +1,4 @@
-use neopkg::{args::Args, exit, question, NPConfig};
+use neopkg::{args::Args, exit, pkg::Pkg, question, NPConfig};
 
 #[tokio::main]
 async fn main() {
@@ -39,34 +39,52 @@ async fn main() {
     }
 
     // TODO: check if neopkg.yml is valid and up to date
-
-    let mut pkgs: Vec<neopkg::pkg::Pkg> = Vec::new();
+    let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {
-        let name = arg_p.0;
-        let ver = arg_p.1;
+        let cache_dir = np_config.dir.cache_dir.clone();
+        let repos = np_config.info.repos.clone();
 
-        let pkg = match (neopkg::pkg::Pkg {
-            name,
-            ver,
-            ..Default::default()
-        })
-        .fill(np_config.clone())
-        .await
-        {
-            Ok(p) => p,
+        tasks.push(tokio::spawn(async move {
+            let name = arg_p.0;
+            let ver = arg_p.1;
+
+            let pkg = match (Pkg {
+                name,
+                ver,
+                ..Default::default()
+            })
+            .fill(cache_dir, repos)
+            .await
+            {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    exit!(1);
+                }
+            };
+
+            pkg
+        }))
+    }
+
+    let mut pkgs = Vec::new();
+
+    for r in futures::future::join_all(tasks).await {
+        match r {
+            Ok(p) => pkgs.push(p),
             Err(e) => {
                 eprintln!("Error: {}", e);
                 exit!(1);
             }
-        };
-
-        pkgs.push(pkg);
+        }
     }
+
+    dbg!("finshed");
 
     match args.status.as_str() {
         "search" => {
-            exit!(0);
+            println!("Finished!");
         }
         "clean" => {
             println!("Cleaning up.");

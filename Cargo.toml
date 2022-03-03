@@ -26,6 +26,7 @@ serde_yaml = "0.8.23"
 bat = "0.20.0"
 smart-default = "0.6.0"
 regex = "1.5.4"
+futures = "0.3.21"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.23.1"
@@ -35,7 +36,7 @@ is_elevated = "0.1.2"
 
 [profile.release]
 lto = true
-opt-level = "z"
+opt-level = 3
 codegen-units = 1
 panic = "abort"
 strip = true
