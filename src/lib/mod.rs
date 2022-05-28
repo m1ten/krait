@@ -135,8 +135,8 @@ pub struct WixConfig {
     #[default(WixInfo::default())]
     pub info: WixInfo,
 
-    #[default(Wix::default())]
-    pub pkg: Wix,
+    #[default(WixPkgs::default())]
+    pub pkg: WixPkgs,
 
     #[default(WixDir::default())]
     pub dir: WixDir,
@@ -182,7 +182,7 @@ pub struct WixInfo {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct Wix {
+pub struct WixPkgs {
     // installed pkgs
     #[default(None)]
     #[serde(alias = "packages")]
@@ -199,9 +199,13 @@ pub struct WixDir {
 
     #[default(dirs::home_dir().unwrap().join("wix/pkg"))]
     #[serde(default)]
-    pub pkg_dir: PathBuf,
+    pub pkg: PathBuf,
 
     #[default(dirs::home_dir().unwrap().join("wix/cache"))]
     #[serde(default)]
-    pub cache_dir: PathBuf,
+    pub cache: PathBuf,
+
+    #[default(dirs::home_dir().unwrap().join("wix/wix.yml"))]
+    #[serde(default)]
+    pub yml: PathBuf,
 }

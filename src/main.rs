@@ -2,17 +2,6 @@ use wix::{args::Args, exit, pkg::Pkg, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
-    let path = match dirs::home_dir() {
-        Some(path) => path.join("wix"),
-        None => {
-            eprintln!("Error: Could not find home directory.");
-            exit!(1);
-        }
-    };
-
-    let wix_config = WixConfig::default();
-
-    let args = Args::new(wix_config.clone());
 
     if wix::setup::is_super() {
         eprintln!("Error: You are running wix as root.");
@@ -26,23 +15,45 @@ async fn main() {
         exit!(1);
     }
 
+    let mut wix_config = WixConfig::default();
+    let args = Args::new(wix_config.clone());
+
     // check if config file exists
-    if !path.clone().join("wix.yml").exists() {
+    if !wix_config.dir.yml.exists() {
         // run setup?
         // println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
-            wix::setup::run(path.clone(), wix_config.clone(), args.clone());
+            wix::setup::run(wix_config);
             exit!(0);
         } else {
             exit!(1);
         }
+    } else {
+
+        // read config file
+        let config_yaml = match wix::readfs(wix_config.dir.yml.to_string_lossy().to_string()) {
+            Ok(x) => x,
+            Err(e) => {
+                eprintln!("Error: Reading wix.yml file: {}", e);
+                eprintln!("Continuing with default config...");
+
+                // struct to yaml
+                serde_yaml::to_string(&WixConfig::default()).expect("Error: Could not convert wix config to yaml.")
+            }
+        };
+
+        // convert yaml to struct
+
+        wix_config = serde_yaml::from_str(&config_yaml).expect("Error: Could not convert yaml to wix config.");
+
+        // TODO: check if config is valid and if not, run setup
+
     }
 
-    // TODO: check if wix.yml is valid and up to date
     let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {
-        let cache_dir = wix_config.dir.cache_dir.clone();
+        let cache_dir = wix_config.dir.cache.clone();
         let repos = wix_config.info.repos.clone();
 
         tasks.push(tokio::spawn(async move {
@@ -89,11 +100,11 @@ async fn main() {
         "clean" => {
             println!("Cleaning up.");
 
-            let cache = path.clone().join("cache");
+            let cache_path = wix_config.dir.cache.clone();
 
-            println!("{:#?}", cache);
+            dbg!("{:#?}", &cache_path);
 
-            match std::fs::remove_dir_all(path.clone().join("cache")) {
+            match std::fs::remove_dir_all(cache_path) {
                 Ok(_) => {
                     println!("Cache Cleaned!");
                     exit!(0);

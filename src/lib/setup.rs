@@ -1,8 +1,10 @@
-use crate::{self as wix, args::Args, exit, question, WixConfig};
-use std::{fs, path::PathBuf, vec};
+use crate::{self as wix, exit, question, WixConfig};
+use std::{fs, vec};
 
-pub fn run(path: PathBuf, wix_config: WixConfig, _args: Args) {
+pub fn run(wix_config: WixConfig) {
     // TODO: Implement setup.rs
+
+    let wix_path = wix_config.dir.dir.clone();
 
     // struct to yaml
     let config_yaml =
@@ -23,7 +25,7 @@ pub fn run(path: PathBuf, wix_config: WixConfig, _args: Args) {
 
     // remove old wix data
     println!("\nRemoving old wix data...");
-    match fs::remove_dir_all(&path) {
+    match fs::remove_dir_all(&wix_path) {
         Ok(_) => println!("Old wix data removed..."),
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
@@ -37,15 +39,14 @@ pub fn run(path: PathBuf, wix_config: WixConfig, _args: Args) {
 
     // create new wix folders
     println!("Creating new wix folders...");
-    let folder: Vec<&str> = vec!["pkg", "cache"];
-    for f in folder {
-        fs::create_dir_all(path.clone().join(f)).unwrap()
+    for f in vec!["pkg", "cache"] {
+        fs::create_dir_all(wix_path.clone().join(f)).unwrap()
     }
 
     // create wix.yml file
     println!("Creating wix.yml file...");
     let _ = wix::writefs(
-        match path.clone().join("wix.yml").to_str() {
+        match wix_config.dir.yml.to_str() {
             Some(x) => x.to_string(),
             None => {
                 eprintln!("Error: Creating wix.yml file.");

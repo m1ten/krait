@@ -174,6 +174,8 @@ pub struct PkgAction {
 
 impl Pkg {
     pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
+        dbg!(repos.clone());
+
         // check if the package is already in the cache
         // create folder for the package
         let cache = cache_dir.join(&self.name);
@@ -224,7 +226,7 @@ impl Pkg {
 
         // search for the package on github repo
         // (domain, owner, repo); might add branch support later
-        let mut vec_3: Vec<(String, String, String)> = Vec::new();
+        // let mut vec_3: Vec<(String, String, String)> = Vec::new();
 
         for repo in repos {
             let lc = &repo.to_lowercase();
@@ -242,139 +244,131 @@ impl Pkg {
             if domain != "github.com" {
                 // TODO: add support for non-github repos (e.g. gitlab, bitbucket)
                 eprintln!("{domain} is currently not supported.");
-                continue; 
+                continue;
             }
 
             let owner = re_cap.name("owner").unwrap().as_str();
             let repo = re_cap.name("repo").unwrap().as_str();
 
-            vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
+            // vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
+            dbg!(format!("Searching for {owner}/{repo}..."));
+
+            // search for the package on github repo
+            let api_url = format!(
+                "https://api.github.com/repos/{owner}/{repo}/contents/{repo}.yml"
+            );
+
+            dbg!(&api_url);
         }
-
-        if vec_3.is_empty() {
-            println!("No github repositories found.");
-            exit!(1);
-        }
-
-        let owner = &vec_3[0].1;
-        let repo = &vec_3[0].2;
-
-        dbg!(format!("Searching for {owner}/{repo}."));
-
-        // search for the package on github repo
-        let api_url = format!(
-            "https://api.github.com/repos/{owner}/{repo}/contents/manifests/{name}",
-            name = self.name
-        );
 
         // download the folder
-        let client = reqwest::Client::new();
-        let json = match client
-            .get(&api_url)
-            .header(reqwest::header::USER_AGENT, "wix")
-            .send()
-            .await
-        {
-            Ok(r) => match r.json::<serde_yaml::Value>().await {
-                Ok(j) => j,
-                Err(e) => return Err(format!("{}", e)),
-            },
-            Err(e) => return Err(format!("{}", e)),
-        };
+        // let client = reqwest::Client::new();
+        // let json = match client
+        //     .get(&api_url)
+        //     .header(reqwest::header::USER_AGENT, "wix")
+        //     .send()
+        //     .await
+        // {
+        //     Ok(r) => match r.json::<serde_yaml::Value>().await {
+        //         Ok(j) => j,
+        //         Err(e) => return Err(format!("{}", e)),
+        //     },
+        //     Err(e) => return Err(format!("{}", e)),
+        // };
 
-        let mut i = 0;
-        // name and download_url
-        let mut files: Vec<HashMap<String, String>> = Vec::new();
-        loop {
-            let name = match json[i]["name"].as_str() {
-                Some(n) => (n),
-                None => break,
-            };
+        // let mut i = 0;
+        // // name and download_url
+        // let mut files: Vec<HashMap<String, String>> = Vec::new();
+        // loop {
+        //     let name = match json[i]["name"].as_str() {
+        //         Some(n) => (n),
+        //         None => break,
+        //     };
 
-            let down = match json[i]["download_url"].as_str() {
-                Some(d) => (d),
-                None => break,
-            };
+        //     let down = match json[i]["download_url"].as_str() {
+        //         Some(d) => (d),
+        //         None => break,
+        //     };
 
-            let mut hashmap = HashMap::new();
-            hashmap.insert(name.to_string(), down.to_string());
+        //     let mut hashmap = HashMap::new();
+        //     hashmap.insert(name.to_string(), down.to_string());
 
-            files.push(hashmap);
+        //     files.push(hashmap);
 
-            i += 1;
-        }
+        //     i += 1;
+        // }
 
-        dbg!(format!("Found {} files.", files.len()));
+        // dbg!(format!("Found {} files.", files.len()));
 
-        let mut info_str: Option<String> = None;
-        let mut info_yml: Option<PkgInfo> = None;
-        let mut down_url: Option<String> = None;
+        // let mut info_str: Option<String> = None;
+        // let mut info_yml: Option<PkgInfo> = None;
+        // let mut down_url: Option<String> = None;
 
-        for f in &files {
-            let ext = f.keys().next().unwrap();
-            let url = f.values().next().unwrap();
+        // for f in &files {
+        //     let ext = f.keys().next().unwrap();
+        //     let url = f.values().next().unwrap();
 
-            dbg!(format!("Downloading {url}."));
-            let content = match client
-                .get(url)
-                .header(reqwest::header::USER_AGENT, "wix")
-                .send()
-                .await
-            {
-                Ok(r) => match r.text().await {
-                    Ok(c) => c,
-                    Err(e) => return Err(format!("{}", e)),
-                },
-                Err(e) => return Err(format!("{}", e)),
-            };
+        //     dbg!(format!("Downloading {url}."));
+        //     let content = match client
+        //         .get(url)
+        //         .header(reqwest::header::USER_AGENT, "wix")
+        //         .send()
+        //         .await
+        //     {
+        //         Ok(r) => match r.text().await {
+        //             Ok(c) => c,
+        //             Err(e) => return Err(format!("{}", e)),
+        //         },
+        //         Err(e) => return Err(format!("{}", e)),
+        //     };
 
-            if ext.to_string() == format!("{}.yml", self.name) {
-                info_str = Some(content.clone());
-                info_yml = match serde_yaml::from_str(&info_str.as_ref().unwrap()) {
-                    Ok(i) => Some(i),
-                    Err(e) => return Err(format!("{}", e)),
-                };
-                down_url = Some(url.to_string());
-            }
+        //     if ext.to_string() == format!("{}.yml", self.name) {
+        //         info_str = Some(content.clone());
+        //         info_yml = match serde_yaml::from_str(&info_str.as_ref().unwrap()) {
+        //             Ok(i) => Some(i),
+        //             Err(e) => return Err(format!("{}", e)),
+        //         };
+        //         down_url = Some(url.to_string());
+        //     }
 
-            // write to file
-            dbg!(format!("Writing {ext}."));
-            let cache_str = match cache.join(ext).to_str() {
-                Some(c) => c.to_string(),
-                None => return Err(format!("Invalid path.")),
-            };
-            dbg!(format!("{cache_str}"));
+        //     // write to file
+        //     dbg!(format!("Writing {ext}."));
+        //     let cache_str = match cache.join(ext).to_str() {
+        //         Some(c) => c.to_string(),
+        //         None => return Err(format!("Invalid path.")),
+        //     };
+        //     dbg!(format!("{cache_str}"));
 
-            // create folder if not exists
-            if !cache.exists() {
-                dbg!(format!("Creating folder {}.", cache.display()));
-                let _ = match fs::create_dir_all(&cache).await {
-                    Ok(_) => (),
-                    Err(e) => return Err(format!("{}", e)),
-                };
-            }
+        //     // create folder if not exists
+        //     if !cache.exists() {
+        //         dbg!(format!("Creating folder {}.", cache.display()));
+        //         let _ = match fs::create_dir_all(&cache).await {
+        //             Ok(_) => (),
+        //             Err(e) => return Err(format!("{}", e)),
+        //         };
+        //     }
 
-            let _ = match wix::writefs(cache_str, content) {
-                Ok(_) => (),
-                Err(e) => return Err(format!("{}", e)),
-            };
-        }
+        //     let _ = match wix::writefs(cache_str, content) {
+        //         Ok(_) => (),
+        //         Err(e) => return Err(format!("{}", e)),
+        //     };
+        // }
 
-        if info_str.is_none() || info_yml.is_none() {
-            return Err(format!("No info.yml found."));
-        }
+        // if info_str.is_none() || info_yml.is_none() {
+        //     return Err(format!("No info.yml found."));
+        // }
 
-        dbg!(format!("Downloaded {} files.", files.len()));
+        // dbg!(format!("Downloaded {} files.", files.len()));
 
-        let pkg = Pkg {
-            name: self.name,
-            ver: self.ver,
-            url: Some(down_url.unwrap()),
-            path: Some(cache),
-            info_str: Some(info_str.unwrap()),
-            info_yml: Some(info_yml.unwrap()),
-        };
+        // let pkg = Pkg {
+        //     name: self.name,
+        //     ver: self.ver,
+        //     url: Some(down_url.unwrap()),
+        //     path: Some(cache),
+        //     info_str: Some(info_str.unwrap()),
+        //     info_yml: Some(info_yml.unwrap()),
+        // };
 
-        Ok(pkg)
+        Ok(self)
     }
 }
