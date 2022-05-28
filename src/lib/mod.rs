@@ -170,8 +170,8 @@ pub struct WixInfo {
     #[default(String::from("https://github.com/m1ten/wix"))]
     pub git: String,
 
-    // wix repository
-    #[default(vec![String::from("https://github.com/m1ten/wix")])]
+    // wix package repository
+    #[default(vec![String::from("https://github.com/m1ten/wix-pkgs")])]
     pub repos: Vec<String>,
 
     // wix default flags/args

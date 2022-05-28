@@ -80,7 +80,7 @@ async fn main() {
         }
     }
 
-    dbg!("finshed");
+    dbg!("finished");
 
     match args.status.as_str() {
         "search" => {

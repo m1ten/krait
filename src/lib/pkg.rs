@@ -217,12 +217,13 @@ impl Pkg {
                 // if not, delete the cache folder
                 let _ = match fs::remove_dir_all(&cache).await {
                     Ok(_) => (),
-                    Err(_) => return Err("could not delete cache folder".to_string()),
+                    Err(_) => return Err("Could not delete cache folder!".to_string()),
                 };
             }
         }
 
         // search for the package on github repo
+        // (domain, owner, repo); might add branch support later
         let mut vec_3: Vec<(String, String, String)> = Vec::new();
 
         for repo in repos {
@@ -239,7 +240,9 @@ impl Pkg {
             let domain = re_cap.name("domain").unwrap().as_str();
 
             if domain != "github.com" {
-                continue;
+                // TODO: add support for non-github repos (e.g. gitlab, bitbucket)
+                eprintln!("{domain} is currently not supported.");
+                continue; 
             }
 
             let owner = re_cap.name("owner").unwrap().as_str();
