@@ -1,4 +1,4 @@
-name: compile and release neopkg stable
+name: compile and release wix stable
 
 on:
   push:
@@ -43,8 +43,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neopkg.exe
-        asset_name: neopkg-windows-x86_64.exe
+        file: target/release/wix.exe
+        asset_name: wix-windows-x86_64.exe
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
@@ -73,8 +73,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neopkg
-        asset_name: neopkg-linux-x86_64
+        file: target/release/wix
+        asset_name: wix-linux-x86_64
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true
@@ -104,8 +104,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/neopkg
-        asset_name: neopkg-macos-x86_64
+        file: target/release/wix
+        asset_name: wix-macos-x86_64
         tag: ${{ github.ref }}
         overwrite: false
         prerelease: true

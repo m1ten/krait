@@ -1,49 +1,49 @@
-use neopkg::{args::Args, exit, pkg::Pkg, question, NPConfig};
+use wix::{args::Args, exit, pkg::Pkg, question, WixConfig};
 
 #[tokio::main]
 async fn main() {
     let path = match dirs::home_dir() {
-        Some(path) => path.join("neopkg"),
+        Some(path) => path.join("wix"),
         None => {
             eprintln!("Error: Could not find home directory.");
             exit!(1);
         }
     };
 
-    let np_config = NPConfig::default();
+    let wix_config = WixConfig::default();
 
-    let args = Args::new(np_config.clone());
+    let args = Args::new(wix_config.clone());
 
-    if neopkg::setup::is_super() {
-        eprintln!("Error: You are running neopkg as root.");
-        eprintln!("Please run neopkg as a normal user to prevent damage.");
+    if wix::setup::is_super() {
+        eprintln!("Error: You are running wix as root.");
+        eprintln!("Please run wix as a normal user to prevent damage.");
         exit!(1);
     }
 
-    if !neopkg::setup::is_internet_connected().await {
+    if !wix::setup::is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
         eprintln!("Please check your internet connection.");
         exit!(1);
     }
 
     // check if config file exists
-    if !path.clone().join("neopkg.yml").exists() {
+    if !path.clone().join("wix.yml").exists() {
         // run setup?
-        // println!("{:#?}", np_config.clone());
+        // println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
-            neopkg::setup::run(path.clone(), np_config.clone(), args.clone());
+            wix::setup::run(path.clone(), wix_config.clone(), args.clone());
             exit!(0);
         } else {
             exit!(1);
         }
     }
 
-    // TODO: check if neopkg.yml is valid and up to date
+    // TODO: check if wix.yml is valid and up to date
     let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {
-        let cache_dir = np_config.dir.cache_dir.clone();
-        let repos = np_config.info.repos.clone();
+        let cache_dir = wix_config.dir.cache_dir.clone();
+        let repos = wix_config.info.repos.clone();
 
         tasks.push(tokio::spawn(async move {
             let name = arg_p.0;

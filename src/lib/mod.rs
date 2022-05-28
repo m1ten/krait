@@ -55,7 +55,7 @@ macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        neopkg::scan::<$_type>(' ' as u8).expect("scan failed")
+        wix::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -64,7 +64,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        neopkg::scan::<String>('\n' as u8).expect("scanln failed")
+        wix::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
@@ -91,7 +91,7 @@ macro_rules! exit {
             "enter"
         };
         let msg = format!("\nPress {} to exit.\n", key);
-        neopkg::scanln!(msg);
+        wix::scanln!(msg);
         std::process::exit($code);
     }};
 }
@@ -102,7 +102,7 @@ macro_rules! question {
         loop {
             print!("{} [Y/n] ", $msg);
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
-            let answer = neopkg::scan::<String>('\n' as u8)
+            let answer = wix::scan::<String>('\n' as u8)
                 .expect("question failed")
                 .to_lowercase();
             if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
@@ -131,50 +131,50 @@ macro_rules! dbg {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NPConfig {
-    #[default(NPInfo::default())]
-    pub info: NPInfo,
+pub struct WixConfig {
+    #[default(WixInfo::default())]
+    pub info: WixInfo,
 
-    #[default(NP::default())]
-    pub pkg: NP,
+    #[default(Wix::default())]
+    pub pkg: Wix,
 
-    #[default(NPDir::default())]
-    pub dir: NPDir,
+    #[default(WixDir::default())]
+    pub dir: WixDir,
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NPInfo {
-    // neopkg name
-    #[default(String::from("neopkg"))]
+pub struct WixInfo {
+    // wix name
+    #[default(String::from("wix"))]
     pub name: String,
 
-    // neopkg author
+    // wix author
     #[default(String::from("miten <git.pub@icloud.com>"))]
     #[serde(default)]
     pub author: String,
 
-    // neopkg version
+    // wix version
     #[default(String::from("0.0.1"))]
     pub ver: String,
 
-    // neopkg description
+    // wix description
     #[default(String::from("cross platform package manager"))]
     #[serde(default)]
     pub desc: String,
 
-    // neopkg license
+    // wix license
     #[default(String::from("Apache-2.0"))]
     pub license: String,
 
-    // neopkg git repository
-    #[default(String::from("https://github.com/m1ten/neopkg"))]
+    // wix git repository
+    #[default(String::from("https://github.com/m1ten/wix"))]
     pub git: String,
 
-    // neopkg repository
-    #[default(vec![String::from("https://github.com/m1ten/neopkgs")])]
+    // wix repository
+    #[default(vec![String::from("https://github.com/m1ten/wix")])]
     pub repos: Vec<String>,
 
-    // neopkg default flags/args
+    // wix default flags/args
     #[default(None)]
     #[serde(alias = "args")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -182,7 +182,7 @@ pub struct NPInfo {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NP {
+pub struct Wix {
     // installed pkgs
     #[default(None)]
     #[serde(alias = "packages")]
@@ -191,17 +191,17 @@ pub struct NP {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct NPDir {
-    // neopkg directory for posix
-    #[default(dirs::home_dir().unwrap().join("neopkg"))]
+pub struct WixDir {
+    // wix directory for posix
+    #[default(dirs::home_dir().unwrap().join("wix"))]
     #[serde(default)]
     pub dir: PathBuf,
 
-    #[default(dirs::home_dir().unwrap().join("neopkg/pkg"))]
+    #[default(dirs::home_dir().unwrap().join("wix/pkg"))]
     #[serde(default)]
     pub pkg_dir: PathBuf,
 
-    #[default(dirs::home_dir().unwrap().join("neopkg/cache"))]
+    #[default(dirs::home_dir().unwrap().join("wix/cache"))]
     #[serde(default)]
     pub cache_dir: PathBuf,
 }

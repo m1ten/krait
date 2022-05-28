@@ -1,12 +1,12 @@
-use crate::{self as neopkg, args::Args, exit, question, NPConfig};
+use crate::{self as wix, args::Args, exit, question, WixConfig};
 use std::{fs, path::PathBuf, vec};
 
-pub fn run(path: PathBuf, np_config: NPConfig, _args: Args) {
+pub fn run(path: PathBuf, wix_config: WixConfig, _args: Args) {
     // TODO: Implement setup.rs
 
     // struct to yaml
     let config_yaml =
-        serde_yaml::to_string(&np_config).expect("Error: Could not convert neopkg config to yaml.");
+        serde_yaml::to_string(&wix_config).expect("Error: Could not convert wix config to yaml.");
 
     bat::PrettyPrinter::new()
         .input_from_bytes(config_yaml.as_bytes())
@@ -17,38 +17,38 @@ pub fn run(path: PathBuf, np_config: NPConfig, _args: Args) {
         .print()
         .expect("Error: Could not print yaml.");
 
-    if !question!("All previous neopkg data will be erased, continue?") {
+    if !question!("All previous wix data will be erased, continue?") {
         exit!(1);
     }
 
-    // remove old neopkg data
-    println!("\nRemoving old neopkg data...");
+    // remove old wix data
+    println!("\nRemoving old wix data...");
     match fs::remove_dir_all(&path) {
-        Ok(_) => println!("Old neopkg data removed..."),
+        Ok(_) => println!("Old wix data removed..."),
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
-                println!("No old neopkg data found...");
+                println!("No old wix data found...");
             } else {
-                eprintln!("\nError removing old neopkg data: {}", e);
+                eprintln!("\nError removing old wix data: {}", e);
                 exit!(1);
             }
         }
     }
 
-    // create new neopkg folders
-    println!("Creating new neopkg folders...");
+    // create new wix folders
+    println!("Creating new wix folders...");
     let folder: Vec<&str> = vec!["pkg", "cache"];
     for f in folder {
         fs::create_dir_all(path.clone().join(f)).unwrap()
     }
 
-    // create neopkg.yml file
-    println!("Creating neopkg.yml file...");
-    let _ = neopkg::writefs(
-        match path.clone().join("neopkg.yml").to_str() {
+    // create wix.yml file
+    println!("Creating wix.yml file...");
+    let _ = wix::writefs(
+        match path.clone().join("wix.yml").to_str() {
             Some(x) => x.to_string(),
             None => {
-                eprintln!("Error: Creating neopkg.yml file.");
+                eprintln!("Error: Creating wix.yml file.");
                 exit!(1);
             }
         },

@@ -1,8 +1,8 @@
-use crate::{self as neopkg};
+use crate::{self as wix};
 use clap::{Command, Arg};
 use indexmap::IndexMap;
 
-// neopkg args struct
+// wix args struct
 #[derive(Debug, Clone)]
 pub struct Args {
     pub assume_yes: bool,
@@ -11,12 +11,12 @@ pub struct Args {
 }
 
 impl Args {
-    // function to get neopkg args
-    pub fn new(np_config: neopkg::NPConfig) -> Args {
-        let title = format!("- {} - {}", np_config.info.ver, np_config.info.desc);
+    // function to get wix args
+    pub fn new(wix_config: wix::WixConfig) -> Args {
+        let title = format!("- {} - {}", wix_config.info.ver, wix_config.info.desc);
 
         // get custom args
-        let app = Command::new(np_config.info.name.as_str())
+        let app = Command::new(wix_config.info.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")

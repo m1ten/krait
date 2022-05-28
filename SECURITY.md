@@ -8,4 +8,4 @@
 
 ## Reporting a Vulnerability
 
-Submit an issue [here](https://github.com/m1ten/neo/issues).
+Submit an issue [here](https://github.com/m1ten/wix/issues).

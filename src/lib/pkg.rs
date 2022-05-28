@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use tokio::fs;
 
-use crate::{self as neopkg};
+use crate::{self as wix};
 
-use neopkg::{dbg, exit};
+use wix::{dbg, exit};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -268,7 +268,7 @@ impl Pkg {
         let client = reqwest::Client::new();
         let json = match client
             .get(&api_url)
-            .header(reqwest::header::USER_AGENT, "neopkg")
+            .header(reqwest::header::USER_AGENT, "wix")
             .send()
             .await
         {
@@ -314,7 +314,7 @@ impl Pkg {
             dbg!(format!("Downloading {url}."));
             let content = match client
                 .get(url)
-                .header(reqwest::header::USER_AGENT, "neopkg")
+                .header(reqwest::header::USER_AGENT, "wix")
                 .send()
                 .await
             {
@@ -351,7 +351,7 @@ impl Pkg {
                 };
             }
 
-            let _ = match neopkg::writefs(cache_str, content) {
+            let _ = match wix::writefs(cache_str, content) {
                 Ok(_) => (),
                 Err(e) => return Err(format!("{}", e)),
             };
