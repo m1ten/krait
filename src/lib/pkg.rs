@@ -255,7 +255,7 @@ impl Pkg {
 
             // search for the package on github repo
             let api_url = format!(
-                "https://api.github.com/repos/{owner}/{repo}/contents/{repo}.yml"
+                "https://api.github.com/repos/{owner}/{repo}/contents/manifest.yml"
             );
 
             dbg!(&api_url);
