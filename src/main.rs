@@ -1,4 +1,4 @@
-use wix::{args::Args, exit, pkg::Pkg, question, WixConfig};
+use wix::{args::Args, exit, pkg::Pkg, question, WixConfig, wdbg};
 
 #[tokio::main]
 async fn main() {
@@ -91,7 +91,7 @@ async fn main() {
         }
     }
 
-    dbg!("finished");
+    wix::wdbg!("finished");
 
     match args.status.as_str() {
         "search" => {
@@ -102,7 +102,7 @@ async fn main() {
 
             let cache_path = wix_config.dir.cache.clone();
 
-            dbg!("{:#?}", &cache_path);
+            wdbg!("{:#?}", &cache_path);
 
             match std::fs::remove_dir_all(cache_path) {
                 Ok(_) => {

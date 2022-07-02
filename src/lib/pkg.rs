@@ -10,7 +10,7 @@ use tokio::fs;
 
 use crate::{self as wix};
 
-use wix::{dbg, exit};
+use wix::wdbg;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -174,13 +174,13 @@ pub struct PkgAction {
 
 impl Pkg {
     pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
-        dbg!(repos.clone());
+        wdbg!(repos.clone());
 
         // check if the package is already in the cache
         // create folder for the package
         let cache = cache_dir.join(&self.name);
 
-        dbg!(&cache);
+        wdbg!(&cache);
 
         if cache.exists() && cache.is_dir() {
             // get pkg.yml from cache
@@ -194,14 +194,13 @@ impl Pkg {
                 },
                 Err(_) => ("err".to_string(), PkgInfo::default()),
             };
-
-            let ver: String;
+            
             // check if self.ver is latest
-            if self.ver == "latest" {
-                ver = pkg_yml.1.ver.clone();
+            let ver: String = if self.ver == "latest" {
+                pkg_yml.1.ver.clone()
             } else {
-                ver = self.ver.clone();
-            }
+                self.ver.clone()
+            };
 
             // check if self.ver matches pkg.yml.ver
             if ver == pkg_yml.1.ver {
@@ -251,14 +250,34 @@ impl Pkg {
             let repo = re_cap.name("repo").unwrap().as_str();
 
             // vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
-            dbg!(format!("Searching for {owner}/{repo}..."));
+            wdbg!(format!("Searching for {owner}/{repo}..."));
 
             // search for the package on github repo
-            let api_url = format!(
-                "https://api.github.com/repos/{owner}/{repo}/contents/manifest.yml"
-            );
+            let api_url =
+                format!("https://api.github.com/repos/{owner}/{repo}/contents/manifest.yml");
 
-            dbg!(&api_url);
+            wdbg!(&api_url);
+
+            let client = reqwest::Client::new();
+            let json = match client
+                .get(&api_url)
+                .header(reqwest::header::USER_AGENT, "wix")
+                .send()
+                .await
+            {
+                Ok(r) => match r.json::<serde_yaml::Value>().await {
+                    Ok(j) => if j["message"].as_str() == Some("Not Found") {
+                        continue;
+                    } else {
+                        j
+                    },
+                    Err(e) => return Err(format!("{}", e)),
+                },
+                Err(e) => return Err(format!("{}", e)),
+            };
+
+            wdbg!(&json);
+
         }
 
         // download the folder
@@ -298,7 +317,7 @@ impl Pkg {
         //     i += 1;
         // }
 
-        // dbg!(format!("Found {} files.", files.len()));
+        // wdbg!(format!("Found {} files.", files.len()));
 
         // let mut info_str: Option<String> = None;
         // let mut info_yml: Option<PkgInfo> = None;
@@ -308,7 +327,7 @@ impl Pkg {
         //     let ext = f.keys().next().unwrap();
         //     let url = f.values().next().unwrap();
 
-        //     dbg!(format!("Downloading {url}."));
+        //     wdbg!(format!("Downloading {url}."));
         //     let content = match client
         //         .get(url)
         //         .header(reqwest::header::USER_AGENT, "wix")
@@ -332,16 +351,16 @@ impl Pkg {
         //     }
 
         //     // write to file
-        //     dbg!(format!("Writing {ext}."));
+        //     wdbg!(format!("Writing {ext}."));
         //     let cache_str = match cache.join(ext).to_str() {
         //         Some(c) => c.to_string(),
         //         None => return Err(format!("Invalid path.")),
         //     };
-        //     dbg!(format!("{cache_str}"));
+        //     wdbg!(format!("{cache_str}"));
 
         //     // create folder if not exists
         //     if !cache.exists() {
-        //         dbg!(format!("Creating folder {}.", cache.display()));
+        //         wdbg!(format!("Creating folder {}.", cache.display()));
         //         let _ = match fs::create_dir_all(&cache).await {
         //             Ok(_) => (),
         //             Err(e) => return Err(format!("{}", e)),
@@ -358,7 +377,7 @@ impl Pkg {
         //     return Err(format!("No info.yml found."));
         // }
 
-        // dbg!(format!("Downloaded {} files.", files.len()));
+        // wdbg!(format!("Downloaded {} files.", files.len()));
 
         // let pkg = Pkg {
         //     name: self.name,

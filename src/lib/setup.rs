@@ -1,5 +1,5 @@
 use crate::{self as wix, exit, question, WixConfig};
-use std::{fs, vec};
+use std::fs;
 
 pub fn run(wix_config: WixConfig) {
     // TODO: Implement setup.rs
@@ -39,7 +39,7 @@ pub fn run(wix_config: WixConfig) {
 
     // create new wix folders
     println!("Creating new wix folders...");
-    for f in vec!["pkg", "cache"] {
+    for f in &["pkg", "cache"] {
         fs::create_dir_all(wix_path.clone().join(f)).unwrap()
     }
 

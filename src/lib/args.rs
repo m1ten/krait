@@ -93,12 +93,12 @@ impl Args {
                         .values_of("package")
                         .unwrap()
                         .map(|p| -> (String, String) {
-                            if p.contains("@") {
+                            if p.contains('@') {
                                 // remove everything after @ in the package name
                                 (
-                                    p.split("@").next().unwrap().to_string(),
+                                    p.split('@').next().unwrap().to_string(),
                                     // get everything after @ in the package name
-                                    p.split("@").skip(1).next().unwrap().to_string(),
+                                    p.split('@').nth(1).unwrap().to_string(),
                                 )
                             } else {
                                 (p.to_string(), "latest".to_string())

@@ -115,7 +115,7 @@ macro_rules! question {
 }
 
 #[macro_export]
-macro_rules! dbg {
+macro_rules! wdbg {
     ($($x:tt)*) => {
         {
             #[cfg(debug_assertions)]
