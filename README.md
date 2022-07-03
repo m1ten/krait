@@ -2,21 +2,23 @@
 | :------------------------------------------------------: |
 | This project is incomplete and may not work as expected. |
 
-# wix 
-[![Workflow Status](https://img.shields.io/github/workflow/status/m1ten/wix/compile%20and%20release%20neo%20unstable?logo=github)](https://github.com/m1ten/wix/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-nightly-orange?logo=rust)](https://www.rust-lang.org/) [![crates.io](https://img.shields.io/crates/v/wix)](https://crates.io/crates/wix) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE) 
+# krait 
+[![Workflow Status](https://img.shields.io/github/workflow/status/m1ten/krait/unstable.yml)](https://github.com/m1ten/krait/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-nightly-orange?logo=rust)](https://www.rust-lang.org/) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE) 
+
+<!-- [![crates.io](https://img.shields.io/crates/v/krait)](https://crates.io/crates/krait) -->
 
 cross platform package manager
 
 ## Installation
 
-Download the latest binary from [releases](https://github.com/m1ten/wix/releases)
+Download the latest binary from [releases](https://github.com/m1ten/krait/releases)
 
 ```sh
-# POSIX: Give execution permission to wix and run
-$ chmod +x wix && ./wix
+# POSIX: Give execution permission to krait and run
+$ chmod +x krait && ./krait
 
 # Windows: Run the exe
-$ .\wix.exe
+$ .\krait.exe
 ```
 
 ### Building from source
@@ -29,10 +31,10 @@ $ .\wix.exe
    $ rustup toolchain install nightly
    ```
 
-2. Clone the [source](https://github.com/m1ten/wix) using [`git`](https://git-scm.com/)
+2. Clone the [source](https://github.com/m1ten/krait) using [`git`](https://git-scm.com/)
    ```sh
-   $ git clone https://github.com/m1ten/wix.git
-   $ cd wix
+   $ git clone https://github.com/m1ten/krait.git
+   $ cd krait
    ```
    
 3. Build and run using [`cargo`](https://doc.rust-lang.org/nightly/cargo/)

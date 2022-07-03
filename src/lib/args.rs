@@ -1,8 +1,8 @@
-use crate::{self as wix};
+use crate::{self as krait};
 use clap::{Command, Arg};
 use indexmap::IndexMap;
 
-// wix args struct
+// krait args struct
 #[derive(Debug, Clone)]
 pub struct Args {
     pub assume_yes: bool,
@@ -11,12 +11,12 @@ pub struct Args {
 }
 
 impl Args {
-    // function to get wix args
-    pub fn new(wix_config: wix::WixConfig) -> Args {
-        let title = format!("- {} - {}", wix_config.ver, wix_config.desc);
+    // function to get krait args
+    pub fn new(krait_config: krait::KraitConfig) -> Args {
+        let title = format!("- {} - {}", krait_config.ver, krait_config.desc);
 
         // get custom args
-        let app = Command::new(wix_config.name.as_str())
+        let app = Command::new(krait_config.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")

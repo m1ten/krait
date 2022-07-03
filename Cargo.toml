@@ -1,16 +1,16 @@
 [package]
-name = "wix"
+name = "krait"
 version = "0.0.1"
 authors = ["miten <57693631+m1ten@users.noreply.github.com>"]
 edition = "2021"
 description = "cross platform package manager"
 readme = "README.md"
-repository = "https://github.com/m1ten/wix"
+repository = "https://github.com/m1ten/krait"
 license = "Apache-2.0"
 publish = false
 
 [lib]
-name = "wix"
+name = "krait"
 path = "src/lib/mod.rs"
 
 [dependencies]

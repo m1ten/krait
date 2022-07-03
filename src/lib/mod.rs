@@ -55,7 +55,7 @@ macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        wix::scan::<$_type>(' ' as u8).expect("scan failed")
+        krait::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -64,7 +64,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        wix::scan::<String>('\n' as u8).expect("scanln failed")
+        krait::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
@@ -91,7 +91,7 @@ macro_rules! exit {
             "enter"
         };
         let msg = format!("\nPress {} to exit.\n", key);
-        wix::scanln!(msg);
+        krait::scanln!(msg);
         std::process::exit($code);
     }};
 }
@@ -102,7 +102,7 @@ macro_rules! question {
         loop {
             print!("{} [Y/n] ", $msg);
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
-            let answer = wix::scan::<String>('\n' as u8)
+            let answer = krait::scan::<String>('\n' as u8)
                 .expect("question failed")
                 .to_lowercase();
             if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {
@@ -115,7 +115,7 @@ macro_rules! question {
 }
 
 #[macro_export]
-macro_rules! wdbg {
+macro_rules! kdbg {
     ($($x:tt)*) => {
         {
             #[cfg(debug_assertions)]
@@ -131,38 +131,38 @@ macro_rules! wdbg {
 }
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct WixConfig {
-    // wix name
-    #[default(String::from("wix"))]
+pub struct KraitConfig {
+    // krait name
+    #[default(String::from("krait"))]
     pub name: String,
 
-    // wix author
+    // krait author
     #[default(String::from("miten <57693631+m1ten@users.noreply.github.com>"))]
     #[serde(default)]
     pub author: String,
 
-    // wix version
+    // krait version
     #[default(String::from("0.0.1"))]
     pub ver: String,
 
-    // wix description
+    // krait description
     #[default(String::from("cross platform package manager"))]
     #[serde(default)]
     pub desc: String,
 
-    // wix license
+    // krait license
     #[default(String::from("Apache-2.0"))]
     pub license: String,
 
-    // wix git repository
-    #[default(String::from("https://github.com/m1ten/wix"))]
+    // krait git repository
+    #[default(String::from("https://github.com/m1ten/krait"))]
     pub git: String,
 
-    // wix package repository
-    #[default(vec![String::from("https://github.com/m1ten/wix-pkgs")])]
+    // krait package repository
+    #[default(vec![String::from("https://github.com/m1ten/krait-pkgs")])]
     pub repos: Vec<String>,
 
-    // wix default flags/args
+    // krait default flags/args
     #[default(None)]
     #[serde(alias = "args")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -173,7 +173,7 @@ pub struct WixConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pkgs: Option<Vec<String>>,
 
-    #[default(dirs::home_dir().unwrap().join("wix"))]
+    #[default(dirs::home_dir().unwrap().join("krait"))]
     #[serde(default)]
     pub dir: PathBuf,
 }

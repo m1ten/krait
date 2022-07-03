@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use tokio::fs;
 
-use crate::{self as wix};
+use crate::{self as krait};
 
-use wix::wdbg;
+use krait::kdbg;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -175,13 +175,13 @@ pub struct PkgAction {
 impl Pkg {
     pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
 
-        wdbg!(repos.clone());
+        kdbg!(repos.clone());
 
         // check if the package is already in the cache
         // create folder for the package
         let cache = cache_dir.join(&self.name);
 
-        wdbg!(&cache);
+        kdbg!(&cache);
 
         if cache.exists() && cache.is_dir() {
             // get pkg.yml from cache
@@ -251,18 +251,18 @@ impl Pkg {
             let repo = re_cap.name("repo").unwrap().as_str();
 
             // vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
-            wdbg!(format!("Searching for {owner}/{repo}..."));
+            kdbg!(format!("Searching for {owner}/{repo}..."));
 
             // search for the package on github repo
             let api_url =
                 format!("https://api.github.com/repos/{owner}/{repo}/contents/manifest.yml");
 
-            wdbg!(&api_url);
+            kdbg!(&api_url);
 
             let client = reqwest::Client::new();
             let manifest_json = match client
                 .get(&api_url)
-                .header(reqwest::header::USER_AGENT, "wix")
+                .header(reqwest::header::USER_AGENT, "krait")
                 .send()
                 .await
             {
@@ -279,7 +279,7 @@ impl Pkg {
                 Err(e) => return Err(format!("{}", e)),
             };
 
-            wdbg!(&manifest_json);
+            kdbg!(&manifest_json);
 
             let download_url = manifest_json["download_url"].as_str().unwrap();
 
@@ -298,7 +298,7 @@ impl Pkg {
 
             let manifest_yml = match client
                 .get(download_url)
-                .header(reqwest::header::USER_AGENT, "wix")
+                .header(reqwest::header::USER_AGENT, "krait")
                 .send()
                 .await
             {
