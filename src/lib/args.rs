@@ -13,10 +13,10 @@ pub struct Args {
 impl Args {
     // function to get wix args
     pub fn new(wix_config: wix::WixConfig) -> Args {
-        let title = format!("- {} - {}", wix_config.info.ver, wix_config.info.desc);
+        let title = format!("- {} - {}", wix_config.ver, wix_config.desc);
 
         // get custom args
-        let app = Command::new(wix_config.info.name.as_str())
+        let app = Command::new(wix_config.name.as_str())
             .version(title.as_str())
             .arg(
                 Arg::new("assume-yes")

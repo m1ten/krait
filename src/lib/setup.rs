@@ -4,7 +4,8 @@ use std::fs;
 pub fn run(wix_config: WixConfig) {
     // TODO: Implement setup.rs
 
-    let wix_path = wix_config.dir.dir.clone();
+    let wix_path = wix_config.dir.clone();
+    let wix_path_yml = wix_path.join("wix.yml");
 
     // struct to yaml
     let config_yaml =
@@ -46,7 +47,7 @@ pub fn run(wix_config: WixConfig) {
     // create wix.yml file
     println!("Creating wix.yml file...");
     let _ = wix::writefs(
-        match wix_config.dir.yml.to_str() {
+        match wix_path_yml.to_str() {
             Some(x) => x.to_string(),
             None => {
                 eprintln!("Error: Creating wix.yml file.");

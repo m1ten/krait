@@ -132,24 +132,12 @@ macro_rules! wdbg {
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct WixConfig {
-    #[default(WixInfo::default())]
-    pub info: WixInfo,
-
-    #[default(WixPkgs::default())]
-    pub pkg: WixPkgs,
-
-    #[default(WixDir::default())]
-    pub dir: WixDir,
-}
-
-#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct WixInfo {
     // wix name
     #[default(String::from("wix"))]
     pub name: String,
 
     // wix author
-    #[default(String::from("miten <git.pub@icloud.com>"))]
+    #[default(String::from("miten <57693631+m1ten@users.noreply.github.com>"))]
     #[serde(default)]
     pub author: String,
 
@@ -179,33 +167,13 @@ pub struct WixInfo {
     #[serde(alias = "args")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<Vec<String>>,
-}
 
-#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct WixPkgs {
-    // installed pkgs
     #[default(None)]
     #[serde(alias = "packages")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pkgs: Option<Vec<String>>,
-}
 
-#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct WixDir {
-    // wix directory for posix
     #[default(dirs::home_dir().unwrap().join("wix"))]
     #[serde(default)]
     pub dir: PathBuf,
-
-    #[default(dirs::home_dir().unwrap().join("wix/pkg"))]
-    #[serde(default)]
-    pub pkg: PathBuf,
-
-    #[default(dirs::home_dir().unwrap().join("wix/cache"))]
-    #[serde(default)]
-    pub cache: PathBuf,
-
-    #[default(dirs::home_dir().unwrap().join("wix/wix.yml"))]
-    #[serde(default)]
-    pub yml: PathBuf,
 }

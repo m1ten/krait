@@ -174,6 +174,7 @@ pub struct PkgAction {
 
 impl Pkg {
     pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
+
         wdbg!(repos.clone());
 
         // check if the package is already in the cache
@@ -194,7 +195,7 @@ impl Pkg {
                 },
                 Err(_) => ("err".to_string(), PkgInfo::default()),
             };
-            
+
             // check if self.ver is latest
             let ver: String = if self.ver == "latest" {
                 pkg_yml.1.ver.clone()
@@ -259,134 +260,60 @@ impl Pkg {
             wdbg!(&api_url);
 
             let client = reqwest::Client::new();
-            let json = match client
+            let manifest_json = match client
                 .get(&api_url)
                 .header(reqwest::header::USER_AGENT, "wix")
                 .send()
                 .await
             {
                 Ok(r) => match r.json::<serde_yaml::Value>().await {
-                    Ok(j) => if j["message"].as_str() == Some("Not Found") {
-                        continue;
-                    } else {
-                        j
-                    },
+                    Ok(j) => {
+                        if j["message"].as_str() == Some("Not Found") {
+                            continue;
+                        } else {
+                            j
+                        }
+                    }
                     Err(e) => return Err(format!("{}", e)),
                 },
                 Err(e) => return Err(format!("{}", e)),
             };
 
-            wdbg!(&json);
+            wdbg!(&manifest_json);
 
+            let download_url = manifest_json["download_url"].as_str().unwrap();
+
+            // download the manifest.yml to cache/username/repo/manifest.yml
+
+            let cache_repo = cache_dir.join(owner).join(repo);
+
+            if !cache_repo.exists() {
+                let _ = match fs::create_dir_all(&cache_repo).await {
+                    Ok(_) => (),
+                    Err(_) => return Err("Could not create cache folder!".to_string()),
+                };
+            }
+
+            let manifest_path = cache_repo.join("manifest.yml");
+
+            let manifest_yml = match client
+                .get(download_url)
+                .header(reqwest::header::USER_AGENT, "wix")
+                .send()
+                .await
+            {
+                Ok(r) => match r.text().await {
+                    Ok(t) => t,
+                    Err(_) => return Err("Could not download manifest.yml!".to_string()),
+                },
+                Err(e) => return Err(format!("{}", e)),
+            };
+
+            let _ = match fs::write(&manifest_path, manifest_yml).await {
+                Ok(_) => (),
+                Err(_) => return Err("Could not write manifest.yml!".to_string()),
+            };
         }
-
-        // download the folder
-        // let client = reqwest::Client::new();
-        // let json = match client
-        //     .get(&api_url)
-        //     .header(reqwest::header::USER_AGENT, "wix")
-        //     .send()
-        //     .await
-        // {
-        //     Ok(r) => match r.json::<serde_yaml::Value>().await {
-        //         Ok(j) => j,
-        //         Err(e) => return Err(format!("{}", e)),
-        //     },
-        //     Err(e) => return Err(format!("{}", e)),
-        // };
-
-        // let mut i = 0;
-        // // name and download_url
-        // let mut files: Vec<HashMap<String, String>> = Vec::new();
-        // loop {
-        //     let name = match json[i]["name"].as_str() {
-        //         Some(n) => (n),
-        //         None => break,
-        //     };
-
-        //     let down = match json[i]["download_url"].as_str() {
-        //         Some(d) => (d),
-        //         None => break,
-        //     };
-
-        //     let mut hashmap = HashMap::new();
-        //     hashmap.insert(name.to_string(), down.to_string());
-
-        //     files.push(hashmap);
-
-        //     i += 1;
-        // }
-
-        // wdbg!(format!("Found {} files.", files.len()));
-
-        // let mut info_str: Option<String> = None;
-        // let mut info_yml: Option<PkgInfo> = None;
-        // let mut down_url: Option<String> = None;
-
-        // for f in &files {
-        //     let ext = f.keys().next().unwrap();
-        //     let url = f.values().next().unwrap();
-
-        //     wdbg!(format!("Downloading {url}."));
-        //     let content = match client
-        //         .get(url)
-        //         .header(reqwest::header::USER_AGENT, "wix")
-        //         .send()
-        //         .await
-        //     {
-        //         Ok(r) => match r.text().await {
-        //             Ok(c) => c,
-        //             Err(e) => return Err(format!("{}", e)),
-        //         },
-        //         Err(e) => return Err(format!("{}", e)),
-        //     };
-
-        //     if ext.to_string() == format!("{}.yml", self.name) {
-        //         info_str = Some(content.clone());
-        //         info_yml = match serde_yaml::from_str(&info_str.as_ref().unwrap()) {
-        //             Ok(i) => Some(i),
-        //             Err(e) => return Err(format!("{}", e)),
-        //         };
-        //         down_url = Some(url.to_string());
-        //     }
-
-        //     // write to file
-        //     wdbg!(format!("Writing {ext}."));
-        //     let cache_str = match cache.join(ext).to_str() {
-        //         Some(c) => c.to_string(),
-        //         None => return Err(format!("Invalid path.")),
-        //     };
-        //     wdbg!(format!("{cache_str}"));
-
-        //     // create folder if not exists
-        //     if !cache.exists() {
-        //         wdbg!(format!("Creating folder {}.", cache.display()));
-        //         let _ = match fs::create_dir_all(&cache).await {
-        //             Ok(_) => (),
-        //             Err(e) => return Err(format!("{}", e)),
-        //         };
-        //     }
-
-        //     let _ = match wix::writefs(cache_str, content) {
-        //         Ok(_) => (),
-        //         Err(e) => return Err(format!("{}", e)),
-        //     };
-        // }
-
-        // if info_str.is_none() || info_yml.is_none() {
-        //     return Err(format!("No info.yml found."));
-        // }
-
-        // wdbg!(format!("Downloaded {} files.", files.len()));
-
-        // let pkg = Pkg {
-        //     name: self.name,
-        //     ver: self.ver,
-        //     url: Some(down_url.unwrap()),
-        //     path: Some(cache),
-        //     info_str: Some(info_str.unwrap()),
-        //     info_yml: Some(info_yml.unwrap()),
-        // };
 
         Ok(self)
     }

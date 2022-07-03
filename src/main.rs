@@ -1,8 +1,7 @@
-use wix::{args::Args, exit, pkg::Pkg, question, WixConfig, wdbg};
+use wix::{args::Args, exit, pkg::Pkg, question, wdbg, WixConfig};
 
 #[tokio::main]
 async fn main() {
-
     if wix::setup::is_super() {
         eprintln!("Error: You are running wix as root.");
         eprintln!("Please run wix as a normal user to prevent damage.");
@@ -18,8 +17,12 @@ async fn main() {
     let mut wix_config = WixConfig::default();
     let args = Args::new(wix_config.clone());
 
+    let wix_path = wix_config.dir.clone();
+    let wix_path_yml = wix_path.clone().join("wix.yml");
+    let wix_path_cache = wix_path.clone().join("cache");
+
     // check if config file exists
-    if !wix_config.dir.yml.exists() {
+    if !wix_path_yml.exists() {
         // run setup?
         // println!("{:#?}", wix_config.clone());
         if question!("Would you like to run setup?") {
@@ -29,32 +32,39 @@ async fn main() {
             exit!(1);
         }
     } else {
-
         // read config file
-        let config_yaml = match wix::readfs(wix_config.dir.yml.to_string_lossy().to_string()) {
+        let config_yaml = match wix::readfs(wix_path_yml.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Error: Reading wix.yml file: {}", e);
                 eprintln!("Continuing with default config...");
 
                 // struct to yaml
-                serde_yaml::to_string(&WixConfig::default()).expect("Error: Could not convert wix config to yaml.")
+                serde_yaml::to_string(&WixConfig::default())
+                    .expect("Error: Could not convert wix config to yaml.")
             }
         };
 
         // convert yaml to struct
 
-        wix_config = serde_yaml::from_str(&config_yaml).expect("Error: Could not convert yaml to wix config.");
+        wix_config = match serde_yaml::from_str(&config_yaml) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("Error: Reading wix.yml file: '{}'", e);
+                eprintln!("Continuing with default config...");
+
+                WixConfig::default()
+            }
+        }
 
         // TODO: check if config is valid and if not, run setup
-
     }
 
     let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {
-        let cache_dir = wix_config.dir.cache.clone();
-        let repos = wix_config.info.repos.clone();
+        let cache_dir = wix_config.dir.join("cache");
+        let repos = wix_config.repos.clone();
 
         tasks.push(tokio::spawn(async move {
             let name = arg_p.0;
@@ -100,11 +110,9 @@ async fn main() {
         "clean" => {
             println!("Cleaning up.");
 
-            let cache_path = wix_config.dir.cache.clone();
+            wdbg!("{:#?}", &wix_path_cache);
 
-            wdbg!("{:#?}", &cache_path);
-
-            match std::fs::remove_dir_all(cache_path) {
+            match std::fs::remove_dir_all(wix_path_cache) {
                 Ok(_) => {
                     println!("Cache Cleaned!");
                     exit!(0);
