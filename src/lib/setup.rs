@@ -1,19 +1,27 @@
 use crate::{self as krait, exit, question, KraitConfig};
 use std::fs;
 
+use console::{Emoji, style};
+
 pub fn run(krait_config: KraitConfig) {
     // TODO: Implement setup.rs
 
     let krait_path = krait_config.dir.clone();
-    let krait_path_yml = krait_path.join("krait.yml");
+    let krait_path_lua = krait_path.join("krait.lua");
 
     // struct to yaml
-    let config_yaml =
-        serde_yaml::to_string(&krait_config).expect("Error: Could not convert krait config to yaml.");
+    // let config_yaml =
+    //    serde_yaml::to_string(&krait_config).expect("Error: Could not convert krait config to yaml.");
 
+    // println!("{}", krait_config.gen_lua());
+
+    let config_string = krait_config.gen_lua();
+
+
+    // TODO: add support for text editors (vim, nano, etc)
     bat::PrettyPrinter::new()
-        .input_from_bytes(config_yaml.as_bytes())
-        .language("yaml")
+        .input_from_bytes(config_string.as_bytes())
+        .language("lua")
         .line_numbers(true)
         .grid(true)
         .theme("Visual Studio Dark+")
@@ -25,39 +33,71 @@ pub fn run(krait_config: KraitConfig) {
     }
 
     // remove old krait data
-    println!("\nRemoving old krait data...");
+    // println!("\nRemoving old krait data...");
+
+    println!(
+        "{} {}Removing old krait data...",
+        style("[1/4]").bold().dim(),
+        Emoji("🗑️  ", "")
+    );
+
     match fs::remove_dir_all(&krait_path) {
-        Ok(_) => println!("Old krait data removed..."),
+        Ok(_) => println!(
+            "{} {}Old krait data removed...",
+            style("[2/4]").bold().dim(),
+            Emoji("🚫  ", "")
+        ),
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
-                println!("No old krait data found...");
+                println!(
+                    "{} {}No previous krait data found...",
+                    style("[2/4]").bold().dim(),
+                    Emoji("🚫  ", "")
+                );
             } else {
-                eprintln!("\nError removing old krait data: {}", e);
+                eprintln!(
+                    "{} {}Error removing old krait data: {}",
+                    style("[2/4]").bold().dim(),
+                    Emoji("🔥  ", ""),
+                    e
+                );
                 exit!(1);
             }
         }
     }
 
+    println!(
+        "{} {}Creating new krait config...",
+        style("[3/4]").bold().dim(),
+        Emoji("📝  ", "")
+    );
+
     // create new krait folders
-    println!("Creating new krait folders...");
+    // println!("Creating new krait folders...");
     for f in &["pkg", "cache"] {
         fs::create_dir_all(krait_path.clone().join(f)).unwrap()
     }
 
-    // create krait.yml file
-    println!("Creating krait.yml file...");
+    // create krait.lua file
+    // println!("Creating krait.lua file...");
     let _ = krait::writefs(
-        match krait_path_yml.to_str() {
+        match krait_path_lua.to_str() {
             Some(x) => x.to_string(),
             None => {
-                eprintln!("Error: Creating krait.yml file.");
+                eprintln!("Error: Creating krait.lua file.");
                 exit!(1);
             }
         },
-        config_yaml,
+        config_string,
     );
 
-    println!("\nSetup complete!");
+    // println!("\nSetup complete!");
+
+    println!(
+        "{} {}Setup Complete...",
+        style("[4/4]").bold().dim(),
+        Emoji("⚙️  ", "")
+    );
 }
 
 // function to check if running as root/admin
