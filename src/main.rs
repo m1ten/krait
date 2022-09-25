@@ -18,11 +18,11 @@ async fn main() {
     let args = Args::new(krait_config.clone());
 
     let krait_path = krait_config.dir.clone();
-    let krait_path_yml = krait_path.clone().join("krait.yml");
+    let krait_path_lua = krait_path.clone().join("krait.lua");
     let krait_path_cache = krait_path.clone().join("cache");
 
     // check if config file exists
-    if !krait_path_yml.exists() {
+    if !krait_path_lua.exists() {
         // run setup?
         // println!("{:#?}", krait_config.clone());
         if question!("Would you like to run setup?") {
@@ -33,15 +33,15 @@ async fn main() {
         }
     } else {
         // read config file
-        let config_yaml = match krait::readfs(krait_path_yml.to_string_lossy().to_string()) {
+        let config_lua = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
-                eprintln!("Error: Reading krait.yml file: {}", e);
+                eprintln!("Error: Reading krait.lua file: {}", e);
                 eprintln!("Continuing with default config...");
 
-                // struct to yaml
-                serde_yaml::to_string(&KraitConfig::default())
-                    .expect("Error: Could not convert krait config to yaml.")
+                // struct to lua
+                // serde_yaml::to_string(&KraitConfig::default())
+                //     .expect("Error: Could not convert krait config to yaml.")
             }
         };
 
@@ -50,7 +50,7 @@ async fn main() {
         krait_config = match serde_yaml::from_str(&config_yaml) {
             Ok(config) => config,
             Err(e) => {
-                eprintln!("Error: Reading krait.yml file: '{}'", e);
+                eprintln!("Error: Reading krait.lua file: '{}'", e);
                 eprintln!("Continuing with default config...");
 
                 KraitConfig::default()
