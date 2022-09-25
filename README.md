@@ -3,7 +3,7 @@
 | This project is incomplete and may not work as expected. |
 
 # krait 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/m1ten/krait/compile%20and%20release%20krait%20unstable)](https://github.com/m1ten/krait/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE) 
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/m1ten/krait/compile%20and%20release%20krait%20unstable)](https://github.com/m1ten/krait/actions/workflows/unstable.yml) [![rustc version](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/) [![Apache-2.0](https://img.shields.io/badge/license-Apache-blue?logo=apache)](./LICENSE) 
 
 <!-- [![crates.io](https://img.shields.io/crates/v/krait)](https://crates.io/crates/krait) -->
 
