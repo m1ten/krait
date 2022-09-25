@@ -31,112 +31,120 @@ async fn main() {
         } else {
             exit!(1);
         }
+
     } else {
         // read config file
-        let config_lua = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
+        let config_str = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Error: Reading krait.lua file: {}", e);
-                eprintln!("Continuing with default config...");
+                
+                if question!("Would you like to reset krait?") {
+                    krait::setup::run(krait_config);
+                    exit!(0);
+                } else {
+                    exit!(1);
+                }
 
-                // struct to lua
-                // serde_yaml::to_string(&KraitConfig::default())
-                //     .expect("Error: Could not convert krait config to yaml.")
             }
         };
 
+        // TODO: parse config file
+        KraitConfig::parse(config_str);
+    }
+
         // convert yaml to struct
 
-        krait_config = match serde_yaml::from_str(&config_yaml) {
-            Ok(config) => config,
-            Err(e) => {
-                eprintln!("Error: Reading krait.lua file: '{}'", e);
-                eprintln!("Continuing with default config...");
+        // krait_config = match serde_yaml::from_str(&config_yaml) {
+        //     Ok(config) => config,
+        //     Err(e) => {
+        //         eprintln!("Error: Reading krait.lua file: '{}'", e);
+        //         eprintln!("Continuing with default config...");
 
-                KraitConfig::default()
-            }
-        }
+        //         KraitConfig::default()
+        //     }
+        // }
 
         // TODO: check if config is valid and if not, run setup
     }
 
-    let mut tasks = Vec::new();
+    // let mut tasks = Vec::new();
 
-    for arg_p in args.pkgs.clone() {
-        let cache_dir = krait_config.dir.join("cache");
-        let repos = krait_config.repos.clone();
+    // for arg_p in args.pkgs.clone() {
+    //     let cache_dir = krait_config.dir.join("cache");
+    //     let repos = krait_config.repos.clone();
 
-        tasks.push(tokio::spawn(async move {
-            let name = arg_p.0;
-            let ver = arg_p.1;
+    //     tasks.push(tokio::spawn(async move {
+    //         let name = arg_p.0;
+    //         let ver = arg_p.1;
 
-            let pkg = match (Pkg {
-                name,
-                ver,
-                ..Default::default()
-            })
-            .fill(cache_dir, repos)
-            .await
-            {
-                Ok(p) => p,
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    exit!(1);
-                }
-            };
+    //         let pkg = match (Pkg {
+    //             name,
+    //             ver,
+    //             ..Default::default()
+    //         })
+    //         .fill(cache_dir, repos)
+    //         .await
+    //         {
+    //             Ok(p) => p,
+    //             Err(e) => {
+    //                 eprintln!("Error: {}", e);
+    //                 exit!(1);
+    //             }
+    //         };
 
-            pkg
-        }))
-    }
+    //         pkg
+    //     }))
+    // }
 
-    let mut pkgs = Vec::new();
+    // let mut pkgs = Vec::new();
 
-    for r in futures::future::join_all(tasks).await {
-        match r {
-            Ok(p) => pkgs.push(p),
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                exit!(1);
-            }
-        }
-    }
+    // for r in futures::future::join_all(tasks).await {
+    //     match r {
+    //         Ok(p) => pkgs.push(p),
+    //         Err(e) => {
+    //             eprintln!("Error: {}", e);
+    //             exit!(1);
+    //         }
+    //     }
+    // }
 
-    krait::kdbg!("finished");
+    // krait::kdbg!("finished");
 
-    match args.status.as_str() {
-        "search" => {
-            println!("Finished!");
-        }
-        "clean" => {
-            println!("Cleaning up.");
+    // match args.status.as_str() {
+    //     "search" => {
+    //         println!("Finished!");
+    //     }
+    //     "clean" => {
+    //         println!("Cleaning up.");
 
-            kdbg!("{:#?}", &krait_path_cache);
+    //         kdbg!("{:#?}", &krait_path_cache);
 
-            match std::fs::remove_dir_all(krait_path_cache) {
-                Ok(_) => {
-                    println!("Cache Cleaned!");
-                    exit!(0);
-                }
-                Err(_) => {
-                    println!("Error: Could not remove cache directory.");
-                    exit!(1);
-                }
-            }
-        }
-        _ => {
-            // call self exe with arg '--help'
-            let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
-            cmd.arg("--help");
-            cmd.spawn()
-                .unwrap_or_else(|err| {
-                    eprintln!("Error: {}", err);
-                    exit!(1);
-                })
-                .wait()
-                .unwrap_or_else(|err| {
-                    eprintln!("Error: {}", err);
-                    exit!(1);
-                });
-        }
-    }
-}
+    //         match std::fs::remove_dir_all(krait_path_cache) {
+    //             Ok(_) => {
+    //                 println!("Cache Cleaned!");
+    //                 exit!(0);
+    //             }
+    //             Err(_) => {
+    //                 println!("Error: Could not remove cache directory.");
+    //                 exit!(1);
+    //             }
+    //         }
+    //     }
+    //     _ => {
+    //         // call self exe with arg '--help'
+    //         let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
+    //         cmd.arg("--help");
+    //         cmd.spawn()
+    //             .unwrap_or_else(|err| {
+    //                 eprintln!("Error: {}", err);
+    //                 exit!(1);
+    //             })
+    //             .wait()
+    //             .unwrap_or_else(|err| {
+    //                 eprintln!("Error: {}", err);
+    //                 exit!(1);
+    //             });
+    //     }
+    // }
+// }

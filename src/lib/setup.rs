@@ -9,12 +9,6 @@ pub fn run(krait_config: KraitConfig) {
     let krait_path = krait_config.dir.clone();
     let krait_path_lua = krait_path.join("krait.lua");
 
-    // struct to yaml
-    // let config_yaml =
-    //    serde_yaml::to_string(&krait_config).expect("Error: Could not convert krait config to yaml.");
-
-    // println!("{}", krait_config.gen_lua());
-
     let config_string = krait_config.gen_lua();
 
 
@@ -115,7 +109,7 @@ pub fn is_super() -> bool {
 
 // check if there is a internet connection
 pub async fn is_internet_connected() -> bool {
-    online::check(None).await.is_ok()
+    online::check(None).is_ok()
 }
 
 // get the current operating system

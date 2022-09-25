@@ -1,7 +1,6 @@
 pub mod args;
 pub mod pkg;
 pub mod setup;
-// pub mod lua;
 
 use std::{
     fs::File,
@@ -11,6 +10,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+
+use crate as krait;
 
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
@@ -179,6 +180,8 @@ pub struct KraitConfig {
     pub args: Option<Vec<String>>,
 }
 
+impl mlua::UserData for KraitConfig {}
+
 impl KraitConfig {
     pub fn new() -> KraitConfig {
         KraitConfig::default()
@@ -197,6 +200,14 @@ impl KraitConfig {
 
         let crepo = format!("{{ \"{}\" }}", self.repos.join("\", \""));
 
+        let mut dir = self.dir.clone().to_string_lossy().to_string();
+        // check if running on windows
+        if cfg!(target_os = "windows") {    
+            dir = dir.replace("\\", "\\\\");
+        } else {
+            dir = dir.replace("/", "\\/");
+        }
+
         let mut string = format!(
             "
 --           Krait Config           --
@@ -213,7 +224,7 @@ c.license = \"{}\"
 c.git = \"{}\"
 c.pkgs = {}
 
--- Feel feel to modify the following lines --
+-- Feel free to modify the following lines --
 
 c.dir = \"{}\"
 c.repos = {}
@@ -226,7 +237,7 @@ c.args = {}
             self.license,
             self.git,
             cpkg,
-            self.dir.to_str().unwrap(),
+            dir,
             crepo,
             carg,
         );
@@ -235,5 +246,118 @@ c.args = {}
         string = string.replace("\t", "");
 
         string
+    }
+
+    pub fn parse(config_str: String) -> KraitConfig {
+        let lua = mlua::Lua::new();
+        let globals = lua.globals();
+
+        let krait_table = lua.create_table().unwrap();
+        let config_table = lua.create_table().unwrap();
+
+        krait_table.set("config", config_table).unwrap();
+
+        globals.set("krait", krait_table).unwrap();
+
+        // load the config
+        let result = lua.load(&config_str).exec();
+
+        if let Err(e) = result {
+            eprintln!("Error parsing config: {}", e);
+            exit!(1);
+        }
+
+        // get the config as a table
+        let krait: mlua::Table = globals.get("krait").unwrap();
+        let config: mlua::Table = krait.get("config").unwrap();
+
+        let mut krait_config = KraitConfig::new();
+
+        for pair in config.clone().pairs::<String, mlua::Value>() {
+            let (key, value) = match pair {
+                Ok(x) => x,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    exit!(1);
+                }
+            };
+
+            if value != mlua::Value::Nil {
+                // type of the value
+                let value_type = value.type_name();
+
+                match value_type {
+                    "string" => {
+                        let value_str = config.get::<_, String>(key.clone()).unwrap();
+
+                        match key.clone().as_str() {
+                            "name" => krait_config.name = value_str,
+                            "author" => krait_config.author = value_str,
+                            "ver" => krait_config.ver = value_str,
+                            "desc" => krait_config.desc = value_str,
+                            "license" => krait_config.license = value_str,
+                            "git" => krait_config.git = value_str,
+                            "dir" => krait_config.dir = PathBuf::from(value_str),
+                            _ => (),
+                        }
+                    },
+
+                    "table" => {
+                        let value_table: mlua::Table = config.get(key.clone()).unwrap();
+                        let mut vec = Vec::new();
+
+                        for pair in value_table.clone().pairs::<String, mlua::Value>() {
+                            let (key2, value2) = match pair {
+                                Ok(x) => x,
+                                Err(e) => {
+                                    eprintln!("Error: {}", e);
+                                    exit!(1);
+                                }
+                            };
+
+                            if value2 != mlua::Value::Nil {
+                                let value_type = value2.type_name();
+
+                                for i in 1..=value_table.len().unwrap() {
+                                    let value_str = value_table.get::<_, String>(i).unwrap();
+
+                                    match value_type {
+                                        "string" => vec.push(value_str),
+                                        _ => (),
+                                    }
+                                }
+
+                                // match value_type {
+                                //     "string" => {
+                                //         let value3: String = match value_table.get(key2.clone()) {
+                                //             Ok(x) => x,
+                                //             Err(e) => {
+                                //                 "Error".to_string()
+                                //             }
+                                //         };
+                                //         vec.push(value3);
+                                //     },
+                                    // _ => (),
+                                //}
+                            }
+                        }
+
+                        match key.as_str() {
+                            "pkgs" => krait_config.pkgs = Some(vec),
+                            "repos" => krait_config.repos = vec,
+                            "args" => krait_config.args = Some(vec),
+                            _ => (),
+                        }
+                    }
+                    _ => (),
+                }
+                
+                
+            }
+            
+        }
+
+        krait_config
+
     }
 }
