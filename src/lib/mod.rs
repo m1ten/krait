@@ -307,7 +307,7 @@ c.args = {}
                         let mut vec = Vec::new();
 
                         for pair in value_table.clone().pairs::<String, mlua::Value>() {
-                            let (key2, value2) = match pair {
+                            let (_key2, value2) = match pair {
                                 Ok(x) => x,
                                 Err(e) => {
                                     eprintln!("Error: {}", e);
@@ -326,19 +326,6 @@ c.args = {}
                                         _ => (),
                                     }
                                 }
-
-                                // match value_type {
-                                //     "string" => {
-                                //         let value3: String = match value_table.get(key2.clone()) {
-                                //             Ok(x) => x,
-                                //             Err(e) => {
-                                //                 "Error".to_string()
-                                //             }
-                                //         };
-                                //         vec.push(value3);
-                                //     },
-                                    // _ => (),
-                                //}
                             }
                         }
 

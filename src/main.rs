@@ -50,101 +50,86 @@ async fn main() {
         };
 
         // TODO: parse config file
-        KraitConfig::parse(config_str);
+        krait_config = KraitConfig::parse(config_str);
     }
 
-        // convert yaml to struct
+    let mut tasks = Vec::new();
 
-        // krait_config = match serde_yaml::from_str(&config_yaml) {
-        //     Ok(config) => config,
-        //     Err(e) => {
-        //         eprintln!("Error: Reading krait.lua file: '{}'", e);
-        //         eprintln!("Continuing with default config...");
+    for arg_p in args.pkgs.clone() {
+        let cache_dir = krait_config.dir.join("cache");
+        let repos = krait_config.repos.clone();
 
-        //         KraitConfig::default()
-        //     }
-        // }
+        tasks.push(tokio::spawn(async move {
+            let name = arg_p.0;
+            let ver = arg_p.1;
 
-        // TODO: check if config is valid and if not, run setup
+            let pkg = match (Pkg {
+                name,
+                ver,
+                ..Default::default()
+            })
+            .fill(cache_dir, repos)
+            .await
+            {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    exit!(1);
+                }
+            };
+
+            pkg
+        }))
     }
 
-    // let mut tasks = Vec::new();
+    let mut pkgs = Vec::new();
 
-    // for arg_p in args.pkgs.clone() {
-    //     let cache_dir = krait_config.dir.join("cache");
-    //     let repos = krait_config.repos.clone();
+    for r in futures::future::join_all(tasks).await {
+        match r {
+            Ok(p) => pkgs.push(p),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                exit!(1);
+            }
+        }
+    }
 
-    //     tasks.push(tokio::spawn(async move {
-    //         let name = arg_p.0;
-    //         let ver = arg_p.1;
+    krait::kdbg!("finished");
 
-    //         let pkg = match (Pkg {
-    //             name,
-    //             ver,
-    //             ..Default::default()
-    //         })
-    //         .fill(cache_dir, repos)
-    //         .await
-    //         {
-    //             Ok(p) => p,
-    //             Err(e) => {
-    //                 eprintln!("Error: {}", e);
-    //                 exit!(1);
-    //             }
-    //         };
+    match args.status.as_str() {
+        "search" => {
+            println!("Finished!");
+        }
+        "clean" => {
+            println!("Cleaning up.");
 
-    //         pkg
-    //     }))
-    // }
+            kdbg!("{:#?}", &krait_path_cache);
 
-    // let mut pkgs = Vec::new();
-
-    // for r in futures::future::join_all(tasks).await {
-    //     match r {
-    //         Ok(p) => pkgs.push(p),
-    //         Err(e) => {
-    //             eprintln!("Error: {}", e);
-    //             exit!(1);
-    //         }
-    //     }
-    // }
-
-    // krait::kdbg!("finished");
-
-    // match args.status.as_str() {
-    //     "search" => {
-    //         println!("Finished!");
-    //     }
-    //     "clean" => {
-    //         println!("Cleaning up.");
-
-    //         kdbg!("{:#?}", &krait_path_cache);
-
-    //         match std::fs::remove_dir_all(krait_path_cache) {
-    //             Ok(_) => {
-    //                 println!("Cache Cleaned!");
-    //                 exit!(0);
-    //             }
-    //             Err(_) => {
-    //                 println!("Error: Could not remove cache directory.");
-    //                 exit!(1);
-    //             }
-    //         }
-    //     }
-    //     _ => {
-    //         // call self exe with arg '--help'
-    //         let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
-    //         cmd.arg("--help");
-    //         cmd.spawn()
-    //             .unwrap_or_else(|err| {
-    //                 eprintln!("Error: {}", err);
-    //                 exit!(1);
-    //             })
-    //             .wait()
-    //             .unwrap_or_else(|err| {
-    //                 eprintln!("Error: {}", err);
-    //                 exit!(1);
-    //             });
-    //     }
-    // }
-// }
+            match std::fs::remove_dir_all(krait_path_cache) {
+                Ok(_) => {
+                    println!("Cache Cleaned!");
+                    exit!(0);
+                }
+                Err(_) => {
+                    println!("Error: Could not remove cache directory.");
+                    exit!(1);
+                }
+            }
+        }
+        _ => {
+            // call self exe with arg '--help'
+            let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
+            cmd.arg("--help");
+            cmd.spawn()
+                .unwrap_or_else(|err| {
+                    eprintln!("Error: {}", err);
+                    exit!(1);
+                })
+                .wait()
+                .unwrap_or_else(|err| {
+                    eprintln!("Error: {}", err);
+                    exit!(1);
+                });
+        }
+    }
+}
