@@ -3,6 +3,10 @@
 
 use std::{collections::HashMap, path::PathBuf};
 
+use mlua::DeserializeOptions;
+use mlua::LuaSerdeExt;
+use mlua::Table;
+use mlua::Value;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -10,6 +14,7 @@ use tokio::fs;
 
 use crate::{self as krait};
 
+use krait::exit;
 use krait::kdbg;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -32,7 +37,7 @@ pub struct Pkg {
     pub info_str: Option<String>,
 
     #[default(None)]
-    pub info_yml: Option<PkgInfo>,
+    pub info: Option<PkgInfo>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -82,17 +87,7 @@ pub struct PkgMain {
     #[default(None)]
     #[serde(alias = "dep", alias = "dependency", alias = "dependencies")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub deps: Option<Vec<HashMap<String, String>>>,
-
-    // dep and version
-    #[default(None)]
-    #[serde(
-        alias = "dev_dep",
-        alias = "dev_dependency",
-        alias = "dev_dependencies"
-    )]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dev_deps: Option<Vec<HashMap<String, String>>>,
+    pub deps: Option<Vec<PkgDep>>,
 
     // whether the package is installed from git or binary
     #[default(String::from("binary"))]
@@ -123,6 +118,21 @@ pub struct PkgMain {
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub test: Option<Vec<PkgAction>>,
+}
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+pub struct PkgDep {
+    #[default(String::new())]
+    pub name: String,
+
+    #[default(None)]
+    pub ver: Option<String>,
+
+    #[default(false)]
+    pub dev: bool,
+
+    #[default(false)]
+    pub optional: bool,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -174,147 +184,72 @@ pub struct PkgAction {
 
 impl Pkg {
     pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
-
         kdbg!(repos.clone());
 
         // check if the package is already in the cache
-        // create folder for the package
+        // create a new cache if it doesn't exist
         let cache = cache_dir.join(&self.name);
 
         kdbg!(&cache);
 
         if cache.exists() && cache.is_dir() {
-            // get pkg.yml from cache
-            let pkg_yml = cache.join("pkg.yml");
+            // get pkg.lua from cache
+            let pkg_lua_path = cache.join("pkg.lua");
 
-            // read pkg.yml
-            let pkg_yml = match fs::read_to_string(&pkg_yml).await {
-                Ok(s) => match serde_yaml::from_str(&s) {
-                    Ok(y) => (s, y),
-                    Err(_) => ("err".to_string(), PkgInfo::default()),
-                },
-                Err(_) => ("err".to_string(), PkgInfo::default()),
-            };
+            let pkg_lua_str = fs::read_to_string(pkg_lua_path)
+                .await
+                .map_err(|e| e.to_string())
+                .expect("failed to read pkg.lua");
 
-            // check if self.ver is latest
-            let ver: String = if self.ver == "latest" {
-                pkg_yml.1.ver.clone()
-            } else {
-                self.ver.clone()
-            };
-
-            // check if self.ver matches pkg.yml.ver
-            if ver == pkg_yml.1.ver {
-                let pkg = Pkg {
-                    name: self.name,
-                    ver: self.ver,
-                    url: None,
-                    path: Some(cache),
-                    info_str: Some(pkg_yml.0),
-                    info_yml: Some(pkg_yml.1),
-                };
-
-                return Ok(pkg);
-            } else {
-                // if not, delete the cache folder
-                let _ = match fs::remove_dir_all(&cache).await {
-                    Ok(_) => (),
-                    Err(_) => return Err("Could not delete cache folder!".to_string()),
-                };
-            }
+            todo!("parse pkg.lua and return Pkg struct");
         }
 
-        // search for the package on github repo
-        // (domain, owner, repo); might add branch support later
-        // let mut vec_3: Vec<(String, String, String)> = Vec::new();
+        // TODO: fill in the rest of the fields
 
-        for repo in repos {
-            let lc = &repo.to_lowercase();
-            let re =
-                Regex::new(r"[a-z0-9]+://(?P<domain>[^/]+)/(?P<owner>[^/]+)/(?P<repo>[^/]+)/?")
-                    .unwrap();
+        todo!("fill in the rest of the fields");
+    }
 
-            let re_cap = match re.captures(lc) {
-                Some(c) => c,
-                None => continue,
-            };
+    pub fn parse(script_str: String) -> PkgInfo {
+        let lua = mlua::Lua::new();
+        let globals = lua.globals();
 
-            let domain = re_cap.name("domain").unwrap().as_str();
+        let krait_table = lua.create_table().expect("failed to create krait table");
+        let pkg_table = lua.create_table().expect("failed to create pkg table");
 
-            if domain != "github.com" {
-                // TODO: add support for non-github repos (e.g. gitlab, bitbucket)
-                eprintln!("{domain} is currently not supported.");
-                continue;
-            }
+        krait_table
+            .set("pkg", pkg_table)
+            .expect("failed to set config table");
 
-            let owner = re_cap.name("owner").unwrap().as_str();
-            let repo = re_cap.name("repo").unwrap().as_str();
+        globals
+            .set("krait", krait_table)
+            .expect("failed to set krait table");
 
-            // vec_3.push((domain.to_string(), owner.to_string(), repo.to_string()));
-            kdbg!(format!("Searching for {owner}/{repo}..."));
+        // load the pkg script
+        let result = lua.load(&script_str).exec();
 
-            // search for the package on github repo
-            let api_url =
-                format!("https://api.github.com/repos/{owner}/{repo}/contents/manifest.yml");
-
-            kdbg!(&api_url);
-
-            let client = reqwest::Client::new();
-            let manifest_json = match client
-                .get(&api_url)
-                .header(reqwest::header::USER_AGENT, "krait")
-                .send()
-                .await
-            {
-                Ok(r) => match r.json::<serde_yaml::Value>().await {
-                    Ok(j) => {
-                        if j["message"].as_str() == Some("Not Found") {
-                            continue;
-                        } else {
-                            j
-                        }
-                    }
-                    Err(e) => return Err(format!("{}", e)),
-                },
-                Err(e) => return Err(format!("{}", e)),
-            };
-
-            kdbg!(&manifest_json);
-
-            let download_url = manifest_json["download_url"].as_str().unwrap();
-
-            // download the manifest.yml to cache/username/repo/manifest.yml
-
-            let cache_repo = cache_dir.join(owner).join(repo);
-
-            if !cache_repo.exists() {
-                let _ = match fs::create_dir_all(&cache_repo).await {
-                    Ok(_) => (),
-                    Err(_) => return Err("Could not create cache folder!".to_string()),
-                };
-            }
-
-            let manifest_path = cache_repo.join("manifest.yml");
-
-            let manifest_yml = match client
-                .get(download_url)
-                .header(reqwest::header::USER_AGENT, "krait")
-                .send()
-                .await
-            {
-                Ok(r) => match r.text().await {
-                    Ok(t) => t,
-                    Err(_) => return Err("Could not download manifest.yml!".to_string()),
-                },
-                Err(e) => return Err(format!("{}", e)),
-            };
-
-            let _ = match fs::write(&manifest_path, manifest_yml).await {
-                Ok(_) => (),
-                Err(_) => return Err("Could not write manifest.yml!".to_string()),
-            };
+        if let Err(e) = result {
+            eprintln!("Error parsing config: {}", e);
+            exit!(1);
         }
 
-        Ok(self)
+        // get the script as a table
+        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
+        let pkg_table: Table = krait_table.get("pkg").expect("failed to get pkg table");
+
+        // deserialize the pkg table into a PkgInfo struct using serde
+
+        let options = DeserializeOptions::new()
+            .deny_unsupported_types(false)
+            .deny_recursive_tables(false);
+
+        let pkg_info: PkgInfo = match lua.from_value_with(Value::Table(pkg_table), options) {
+            Ok(pkg_info) => pkg_info,
+            Err(e) => {
+                eprintln!("Error parsing config: {}", e);
+                exit!(1);
+            }
+        };
+
+        pkg_info
     }
 }

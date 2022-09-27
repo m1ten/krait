@@ -53,6 +53,8 @@ async fn main() {
         krait_config = KraitConfig::parse(config_str);
     }
 
+    kdbg!(krait_config.clone());
+
     let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {

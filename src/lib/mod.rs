@@ -8,6 +8,7 @@ use std::{
     path::PathBuf,
 };
 
+use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -145,6 +146,7 @@ pub struct KraitConfig {
 
     // krait version
     #[default(String::from("0.0.1"))]
+    #[serde(alias = "version")]
     pub ver: String,
 
     // krait description
@@ -202,7 +204,7 @@ impl KraitConfig {
 
         let mut dir = self.dir.clone().to_string_lossy().to_string();
         // check if running on windows
-        if cfg!(target_os = "windows") {    
+        if cfg!(target_os = "windows") {
             dir = dir.replace("\\", "\\\\");
         } else {
             dir = dir.replace("/", "\\/");
@@ -252,12 +254,16 @@ c.args = {}
         let lua = mlua::Lua::new();
         let globals = lua.globals();
 
-        let krait_table = lua.create_table().unwrap();
-        let config_table = lua.create_table().unwrap();
+        let krait_table = lua.create_table().expect("failed to create krait table");
+        let config_table = lua.create_table().expect("failed to create config table");
 
-        krait_table.set("config", config_table).unwrap();
+        krait_table
+            .set("config", config_table)
+            .expect("failed to set config table");
 
-        globals.set("krait", krait_table).unwrap();
+        globals
+            .set("krait", krait_table)
+            .expect("failed to set krait table");
 
         // load the config
         let result = lua.load(&config_str).exec();
@@ -268,83 +274,24 @@ c.args = {}
         }
 
         // get the config as a table
-        let krait: mlua::Table = globals.get("krait").unwrap();
-        let config: mlua::Table = krait.get("config").unwrap();
+        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
+        let config_table: Table = krait_table.get("config").expect("failed to get config table");
 
-        let mut krait_config = KraitConfig::new();
+        // deserialize the config table into a config struct using serde
 
-        for pair in config.clone().pairs::<String, mlua::Value>() {
-            let (key, value) = match pair {
-                Ok(x) => x,
+        let options = DeserializeOptions::new()
+            .deny_unsupported_types(false)
+            .deny_recursive_tables(false);
+
+        let krait_config: KraitConfig =
+            match lua.from_value_with(Value::Table(config_table), options) {
+                Ok(c) => c,
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    eprintln!("Error parsing config: {}", e);
                     exit!(1);
                 }
             };
 
-            if value != mlua::Value::Nil {
-                // type of the value
-                let value_type = value.type_name();
-
-                match value_type {
-                    "string" => {
-                        let value_str = config.get::<_, String>(key.clone()).unwrap();
-
-                        match key.clone().as_str() {
-                            "name" => krait_config.name = value_str,
-                            "author" => krait_config.author = value_str,
-                            "ver" => krait_config.ver = value_str,
-                            "desc" => krait_config.desc = value_str,
-                            "license" => krait_config.license = value_str,
-                            "git" => krait_config.git = value_str,
-                            "dir" => krait_config.dir = PathBuf::from(value_str),
-                            _ => (),
-                        }
-                    },
-
-                    "table" => {
-                        let value_table: mlua::Table = config.get(key.clone()).unwrap();
-                        let mut vec = Vec::new();
-
-                        for pair in value_table.clone().pairs::<String, mlua::Value>() {
-                            let (_key2, value2) = match pair {
-                                Ok(x) => x,
-                                Err(e) => {
-                                    eprintln!("Error: {}", e);
-                                    exit!(1);
-                                }
-                            };
-
-                            if value2 != mlua::Value::Nil {
-                                let value_type = value2.type_name();
-
-                                for i in 1..=value_table.len().unwrap() {
-                                    let value_str = value_table.get::<_, String>(i).unwrap();
-
-                                    match value_type {
-                                        "string" => vec.push(value_str),
-                                        _ => (),
-                                    }
-                                }
-                            }
-                        }
-
-                        match key.as_str() {
-                            "pkgs" => krait_config.pkgs = Some(vec),
-                            "repos" => krait_config.repos = vec,
-                            "args" => krait_config.args = Some(vec),
-                            _ => (),
-                        }
-                    }
-                    _ => (),
-                }
-                
-                
-            }
-            
-        }
-
         krait_config
-
     }
 }
