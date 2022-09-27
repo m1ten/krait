@@ -1,4 +1,4 @@
-use mlua::{Lua, DeserializeOptions, LuaSerdeExt};
+use mlua::{Lua, DeserializeOptions, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
 
 use crate as krait;
@@ -43,13 +43,22 @@ impl Manifest {
 			.expect("Failed to set krait table");
 
 		// load the manifest
-		let manifest = lua.load(&s).eval::<mlua::Table>().expect("Failed to load manifest");
+		let result = lua.load(&s).exec();
+
+		if let Err(e) = result {
+			eprintln!("Error parsing manifest: {}", e);
+			krait::exit!(1);
+		}
+
+		// get the config as a table
+        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
+        let manifest_table: Table = krait_table.get("manifest").expect("failed to get manifest table");
 
 		let options = DeserializeOptions::new()
 			.deny_unsupported_types(false)
 			.deny_recursive_tables(false);
 
-		let manifest: Manifest = match lua.from_value_with(mlua::Value::Table(manifest), options) {
+		let manifest: Manifest = match lua.from_value_with(mlua::Value::Table(manifest_table), options) {
 			Ok(m) => m,
 			Err(e) => {
 				eprintln!("Error parsing manifest: {}", e);
