@@ -11,6 +11,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
+use crate::manifest::Manifest;
 use crate::{self as krait};
 
 use krait::exit;
@@ -322,7 +323,10 @@ impl Pkg {
                 }
             };
 
-            // TODO: parse manifest.lua
+            
+            let manifest_lua = Manifest::parse(manifest_lua_str.clone());
+
+            // TODO: work on this
             
         }
 

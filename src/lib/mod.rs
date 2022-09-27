@@ -1,6 +1,7 @@
 pub mod args;
 pub mod pkg;
 pub mod setup;
+pub mod manifest;
 
 use std::{
     fs::File,
