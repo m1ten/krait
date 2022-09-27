@@ -8,7 +8,7 @@ use std::{
     path::PathBuf,
 };
 
-use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value};
+use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value, Lua};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -251,7 +251,7 @@ c.args = {}
     }
 
     pub fn parse(config_str: String) -> KraitConfig {
-        let lua = mlua::Lua::new();
+        let lua = Lua::new();
         let globals = lua.globals();
 
         let krait_table = lua.create_table().expect("failed to create krait table");

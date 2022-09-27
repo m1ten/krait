@@ -10,7 +10,6 @@ use mlua::Value;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
-use tokio::fs;
 
 use crate::{self as krait};
 
@@ -183,7 +182,7 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Result<Self, String> {
+    pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Self {
         kdbg!(repos.clone());
 
         // check if the package is already in the cache
@@ -192,23 +191,153 @@ impl Pkg {
 
         kdbg!(&cache);
 
-        if cache.exists() && cache.is_dir() {
-            // get pkg.lua from cache
-            let pkg_lua_path = cache.join("pkg.lua");
+        // let mut version: Option<String> = None;
 
-            let pkg_lua_str = fs::read_to_string(pkg_lua_path)
-                .await
-                .map_err(|e| e.to_string())
-                .expect("failed to read pkg.lua");
+        // if cache.exists() && cache.is_dir() {
 
-            todo!("parse pkg.lua and return Pkg struct");
+        //     // TODO: add support for cache
+
+
+        //     // get pkg.lua from cache
+        //     let pkg_lua_path = cache.join("pkg.lua");
+
+        //     let pkg_lua_str = fs::read_to_string(pkg_lua_path)
+        //         .await
+        //         .map_err(|e| e.to_string())
+        //         .expect("failed to read pkg.lua");
+
+        //     let pkg_lua_ = PkgInfo::parse(pkg_lua_str.clone());
+
+        //     kdbg!(&pkg_lua_);
+
+        //     self.info_str = Some(pkg_lua_str.clone());
+        //     self.info = Some(pkg_lua_);
+
+        //     if self.ver.is_empty() || self.ver == "latest" {
+        //         version = Some(self.info.expect("failed to get pkg.lua").ver);
+        //     } else {
+        //         // check if the version is valid
+        //     }
+
+        // }
+
+        // if version is not specified, use the latest version
+
+        let mut fail: bool = false;
+        
+        for repo in repos {
+            // check if repo is valid 
+            // if not, skip it
+
+            // check if the repo is github link
+            // if yes, use github api to get the latest version
+            
+            let lc = &repo.to_lowercase();
+
+            let re =
+                Regex::new(r"[a-z0-9]+://(?P<domain>[^/]+)/(?P<owner>[^/]+)/(?P<repo>[^/]+)/?")
+                    .unwrap();
+
+            let re_cap = match re.captures(lc) {
+                Some(cap) => cap,
+                None => {
+                    fail = true;
+                    continue;
+                },
+            };
+
+            let domain = re_cap.name("domain").unwrap().as_str();
+
+            if domain != "github.com" {
+                // TODO: add support for non-github repos (e.g. gitlab, bitbucket)
+                eprintln!("{domain} is currently not supported.");
+                fail = true;
+                continue;
+            }
+
+            let owner = re_cap.name("owner").unwrap().as_str();
+            let repo = re_cap.name("repo").unwrap().as_str();
+
+            dbg!(format!("Searching for {owner}/{repo}..."));
+
+            // search for the package on github repo
+            let api_url = format!(
+                "https://api.github.com/repos/{owner}/{repo}/contents/manifest.lua",
+            );
+
+            dbg!(&api_url);
+
+            // get the manifest.lua file and save it to the cache directory
+            let manifest_json_str = match reqwest::get(&api_url).await {
+                Ok(res) => match res.text().await {
+                    Ok(text) => text,
+                    Err(e) => {
+                        eprintln!("Failed to get manifest.lua: {}", e);
+                        fail = true;
+                        continue;
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Failed to get manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
+
+            // parse the json string
+            let manifest_json: serde_json::Value = match serde_json::from_str(&manifest_json_str) {
+                Ok(json) => json,
+                Err(e) => {
+                    eprintln!("Failed to parse manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
+
+            dbg!(&manifest_json);
+
+            let down_url = match manifest_json["download_url"].as_str() {
+                Some(url) => url,
+                None => {
+                    eprintln!("Failed to get download_url");
+                    fail = true;
+                    continue;
+                }
+            };
+
+            // download the manifest.lua file and save it to the cache directory
+            let manifest_lua_str = match reqwest::get(down_url).await {
+                Ok(res) => match res.text().await {
+                    Ok(text) => text,
+                    Err(e) => {
+                        eprintln!("Failed to get manifest.lua: {}", e);
+                        fail = true;
+                        continue;
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Failed to get manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
+
+            // TODO: parse manifest.lua
+            
         }
 
-        // TODO: fill in the rest of the fields
+        if fail {
+            eprintln!("Failed to find the package {}.", self.name);
+            exit!(1);
+        }
 
-        todo!("fill in the rest of the fields");
+        self
+
+
     }
+}
 
+impl PkgInfo {
     pub fn parse(script_str: String) -> PkgInfo {
         let lua = mlua::Lua::new();
         let globals = lua.globals();

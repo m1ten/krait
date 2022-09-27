@@ -29,10 +29,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: '1'
-    - name: Install Rust nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         default: true
         override: true
 
@@ -46,7 +46,7 @@ jobs:
         file: target/release/krait.exe
         asset_name: krait-windows-x86_64.exe
         tag: ${{ github.ref }}
-        overwrite: false
+        overwrite: true
         prerelease: true
       
   build-linux:
@@ -59,10 +59,10 @@ jobs:
       with:
         fetch-depth: '1'
 
-    - name: Install Rust nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         default: true
         override: true
 
@@ -76,7 +76,7 @@ jobs:
         file: target/release/krait
         asset_name: krait-linux-x86_64
         tag: ${{ github.ref }}
-        overwrite: false
+        overwrite: true
         prerelease: true
     
   build-macos:
@@ -89,10 +89,10 @@ jobs:
       with:
         fetch-depth: '1'
 
-    - name: Install Rust nightly
+    - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: stable
         target: x86_64-apple-darwin
         default: true
         override: true
@@ -107,5 +107,5 @@ jobs:
         file: target/release/krait
         asset_name: krait-macos-x86_64
         tag: ${{ github.ref }}
-        overwrite: false
+        overwrite: true
         prerelease: true

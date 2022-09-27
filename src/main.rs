@@ -65,20 +65,13 @@ async fn main() {
             let name = arg_p.0;
             let ver = arg_p.1;
 
-            let pkg = match (Pkg {
+            let pkg = Pkg {
                 name,
                 ver,
                 ..Default::default()
-            })
+            }
             .fill(cache_dir, repos)
-            .await
-            {
-                Ok(p) => p,
-                Err(e) => {
-                    eprintln!("Error: {}", e);
-                    exit!(1);
-                }
-            };
+            .await;
 
             pkg
         }))
