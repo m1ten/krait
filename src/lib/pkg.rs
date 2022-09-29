@@ -1,6 +1,7 @@
 // Fields that should be added:
 // - maintainer/contributor (type: string)
 
+use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
 
 use mlua::DeserializeOptions;
@@ -9,6 +10,7 @@ use mlua::Table;
 use mlua::Value;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
 use crate::manifest::Manifest;
@@ -198,7 +200,6 @@ impl Pkg {
 
         //     // TODO: add support for cache
 
-
         //     // get pkg.lua from cache
         //     let pkg_lua_path = cache.join("pkg.lua");
 
@@ -225,14 +226,14 @@ impl Pkg {
         // if version is not specified, use the latest version
 
         let mut fail: bool = false;
-        
+
         for repo in repos {
-            // check if repo is valid 
+            // check if repo is valid
             // if not, skip it
 
             // check if the repo is github link
             // if yes, use github api to get the latest version
-            
+
             let lc = &repo.to_lowercase();
 
             let re =
@@ -244,7 +245,7 @@ impl Pkg {
                 None => {
                     fail = true;
                     continue;
-                },
+                }
             };
 
             let domain = re_cap.name("domain").unwrap().as_str();
@@ -262,9 +263,8 @@ impl Pkg {
             dbg!(format!("Searching for {owner}/{repo}..."));
 
             // search for the package on github repo
-            let api_url = format!(
-                "https://api.github.com/repos/{owner}/{repo}/contents/manifest.lua",
-            );
+            let api_url =
+                format!("https://api.github.com/repos/{owner}/{repo}/contents/manifest.lua",);
 
             dbg!(&api_url);
 
@@ -323,11 +323,104 @@ impl Pkg {
                 }
             };
 
-            
+            let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
+
             let manifest_lua = Manifest::parse(manifest_lua_str.clone());
 
-            // TODO: work on this
-            
+            for pkg in manifest_lua.packages {
+                if pkg.0 == full_repo {
+                    for pkg in pkg.1 {
+                        if pkg.0 == self.ver {
+                            // get the latest ManifestPackage from pkg.1
+                            let pkg = match pkg.1.last() {
+                                Some(pkg) => pkg,
+                                None => {
+                                    eprintln!("Failed to get ManifestPackage");
+                                    fail = true;
+                                    continue;
+                                }
+                            };
+
+                            // download everything from pkg.contents and put it into root/packages/{pkg_name}
+
+                            let mut sha1_url: HashMap<String, String> = HashMap::new();
+
+                            for c in pkg.contents.clone() {
+                                sha1_url.insert(c.sha1, c.url);
+                            }
+
+                            dbg!(&sha1_url);
+
+                            // download the files
+                            for (sha1, url) in sha1_url {
+                                // write to /cache/packages/{pkg_name}/{sha1}
+                                let cache_path = cache.join(self.name.clone()).join(sha1.clone());
+
+                                // check if the file exists, if yes, overwrite it
+                                if cache_path.exists() {
+                                    std::fs::remove_file(&cache_path)
+                                        .map_err(|e| e.to_string())
+                                        .expect("failed to remove file");
+                                }
+
+                                let mut file = std::fs::File::create(&cache_path)
+                                    .map_err(|e| e.to_string())
+                                    .expect("failed to create file");
+
+                                let mut res = match reqwest::get(url)
+                                    .await
+                                    .map_err(|e| e.to_string())
+                                    .expect("failed to get file")
+                                    .bytes()
+                                    .await
+                                {
+                                    Ok(res) => res,
+                                    Err(e) => {
+                                        eprintln!("Failed to get file: {}", e);
+                                        fail = true;
+                                        continue;
+                                    }
+                                };
+
+                                // write the file
+                                match file.write_all(&mut res) {
+                                    Ok(_) => (),
+                                    Err(e) => {
+                                        eprintln!("Failed to write file: {}", e);
+                                        fail = true;
+                                        continue;
+                                    }
+                                }
+
+                                // check the sha1 of the file
+                                let mut hasher = Sha1::new();
+                                let mut file = std::fs::File::open(&cache_path)
+                                    .map_err(|e| e.to_string())
+                                    .expect("failed to open file");
+
+                                match std::io::copy(&mut file, &mut hasher) {
+                                    Ok(_) => (),
+                                    Err(e) => {
+                                        eprintln!("Failed to hash file: {}", e);
+                                        fail = true;
+                                        continue;
+                                    }
+                                }
+
+                                let hash = format!("{:x}", hasher.finalize());
+
+                                if hash != sha1 {
+                                    eprintln!("sha1 of file does not match");
+                                    fail = true;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // TODO: fill in the package info
         }
 
         if fail {
@@ -336,8 +429,6 @@ impl Pkg {
         }
 
         self
-
-
     }
 }
 

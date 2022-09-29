@@ -122,21 +122,21 @@ impl Manifest {
         };
 
         // get the current branch
-        // let branch = match repo.head() {
-        //     Ok(b) => b,
-        //     Err(e) => {
-        //         eprintln!("Error getting current branch: {}", e);
-        //         krait::exit!(1);
-        //     }
-        // };
+        let branch = match repo.head() {
+            Ok(b) => b,
+            Err(e) => {
+                eprintln!("Error getting current branch: {}", e);
+                krait::exit!(1);
+            }
+        };
 
-        // let branch_name = match branch.shorthand() {
-        //     Some(b) => b,
-        //     None => {
-        //         eprintln!("Error getting current branch name");
-        //         krait::exit!(1);
-        //     }
-        // };
+        let branch_name = match branch.shorthand() {
+            Some(b) => b,
+            None => {
+                eprintln!("Error getting current branch name");
+                krait::exit!(1);
+            }
+        };
 
         // get the latest commit
         let latest_commit = match repo.head() {
@@ -330,8 +330,8 @@ impl Manifest {
 
                     // get the download url
                     let download_url = format!(
-                        "https://raw.githubusercontent.com/{}/master/{}",
-                        manifest.repo, content_path
+                        "https://raw.githubusercontent.com/{}/{}/{}",
+                        manifest.repo, branch_name, content_path
                     );
 
                     // TODO: add support non-github repos
