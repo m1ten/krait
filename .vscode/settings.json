@@ -2,4 +2,7 @@
     "rust-analyzer.diagnostics.disabled": [
         "unresolved-macro-call"
     ],
+    "Lua.diagnostics.globals": [
+        "krait"
+    ],
 }

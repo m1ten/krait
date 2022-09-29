@@ -31,23 +31,39 @@ async fn main() {
         } else {
             exit!(1);
         }
-
     } else {
         // read config file
         let config_str = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Error: Reading krait.lua file: {}", e);
-                
+
                 if question!("Would you like to reset krait?") {
                     krait::setup::run(krait_config);
                     exit!(0);
                 } else {
                     exit!(1);
                 }
-
             }
         };
+
+        // strip empty lines
+        let config_str = config_str
+            .lines()
+            .filter(|x| !x.is_empty())
+            .collect::<Vec<&str>>()
+            .join("");
+
+        if config_str.is_empty() {
+            eprintln!("Error: krait.lua file is empty.");
+
+            if question!("Would you like to reset krait?") {
+                krait::setup::run(krait_config);
+                exit!(0);
+            } else {
+                exit!(1);
+            }
+        }
 
         // TODO: parse config file
         krait_config = KraitConfig::parse(config_str);

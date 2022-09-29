@@ -1,5 +1,5 @@
 use crate::{self as krait};
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 use indexmap::IndexMap;
 
 // krait args struct

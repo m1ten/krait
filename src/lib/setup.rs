@@ -1,7 +1,7 @@
 use crate::{self as krait, exit, question, KraitConfig};
 use std::fs;
 
-use console::{Emoji, style};
+use console::{style, Emoji};
 
 pub fn run(krait_config: KraitConfig) {
     // TODO: Implement setup.rs
@@ -10,7 +10,6 @@ pub fn run(krait_config: KraitConfig) {
     let krait_path_lua = krait_path.join("krait.lua");
 
     let config_string = krait_config.gen_lua();
-
 
     // TODO: add support for text editors (vim, nano, etc)
     bat::PrettyPrinter::new()

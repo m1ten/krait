@@ -1,7 +1,7 @@
 pub mod args;
+pub mod manifest;
 pub mod pkg;
 pub mod setup;
-pub mod manifest;
 
 use std::{
     fs::File,
@@ -9,7 +9,7 @@ use std::{
     path::PathBuf,
 };
 
-use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value, Lua};
+use mlua::{DeserializeOptions, Lua, LuaSerdeExt, Table, Value};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -276,7 +276,9 @@ c.args = {}
 
         // get the config as a table
         let krait_table: Table = globals.get("krait").expect("failed to get krait table");
-        let config_table: Table = krait_table.get("config").expect("failed to get config table");
+        let config_table: Table = krait_table
+            .get("config")
+            .expect("failed to get config table");
 
         // deserialize the config table into a config struct using serde
 

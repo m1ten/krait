@@ -318,7 +318,7 @@ impl Manifest {
                             krait::exit!(1);
                         }
                     };
-                    
+
                     let hash_bytes = hasher.finalize();
 
                     let hash = format!("{:x}", hash_bytes);
@@ -390,9 +390,7 @@ impl Manifest {
                 krait::exit!(1);
             }
         }
-
     }
-
 }
 
 // implement Display for Manifest
@@ -411,7 +409,10 @@ impl std::fmt::Display for Manifest {
 
         // write the repo, last_commit, and last_update fields
         lua_script.push_str(&format!("m.repo = \"{}\"\n", manifest.repo));
-        lua_script.push_str(&format!("m.latest_commit = \"{}\"\n", manifest.latest_commit));
+        lua_script.push_str(&format!(
+            "m.latest_commit = \"{}\"\n",
+            manifest.latest_commit
+        ));
         lua_script.push_str(&format!("m.last_update = \"{}\"\n", manifest.last_update));
         lua_script.push_str("\n");
 
@@ -420,34 +421,56 @@ impl std::fmt::Display for Manifest {
             lua_script.push_str(&format!("m.packages[\"{}\"] = {}\n", package_name, "{"));
 
             for (version, packages) in versions {
-                lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"] = {}\n", package_name, version, "{"));
+                lua_script.push_str(&format!(
+                    "m.packages[\"{}\"][\"{}\"] = {}\n",
+                    package_name, version, "{"
+                ));
 
                 for package in packages {
-                    lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"] = {}\n", package_name, version, package.path, "{"));
+                    lua_script.push_str(&format!(
+                        "m.packages[\"{}\"][\"{}\"][\"{}\"] = {}\n",
+                        package_name, version, package.path, "{"
+                    ));
 
-                    lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"commit\"] = \"{}\"\n", package_name, version, package.path, package.commit));
+                    lua_script.push_str(&format!(
+                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"commit\"] = \"{}\"\n",
+                        package_name, version, package.path, package.commit
+                    ));
 
-                    lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"] = {}\n", package_name, version, package.path, "{"));
+                    lua_script.push_str(&format!(
+                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"] = {}\n",
+                        package_name, version, package.path, "{"
+                    ));
 
                     for content in package.contents {
-                        lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"] = {}\n", package_name, version, package.path, content.name, "{"));
+                        lua_script.push_str(&format!(
+                            "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"] = {}\n",
+                            package_name, version, package.path, content.name, "{"
+                        ));
 
                         lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"path\"] = \"{}\"\n", package_name, version, package.path, content.name, content.path));
                         lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"sha1\"] = \"{}\"\n", package_name, version, package.path, content.name, content.sha1));
                         lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"url\"] = \"{}\"\n", package_name, version, package.path, content.name, content.url));
 
-                        lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"]] = {}\n", package_name, version, package.path, content.name, "}"));
+                        lua_script.push_str(&format!(
+                            "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"]] = {}\n",
+                            package_name, version, package.path, content.name, "}"
+                        ));
                     }
 
-                    lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"]] = {}\n", package_name, version, package.path, "}"));
+                    lua_script.push_str(&format!(
+                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"]] = {}\n",
+                        package_name, version, package.path, "}"
+                    ));
 
-                    lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"]] = {}\n", package_name, version, package.path, "}"));
-                
+                    lua_script.push_str(&format!(
+                        "m.packages[\"{}\"][\"{}\"][\"{}\"]] = {}\n",
+                        package_name, version, package.path, "}"
+                    ));
                 }
             }
         }
 
         write!(f, "{}", lua_script)
-
     }
 }
