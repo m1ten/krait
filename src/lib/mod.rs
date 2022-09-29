@@ -267,18 +267,14 @@ c.args = {}
             .expect("failed to set krait table");
 
         // load the config
-        let result = lua.load(&config_str).exec();
-
-        if let Err(e) = result {
-            eprintln!("Error parsing config: {}", e);
-            exit!(1);
-        }
+        lua.load(&config_str).exec().expect("failed to load config");
 
         // get the config as a table
         let krait_table: Table = globals.get("krait").expect("failed to get krait table");
         let config_table: Table = krait_table
             .get("config")
             .expect("failed to get config table");
+        
 
         // deserialize the config table into a config struct using serde
 

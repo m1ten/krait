@@ -33,7 +33,7 @@ async fn main() {
         }
     } else {
         // read config file
-        let config_str = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
+        let mut config_str = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Error: Reading krait.lua file: {}", e);
@@ -47,12 +47,19 @@ async fn main() {
             }
         };
 
-        // strip empty lines
-        let config_str = config_str
-            .lines()
-            .filter(|x| !x.is_empty())
-            .collect::<Vec<&str>>()
-            .join("");
+        config_str = match regex::Regex::new(r"^\s*$") {
+            Ok(x) => x.replace_all(&config_str, "").to_string(),
+            Err(e) => {
+                eprintln!("Error: Regex: {}", e);
+
+                if question!("Would you like to reset krait?") {
+                    krait::setup::run(krait_config);
+                    exit!(0);
+                } else {
+                    exit!(1);
+                }
+            }
+        };
 
         if config_str.is_empty() {
             eprintln!("Error: krait.lua file is empty.");
