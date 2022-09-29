@@ -1,6 +1,7 @@
 // Fields that should be added:
 // - maintainer/contributor (type: string)
 
+use std::fs::File;
 use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
 
@@ -194,40 +195,15 @@ impl Pkg {
 
         kdbg!(&cache);
 
-        // let mut version: Option<String> = None;
-
-        // if cache.exists() && cache.is_dir() {
-
-        //     // TODO: add support for cache
-
-        //     // get pkg.lua from cache
-        //     let pkg_lua_path = cache.join("pkg.lua");
-
-        //     let pkg_lua_str = fs::read_to_string(pkg_lua_path)
-        //         .await
-        //         .map_err(|e| e.to_string())
-        //         .expect("failed to read pkg.lua");
-
-        //     let pkg_lua_ = PkgInfo::parse(pkg_lua_str.clone());
-
-        //     kdbg!(&pkg_lua_);
-
-        //     self.info_str = Some(pkg_lua_str.clone());
-        //     self.info = Some(pkg_lua_);
-
-        //     if self.ver.is_empty() || self.ver == "latest" {
-        //         version = Some(self.info.expect("failed to get pkg.lua").ver);
-        //     } else {
-        //         // check if the version is valid
-        //     }
-
-        // }
-
-        // if version is not specified, use the latest version
+        // TODO: add support for cache
 
         let mut fail: bool = false;
 
         for repo in repos {
+            if fail {
+                fail = false;
+            }
+
             // check if repo is valid
             // if not, skip it
 
@@ -322,6 +298,54 @@ impl Pkg {
                     continue;
                 }
             };
+
+            // write the manifest.lua file to the cache directory
+            let manifest_lua_path = cache.join("manifest.lua");
+
+            if let Err(e) = std::fs::write(&manifest_lua_path, &manifest_lua_str) {
+                eprintln!("Failed to write manifest.lua: {}", e);
+                fail = true;
+                continue;
+            }
+
+            // verify the manifest.lua file hash
+            let manifest_lua_hash = match manifest_json["sha"].as_str() {
+                Some(hash) => hash,
+                None => {
+                    eprintln!("Failed to get manifest.lua hash");
+                    fail = true;
+                    continue;
+                }
+            };
+
+            let mut hasher = Sha1::new();
+
+            let mut file = match File::open(&manifest_lua_path) {
+                Ok(file) => file,
+                Err(e) => {
+                    eprintln!("Failed to open manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
+
+            match std::io::copy(&mut file, &mut hasher) {
+                Ok(b) => b,
+                Err(e) => {
+                    eprintln!("Error hashing file manifest.lua: {}", e);
+                    krait::exit!(1);
+                }
+            };
+
+            let hash_bytes = hasher.finalize();
+
+            let hash = format!("{:x}", hash_bytes);
+
+            if hash != manifest_lua_hash {
+                eprintln!("manifest.lua hash mismatch");
+                fail = true;
+                continue;
+            }
 
             let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
 
@@ -420,7 +444,7 @@ impl Pkg {
                 }
             }
 
-            // TODO: fill in the package info
+            // TODO: fill in the pkg info struct
         }
 
         if fail {

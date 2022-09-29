@@ -311,19 +311,14 @@ impl Manifest {
                         }
                     };
 
-                    let bytes_written = match std::io::copy(&mut file, &mut hasher) {
+                    match std::io::copy(&mut file, &mut hasher) {
                         Ok(b) => b,
                         Err(e) => {
                             eprintln!("Error hashing file {}: {}", content_path, e);
                             krait::exit!(1);
                         }
                     };
-
-                    if bytes_written == 0 {
-                        eprintln!("Error: File {} is empty", content_path);
-                        krait::exit!(1);
-                    }
-
+                    
                     let hash_bytes = hasher.finalize();
 
                     let hash = format!("{:x}", hash_bytes);
