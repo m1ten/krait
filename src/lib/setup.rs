@@ -113,11 +113,11 @@ pub async fn is_internet_connected() -> bool {
 }
 
 // get the current operating system
-pub fn get_os() -> String {
-    std::env::consts::OS.to_string()
-}
+// pub fn get_os() -> String {
+//     std::env::consts::OS.to_string()
+// }
 
-// get the current architecture
-pub fn get_arch() -> String {
-    std::env::consts::ARCH.to_string()
-}
+// // get the current architecture
+// pub fn get_arch() -> String {
+//     std::env::consts::ARCH.to_string()
+// }
