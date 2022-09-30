@@ -274,7 +274,6 @@ c.args = {}
         let config_table: Table = krait_table
             .get("config")
             .expect("failed to get config table");
-        
 
         // deserialize the config table into a config struct using serde
 

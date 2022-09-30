@@ -45,9 +45,8 @@ pub struct Pkg {
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct PkgInfo {
-    #[default(vec![String::new()])]
-    #[serde(alias = "names")]
-    pub name: Vec<String>,
+    #[default(String::new())]
+    pub name: String,
 
     #[default(String::new())]
     #[serde(alias = "version")]
@@ -186,7 +185,7 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn fill(self, cache_dir: PathBuf, repos: Vec<String>) -> Self {
+    pub async fn fill(mut self, cache_dir: PathBuf, repos: Vec<String>) -> Self {
         kdbg!(repos.clone());
 
         // check if the package is already in the cache
@@ -341,18 +340,20 @@ impl Pkg {
 
             let hash = format!("{:x}", hash_bytes);
 
-            if hash != manifest_lua_hash {
+            if hash != manifest_lua_hash.to_string() {
                 eprintln!("manifest.lua hash mismatch");
                 fail = true;
                 continue;
             }
 
-            let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
+            // let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
 
             let manifest_lua = Manifest::parse(manifest_lua_str.clone());
 
+            let mut ver_commit: Option<String> = None;
+
             for pkg in manifest_lua.packages {
-                if pkg.0 == full_repo {
+                if pkg.0 == self.name {
                     for pkg in pkg.1 {
                         if pkg.0 == self.ver {
                             // get the latest ManifestPackage from pkg.1
@@ -364,6 +365,8 @@ impl Pkg {
                                     continue;
                                 }
                             };
+
+                            ver_commit = Some(pkg.commit.clone());
 
                             // download everything from pkg.contents and put it into root/packages/{pkg_name}
 
@@ -378,7 +381,9 @@ impl Pkg {
                             // download the files
                             for (sha1, url) in sha1_url {
                                 // write to /cache/packages/{pkg_name}/{sha1}
-                                let cache_path = cache.join(self.name.clone()).join(sha1.clone());
+                                let cache_path = cache
+                                    .join(self.name.clone())
+                                    .join(ver_commit.clone().unwrap());
 
                                 // check if the file exists, if yes, overwrite it
                                 if cache_path.exists() {
@@ -444,7 +449,43 @@ impl Pkg {
                 }
             }
 
-            // TODO: fill in the pkg info struct
+            // get the package script from cache/packages/{pkg_name}/{sha1}/manifest.lua
+
+            if ver_commit.is_none() {
+                eprintln!("Failed to get commit hash");
+                fail = true;
+                continue;
+            }
+
+            let package_path = cache
+                .join(self.name.clone())
+                .join(ver_commit.clone().unwrap());
+
+            let package_manifest_lua_path = package_path.join("manifest.lua");
+
+            let package_manifest_lua_str = match std::fs::read_to_string(&package_manifest_lua_path)
+            {
+                Ok(text) => text,
+                Err(e) => {
+                    eprintln!("Failed to read package manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
+
+            let package_manifest_lua = PkgInfo::parse(package_manifest_lua_str.clone());
+
+            let package_url = format!(
+                "https://api.github.com/repos/{}/{}/contents/src/lib?ref={}",
+                owner,
+                repo,
+                ver_commit.clone().unwrap()
+            );
+
+            self.url = Some(package_url);
+            self.path = Some(package_path);
+            self.info_str = Some(package_manifest_lua_str);
+            self.info = Some(package_manifest_lua);
         }
 
         if fail {
