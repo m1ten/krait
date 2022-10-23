@@ -66,16 +66,12 @@ impl LuaState {
             match value {
                 Value::Table(t) => {
                     // if the value is a table, call gen_lua recursively
-                    let script = Self::gen_lua(key.clone(), t);
+                    let key_t = format!("{}.{}", name_t, key);
+                    let script = Self::gen_lua(key_t, t);
 
-                    for mut line in script {
-                        if line.contains("function") {
-                            line = line.replace("function", "function krait");
-                        } else {
-                            line = format!("{}.{}", name_t, line);
-                        }
+                    script.into_iter().for_each(|line| {
                         result.push(line);
-                    }
+                    });
                 }
                 Value::String(s) => {
                     let s = s.to_str().unwrap();
@@ -97,7 +93,7 @@ impl LuaState {
                 }
                 Value::Function(_) => {
                     // if the value is a function, add the key value pair to the result vector
-                    result.push(format!("function.{}.{}()\nend\n", name_t, key));
+                    result.push(format!("function {}.{}()\nend\n", name_t, key));
                 }
                 Value::Nil => {
                     // if the value is nil, add the key value pair to the result vector
