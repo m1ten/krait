@@ -38,8 +38,6 @@ impl LuaState {
     }
 
     pub fn gen_lua(name_t: String, table: Table) -> Vec<String> {
-        // get the key value pairs from the table
-        // order the pairs by key
 
         let pairs: mlua::TablePairs<Value, Value> = table.clone().pairs();
 
@@ -58,8 +56,10 @@ impl LuaState {
 
             let key: String = if let Value::String(s) = key {
                 s.to_string_lossy().to_string()
+            } else if let Value::Integer(i) = key {
+                i.to_string()
             } else {
-                eprintln!("Error: key is not a string");
+                eprintln!("Error: invalid key type");
                 exit!(1);
             };
 
@@ -129,26 +129,38 @@ impl LuaState {
                 })
                 .collect();
 
-            // get the number of tables under krait
-            let table_count = table_names.len();
-            let mut i = 0; 
+            let mut shorts: Vec<String> = Vec::new();
 
             // TODO: add support for nested tables
             for table_name in table_names {
-                i = i + 1;
+                // check if the short name is already taken 
+                let short: String;
+
+                if shorts.contains(&table_name[0..1].to_string()) {
+                    // if the short name is taken, add a number to the end of the short name
+                    let mut i = 1;
+                    loop {
+                        let short_name = table_name[0..i].to_string();
+                        if !shorts.contains(&short_name) {
+                            short = short_name;
+                            break;
+                        }
+                        i += 1;
+                    }
+                } else {
+                    // if the short name is not taken, use it
+                    short = table_name[0..1].to_string();
+                }
+
+                shorts.push(short.clone());
 
                 // replace all instances of krait.table_name with &table_name[0..1]
                 for line in &mut result {
-                    *line = line.replace(&format!("krait.{}", table_name), &table_name[0..1]);
+                    *line = line.replace(&format!("krait.{}", table_name), &short);
                 }
 
-                if i == table_count {
-                    // if this is the last table, add a line to the beginning defining the variable
-                    result.insert(0, format!("local {} = krait.{}\n", &table_name[0..1], table_name));
-                } else {
-                    // if this is not the last table, add a line to the beginning defining the variable and a newline
-                    result.insert(0, format!("local {} = krait.{}\n\n", &table_name[0..1], table_name));
-                }
+                // if this is not the last table, add a line to the beginning defining the variable
+                result.insert(0, format!("local {} = krait.{}\n", short, table_name));
             }
 
 
@@ -165,6 +177,9 @@ impl LuaState {
 
             result.push("\n".to_string());
             result.append(&mut functions);
+
+            // add newline after local variables 
+            result.insert(shorts.len(), "\n".to_string());
         }
  
         result
