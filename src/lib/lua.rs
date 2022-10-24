@@ -67,11 +67,66 @@ impl LuaState {
                 Value::Table(t) => {
                     // if the value is a table, call gen_lua recursively
                     let key_t = format!("{}.{}", name_t, key);
-                    let script = Self::gen_lua(key_t, t);
+                    
+                    // if the keys under the table are strings, then we can use the dot syntax
+                    // otherwise we have to use the bracket syntax
 
-                    script.into_iter().for_each(|line| {
-                        result.push(line);
-                    });
+                    let pairs: mlua::TablePairs<Value, Value> = t.clone().pairs();
+
+                    let mut array: String = key_t.clone() + " = {";
+
+                    for pair in pairs {
+                        let (k, v) = match pair {
+                            Ok(p) => p,
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                exit!(1);
+                            }
+                        };
+
+                        // check if the key is a integer
+                        match k {
+                            Value::Integer(_) => {
+                                match v {
+                                    Value::String(s) => {
+                                        array += &format!("\"{}\",", s.to_string_lossy());
+                                    }
+                                    Value::Integer(i) => {
+                                        array += &format!("{},", i);
+                                    }
+                                    Value::Boolean(b) => {
+                                        array += &format!("{},", b);
+                                    }
+                                    Value::Table(_) => {
+                                        eprintln!("Error: nested tables are not supported");
+                                        exit!(1);
+                                    }
+                                    _ => {
+                                        eprintln!("Error: invalid value type");
+                                        exit!(1);
+                                    }
+                                }
+                            }
+                            Value::String(_) => {
+                                // if the key is a string, then we can use the dot syntax
+                                array = "ERROR".to_string();
+                            }
+                            _ => {
+                                eprintln!("Error: invalid key type");
+                                exit!(1);
+                            }
+                        }
+                            
+                        
+                    }
+                    
+                    if array.contains("ERROR") {
+                        result.append(&mut Self::gen_lua(key_t, t));
+                    } else {
+                        array = array.trim_end_matches(",").to_string();
+                        array += "}\n";
+                        result.push(array);
+                    }
                 }
                 Value::String(s) => {
                     let s = s.to_str().unwrap();
@@ -180,6 +235,7 @@ impl LuaState {
 
             // add newline after local variables 
             result.insert(shorts.len(), "\n".to_string());
+
         }
  
         result
