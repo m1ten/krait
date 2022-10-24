@@ -224,6 +224,11 @@ impl KraitConfig {
 
         config_t.set("stuff", stuff).unwrap();
 
+        // get the stuff table from config table
+        let stuff_t = config_t.get::<_, mlua::Table>("stuff").unwrap();
+
+        // add name to stuff table
+        stuff_t.set("name", "twinkle song").unwrap();
 
         // add config to krait table
         krait_t.set("config", config_t).unwrap();

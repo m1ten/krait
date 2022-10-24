@@ -86,13 +86,16 @@ impl LuaState {
 
                         // check if the key is a integer
                         match k {
-                            Value::Integer(_) => {
+                            Value::Integer(_) | Value::Number(_) => {
                                 match v {
                                     Value::String(s) => {
                                         array += &format!("\"{}\",", s.to_string_lossy());
                                     }
                                     Value::Integer(i) => {
                                         array += &format!("{},", i);
+                                    }
+                                    Value::Number(n) => {
+                                        array += &format!("{},", n);
                                     }
                                     Value::Boolean(b) => {
                                         array += &format!("{},", b);
@@ -108,8 +111,7 @@ impl LuaState {
                                 }
                             }
                             Value::String(_) => {
-                                // if the key is a string, then we can use the dot syntax
-                                array = "ERROR".to_string();
+                                continue;
                             }
                             _ => {
                                 eprintln!("Error: invalid key type");
@@ -120,13 +122,33 @@ impl LuaState {
                         
                     }
                     
-                    if array.contains("ERROR") {
-                        result.append(&mut Self::gen_lua(key_t, t));
-                    } else {
-                        array = array.trim_end_matches(",").to_string();
-                        array += "}\n";
-                        result.push(array);
+                    let mut r_table = Self::gen_lua(key_t.clone(), t);
+                    array = array.trim_end_matches(",").to_string();
+                    array += "}\n";
+
+                    // remove the table from the r_table which is in the format of "a.1 = x" and "a.2 = y" 
+                    
+                    r_table.clone().into_iter().for_each(|r| {
+                        // check if between . and = there is a number
+                        let mut split = r.split('=');
+
+                        let variable = split.next().unwrap().trim_end();
+                        
+                        // check if the end is a number and if it is, remove the line
+                        if variable.split('.').last().unwrap().parse::<i32>().is_ok() {
+                            r_table.remove(r_table.iter().position(|x| x == &r).unwrap());
+                        }
+
+                    });
+
+                    // check if there is nothing between the brackets
+                    if array != format!("{} = {{}}\n", key_t) {
+                        // add the array to r_table
+                        r_table.push(array);
                     }
+
+                    result.append(&mut r_table);
+                    
                 }
                 Value::String(s) => {
                     let s = s.to_str().unwrap();
