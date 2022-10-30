@@ -2,13 +2,14 @@ use crate::{exit, krait};
 
 use mlua::{serde::Serializer, Error, Lua, Table, Value};
 
-pub struct LuaState {
-    pub lua: Lua,
-}
+pub struct LuaState;
 
 impl LuaState {
-    fn lua_init(self) -> Result<Lua, Error> {
-        let lua = self.lua;
+    pub fn lua_init(lua: Option<Lua>) -> Result<Lua, Error> {
+        let lua = match lua {
+            Some(l) => l,
+            None => Lua::new(),
+        };
 
         // create a new krait table
         let krait_table = lua.create_table()?;

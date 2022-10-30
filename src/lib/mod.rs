@@ -241,22 +241,18 @@ impl KraitConfig {
     }
 
     pub fn parse(config_str: String) -> KraitConfig {
-        let lua = Lua::new();
-        let globals = lua.globals();
-
-        let krait_table = lua.create_table().expect("failed to create krait table");
-        let config_table = lua.create_table().expect("failed to create config table");
-
-        krait_table
-            .set("config", config_table)
-            .expect("failed to set config table");
-
-        globals
-            .set("krait", krait_table)
-            .expect("failed to set krait table");
+        let lua = match lua::LuaState::lua_init(None) {
+            Ok(lua) => lua,
+            Err(e) => {
+                eprintln!("error: {}", e);
+                exit!(1);
+            }
+        };
 
         // load the config
         lua.load(&config_str).exec().expect("failed to load config");
+
+        let globals = lua.globals();
 
         // get the config as a table
         let krait_table: Table = globals.get("krait").expect("failed to get krait table");

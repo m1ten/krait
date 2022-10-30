@@ -20,7 +20,7 @@ pub fn run(krait_config: KraitConfig) {
         .grid(true)
         .theme("Visual Studio Dark+")
         .print()
-        .expect("Error: Could not print yaml.");
+        .expect("Error: Could not print lua.");
 
     if !question!("All previous krait data will be erased, continue?") {
         exit!(1);
