@@ -144,6 +144,7 @@ pub struct KraitConfig {
     // krait author
     #[default(String::from("miten <57693631+m1ten@users.noreply.github.com>"))]
     #[serde(default)]
+    #[serde(alias = "maintainer")]
     pub author: String,
 
     // krait version
@@ -154,6 +155,7 @@ pub struct KraitConfig {
     // krait description
     #[default(String::from("cross platform package manager"))]
     #[serde(default)]
+    #[serde(alias = "description")]
     pub desc: String,
 
     // krait license
@@ -171,15 +173,18 @@ pub struct KraitConfig {
 
     #[default(dirs::home_dir().unwrap().join("krait"))]
     #[serde(default)]
+    #[serde(alias = "directory")]
     pub dir: PathBuf,
 
     // krait package repository
     #[default(vec![String::from("https://github.com/m1ten/krait-pkgs")])]
+    #[serde(alias = "repositories")]
     pub repos: Vec<String>,
 
     // krait default flags/args
     #[default(None)]
     #[serde(alias = "flags")]
+    #[serde(alias = "arguments")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<Vec<String>>,
 }
