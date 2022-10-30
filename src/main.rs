@@ -119,7 +119,7 @@ async fn main() {
             println!("Finished!");
         }
         "clean" => {
-            // ask if they want to clean the whole folder 
+            // ask if they want to clean the whole folder
 
             if question!("Would you like to clean the krait directory?") {
                 // clean the whole folder
@@ -136,7 +136,6 @@ async fn main() {
                         exit!(1);
                     }
                 }
-
             } else {
                 println!("Cleaning up.");
 
@@ -150,7 +149,7 @@ async fn main() {
                     Err(_) => {
                         eprintln!("Error: Could not remove cache directory.");
                         exit!(1);
-                    }   
+                    }
                 }
             }
         }

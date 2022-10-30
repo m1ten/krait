@@ -1,6 +1,6 @@
 use crate::{exit, krait};
 
-use mlua::{serde::Serializer, Error, Lua, Table, Value};
+use mlua::{Error, Lua, Table, Value};
 
 pub struct LuaState;
 
@@ -39,7 +39,6 @@ impl LuaState {
     }
 
     pub fn gen_lua(name_t: String, table: Table) -> Vec<String> {
-
         let pairs: mlua::TablePairs<Value, Value> = table.clone().pairs();
 
         let mut result: Vec<String> = Vec::new();
@@ -68,7 +67,7 @@ impl LuaState {
                 Value::Table(t) => {
                     // if the value is a table, call gen_lua recursively
                     let key_t = format!("{}.{}", name_t, key);
-                    
+
                     // if the keys under the table are strings, then we can use the dot syntax
                     // otherwise we have to use the bracket syntax
 
@@ -87,30 +86,28 @@ impl LuaState {
 
                         // check if the key is a integer
                         match k {
-                            Value::Integer(_) | Value::Number(_) => {
-                                match v {
-                                    Value::String(s) => {
-                                        array += &format!("\"{}\",", s.to_string_lossy());
-                                    }
-                                    Value::Integer(i) => {
-                                        array += &format!("{},", i);
-                                    }
-                                    Value::Number(n) => {
-                                        array += &format!("{},", n);
-                                    }
-                                    Value::Boolean(b) => {
-                                        array += &format!("{},", b);
-                                    }
-                                    Value::Table(_) => {
-                                        eprintln!("Error: nested tables are not supported");
-                                        exit!(1);
-                                    }
-                                    _ => {
-                                        eprintln!("Error: invalid value type");
-                                        exit!(1);
-                                    }
+                            Value::Integer(_) | Value::Number(_) => match v {
+                                Value::String(s) => {
+                                    array += &format!("\"{}\",", s.to_string_lossy());
                                 }
-                            }
+                                Value::Integer(i) => {
+                                    array += &format!("{},", i);
+                                }
+                                Value::Number(n) => {
+                                    array += &format!("{},", n);
+                                }
+                                Value::Boolean(b) => {
+                                    array += &format!("{},", b);
+                                }
+                                Value::Table(_) => {
+                                    eprintln!("Error: nested tables are not supported");
+                                    exit!(1);
+                                }
+                                _ => {
+                                    eprintln!("Error: invalid value type");
+                                    exit!(1);
+                                }
+                            },
                             Value::String(_) => {
                                 continue;
                             }
@@ -119,27 +116,24 @@ impl LuaState {
                                 exit!(1);
                             }
                         }
-                            
-                        
                     }
-                    
+
                     let mut r_table = Self::gen_lua(key_t.clone(), t);
                     array = array.trim_end_matches(",").to_string();
                     array += "}\n";
 
-                    // remove the table from the r_table which is in the format of "a.1 = x" and "a.2 = y" 
-                    
+                    // remove the table from the r_table which is in the format of "a.1 = x" and "a.2 = y"
+
                     r_table.clone().into_iter().for_each(|r| {
                         // check if between . and = there is a number
                         let mut split = r.split('=');
 
                         let variable = split.next().unwrap().trim_end();
-                        
+
                         // check if the end is a number and if it is, remove the line
                         if variable.split('.').last().unwrap().parse::<i32>().is_ok() {
                             r_table.remove(r_table.iter().position(|x| x == &r).unwrap());
                         }
-
                     });
 
                     // check if there is nothing between the brackets
@@ -149,7 +143,6 @@ impl LuaState {
                     }
 
                     result.append(&mut r_table);
-                    
                 }
                 Value::String(s) => {
                     let s = s.to_str().unwrap();
@@ -188,9 +181,9 @@ impl LuaState {
 
         // check if top level table is krait
         if name_t == "krait" {
-            // for every sub table, add a line to the beginning defining a variable named the first letter of the table 
+            // for every sub table, add a line to the beginning defining a variable named the first letter of the table
             // and set it equal to the table (e.g. c = krait.config)
-            
+
             // get the table names under krait
             let table_names: Vec<String> = table
                 .clone()
@@ -211,7 +204,7 @@ impl LuaState {
 
             // TODO: add support for nested tables
             for table_name in table_names {
-                // check if the short name is already taken 
+                // check if the short name is already taken
                 let short: String;
 
                 if shorts.contains(&table_name[0..1].to_string()) {
@@ -241,7 +234,6 @@ impl LuaState {
                 result.insert(0, format!("local {} = krait.{}\n", short, table_name));
             }
 
-
             // move functions to the end of the file
             let mut functions: Vec<String> = Vec::new();
             let mut i = 0;
@@ -256,11 +248,10 @@ impl LuaState {
             result.push("\n".to_string());
             result.append(&mut functions);
 
-            // add newline after local variables 
+            // add newline after local variables
             result.insert(shorts.len(), "\n".to_string());
-
         }
- 
+
         result
     }
 }
