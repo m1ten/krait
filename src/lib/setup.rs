@@ -9,7 +9,8 @@ pub fn run(krait_config: KraitConfig) {
     let krait_path = krait_config.dir.clone();
     let krait_path_lua = krait_path.join("krait.lua");
 
-    let config_string = krait_config.gen_lua();
+    let config_string_vector = krait_config.gen_lua();
+    let config_string = config_string_vector.iter().map(|x| x.to_string()).collect::<String>();
 
     // TODO: add support for text editors (vim, nano, etc)
     bat::PrettyPrinter::new()

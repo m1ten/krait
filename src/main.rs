@@ -119,18 +119,38 @@ async fn main() {
             println!("Finished!");
         }
         "clean" => {
-            println!("Cleaning up.");
+            // ask if they want to clean the whole folder 
 
-            kdbg!("{:#?}", &krait_path_cache);
+            if question!("Would you like to clean the krait directory?") {
+                // clean the whole folder
+                println!("Cleaning krait folder...");
 
-            match std::fs::remove_dir_all(krait_path_cache) {
-                Ok(_) => {
-                    println!("Cache Cleaned!");
-                    exit!(0);
+                kdbg!("{:#?}", krait_path_cache);
+
+                match std::fs::remove_dir_all(krait_path) {
+                    Ok(_) => {
+                        println!("Krait directory cleaned!");
+                    }
+                    Err(_) => {
+                        eprintln!("Error: Could not remove krait directory.");
+                        exit!(1);
+                    }
                 }
-                Err(_) => {
-                    println!("Error: Could not remove cache directory.");
-                    exit!(1);
+
+            } else {
+                println!("Cleaning up.");
+
+                kdbg!("{:#?}", &krait_path_cache);
+
+                match std::fs::remove_dir_all(krait_path_cache) {
+                    Ok(_) => {
+                        println!("Cache cleaned!");
+                        exit!(0);
+                    }
+                    Err(_) => {
+                        eprintln!("Error: Could not remove cache directory.");
+                        exit!(1);
+                    }   
                 }
             }
         }

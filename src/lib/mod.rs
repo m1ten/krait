@@ -191,7 +191,7 @@ impl KraitConfig {
         KraitConfig::default()
     }
 
-    pub fn gen_lua(&self) -> String {
+    pub fn gen_lua(&self) -> Vec<String> {
 
         let mut lua = mlua::Lua::new();
         let globals = lua.globals();
@@ -219,17 +219,6 @@ impl KraitConfig {
         config_t.set("args", self.args.clone()).unwrap();
         config_t.set("repos", self.repos.clone()).unwrap();
 
-        // twinkle twinkle little star
-        let stuff = vec!["twinkle", "little", "star", "how", "i", "wonder", "what", "you", "are"];
-
-        config_t.set("stuff", stuff).unwrap();
-
-        // get the stuff table from config table
-        let stuff_t = config_t.get::<_, mlua::Table>("stuff").unwrap();
-
-        // add name to stuff table
-        stuff_t.set("name", "twinkle song").unwrap();
-
         // add config to krait table
         krait_t.set("config", config_t).unwrap();
 
@@ -241,9 +230,9 @@ impl KraitConfig {
 
         let result = lua::LuaState::gen_lua("krait".to_string(), krait_t);
 
-        println!("{}", result.iter().map(|x| x.to_string()).collect::<String>());
-        
-        exit!(1);
+        kdbg!(result.iter().map(|x| x.to_string()).collect::<String>());
+
+        result
     }
 
     pub fn parse(config_str: String) -> KraitConfig {
