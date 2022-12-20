@@ -11,8 +11,7 @@ use crate as krait;
 pub struct Manifest {
     pub repo: String,
     pub latest_commit: String,
-    pub last_update: i64,
-
+    pub timestamp: u64,
     pub packages: HashMap<String, HashMap<String, Vec<ManifestPackage>>>,
 }
 
@@ -20,6 +19,7 @@ pub struct Manifest {
 pub struct ManifestPackage {
     pub commit: String,
     pub path: String,
+    pub timestamp: u64,
     pub contents: Vec<ManifestPackageContent>,
 }
 
@@ -158,32 +158,56 @@ impl Manifest {
         manifest.latest_commit = latest_commit.id().to_string();
 
         // get the last update time
-        manifest.last_update = latest_commit.time().seconds();
+        manifest.timestamp = latest_commit.time().seconds() as u64;
 
         // get the repo url
+        // if manifest.repo.is_empty() {
+        //     let remotes = match repo.remotes() {
+        //         Ok(r) => r,
+        //         Err(e) => {
+        //             eprintln!("Error getting repo url: {}", e);
+        //             krait::exit!(1);
+        //         }
+        //     };
+
+        //     let mut valid = false;
+        //     let mut repo_url = String::new();
+        //     remotes.into_iter().for_each(|remote| {
+        //         if let Some(remote) = remote {
+        //             if remote.contains("github") {
+        //                 valid = true;
+        //                 repo_url = remote.to_string();
+        //             }
+        //         }
+        //     });
+
+        //     if !valid {
+        //         eprintln!("Error: No valid remote found");
+        //         krait::exit!(1);
+        //     }
+
+        //     manifest.repo = repo_url;
+        // }
+
+        // ask the user for remote url
         if manifest.repo.is_empty() {
-            let remotes = match repo.remotes() {
-                Ok(r) => r,
-                Err(e) => {
-                    eprintln!("Error getting repo url: {}", e);
+            let mut repo_url;
+            loop {
+                repo_url = krait::scanln!("Enter the remote location for the repo (user/repo): ");
+                
+                if repo_url.is_empty() {
+                    eprintln!("Error: No remote url entered");
                     krait::exit!(1);
-                }
-            };
+                } 
 
-            let mut valid = false;
-            let mut repo_url = String::new();
-            remotes.into_iter().for_each(|remote| {
-                if let Some(remote) = remote {
-                    if remote.contains("github") {
-                        valid = true;
-                        repo_url = remote.to_string();
-                    }
-                }
-            });
+                // enter name of the org
+                let org = krait::scanln!("Enter the name of the org: ");
 
-            if !valid {
-                eprintln!("Error: No valid remote found");
-                krait::exit!(1);
+                if org.is_empty() || org.contains("github") {
+                    break;
+                }
+
+                eprintln!("Error: Invalid remote url");
             }
 
             manifest.repo = repo_url;
@@ -215,6 +239,7 @@ impl Manifest {
         }
 
         for package_dir in package_dirs {
+
             let package_name = package_dir
                 .file_name()
                 .unwrap()
@@ -243,30 +268,28 @@ impl Manifest {
             let package_manifest = krait::pkg::PkgInfo::parse(package_manifest_str);
 
             // get the last commit for the package
-            let package_commit =
-                match repo.revparse_single(&format!("HEAD:packages/{}", package_name)) {
-                    Ok(c) => c,
-                    Err(e) => {
-                        eprintln!(
-                            "Error getting last commit for package {}: {}",
-                            package_name, e
-                        );
-                        krait::exit!(1);
-                    }
-                };
+            // let package_commit =
+            //     match repo.revparse_single(&format!("HEAD:packages/{}", package_name)) {
+            //         Ok(c) => c,
+            //         Err(e) => {
+            //             eprintln!(
+            //                 "Error getting last commit for package {}: {}",
+            //                 package_name, e
+            //             );
+            //             krait::exit!(1);
+            //         }
+            //     };
 
-            let package_commit = match package_commit.peel_to_commit() {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!(
-                        "Error getting last commit for package {}: {}",
-                        package_name, e
-                    );
-                    krait::exit!(1);
-                }
-            };
-
-            let package_commit = package_commit.id().to_string();
+            // let package_commit = match package_commit.peel_to_commit() {
+            //     Ok(c) => c,
+            //     Err(e) => {
+            //         eprintln!(
+            //             "Error getting last commit for package {}: {}",
+            //             package_name, e
+            //         );
+            //         krait::exit!(1);
+            //     }
+            // };
 
             // package path relative to the repo root
             let package_path = format!("packages/{}", package_name);
@@ -323,6 +346,15 @@ impl Manifest {
 
                     let hash = format!("{:x}", hash_bytes);
 
+                    // check if the branch name is main or master
+                    let branch_name = if branch_name == "main" || branch_name == "master" {
+                        // package_commit as branch name
+                        manifest.latest_commit.clone()
+                    } else {
+                        // branch name
+                        branch_name.to_string()
+                    }; 
+
                     // get the download url
                     let download_url = format!(
                         "https://raw.githubusercontent.com/{}/{}/{}",
@@ -342,7 +374,8 @@ impl Manifest {
 
             let package = ManifestPackage {
                 path: package_path,
-                commit: package_commit,
+                commit: manifest.latest_commit.clone(),
+                timestamp: manifest.timestamp.clone(),
                 contents,
             };
 
@@ -379,98 +412,18 @@ impl Manifest {
             manifest.packages = packages;
         }
 
+        println!("{:#?}", manifest);
+
         // write the manifest to the repo root as manifest.lua
 
-        let manifest_str = manifest.to_string();
+        // let manifest_str = manifest.to_string();
 
-        match std::fs::write(&manifest_path, manifest_str) {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Error writing manifest: {}", e);
-                krait::exit!(1);
-            }
-        }
-    }
-}
-
-// implement Display for Manifest
-impl std::fmt::Display for Manifest {
-    fn fmt(self: &Manifest, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let manifest = self.clone();
-        let mut lua_script = String::new();
-
-        // write the manifest header
-        lua_script.push_str("-- This file is automatically generated by krait --\n");
-        lua_script.push_str("-- Do not edit this file manually --\n");
-        lua_script.push_str("\n");
-
-        // write the manifest table
-        lua_script.push_str("local m = krait.manifest\n");
-
-        // write the repo, last_commit, and last_update fields
-        lua_script.push_str(&format!("m.repo = \"{}\"\n", manifest.repo));
-        lua_script.push_str(&format!(
-            "m.latest_commit = \"{}\"\n",
-            manifest.latest_commit
-        ));
-        lua_script.push_str(&format!("m.last_update = \"{}\"\n", manifest.last_update));
-        lua_script.push_str("\n");
-
-        // write the packages
-        for (package_name, versions) in manifest.packages {
-            lua_script.push_str(&format!("m.packages[\"{}\"] = {}\n", package_name, "{"));
-
-            for (version, packages) in versions {
-                lua_script.push_str(&format!(
-                    "m.packages[\"{}\"][\"{}\"] = {}\n",
-                    package_name, version, "{"
-                ));
-
-                for package in packages {
-                    lua_script.push_str(&format!(
-                        "m.packages[\"{}\"][\"{}\"][\"{}\"] = {}\n",
-                        package_name, version, package.path, "{"
-                    ));
-
-                    lua_script.push_str(&format!(
-                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"commit\"] = \"{}\"\n",
-                        package_name, version, package.path, package.commit
-                    ));
-
-                    lua_script.push_str(&format!(
-                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"] = {}\n",
-                        package_name, version, package.path, "{"
-                    ));
-
-                    for content in package.contents {
-                        lua_script.push_str(&format!(
-                            "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"] = {}\n",
-                            package_name, version, package.path, content.name, "{"
-                        ));
-
-                        lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"path\"] = \"{}\"\n", package_name, version, package.path, content.name, content.path));
-                        lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"sha1\"] = \"{}\"\n", package_name, version, package.path, content.name, content.sha1));
-                        lua_script.push_str(&format!("m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"][\"url\"] = \"{}\"\n", package_name, version, package.path, content.name, content.url));
-
-                        lua_script.push_str(&format!(
-                            "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"][\"{}\"]] = {}\n",
-                            package_name, version, package.path, content.name, "}"
-                        ));
-                    }
-
-                    lua_script.push_str(&format!(
-                        "m.packages[\"{}\"][\"{}\"][\"{}\"][\"contents\"]] = {}\n",
-                        package_name, version, package.path, "}"
-                    ));
-
-                    lua_script.push_str(&format!(
-                        "m.packages[\"{}\"][\"{}\"][\"{}\"]] = {}\n",
-                        package_name, version, package.path, "}"
-                    ));
-                }
-            }
-        }
-
-        write!(f, "{}", lua_script)
+        // match std::fs::write(&manifest_path, manifest_str) {
+        //     Ok(_) => {}
+        //     Err(e) => {
+        //         eprintln!("Error writing manifest: {}", e);
+        //         krait::exit!(1);
+        //     }
+        // }
     }
 }

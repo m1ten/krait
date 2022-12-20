@@ -1,6 +1,13 @@
-use crate::{exit, krait};
+use crate::{exit};
 
 use mlua::{Error, Lua, Table, Value};
+
+
+trait LuaTrait
+{
+    fn init(&mut self) -> Lua;
+    fn fmt(&mut self) -> String; 
+}
 
 pub struct LuaState;
 

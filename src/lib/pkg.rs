@@ -517,6 +517,7 @@ impl PkgInfo {
         let result = lua.load(&script_str).exec();
 
         if let Err(e) = result {
+            kdbg!(e.clone());
             eprintln!("Error parsing config: {}", e);
             exit!(1);
         }

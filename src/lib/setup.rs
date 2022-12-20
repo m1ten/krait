@@ -1,4 +1,5 @@
-use crate::{self as krait, exit, question, KraitConfig};
+use crate::{self as krait, exit, question, config::KraitConfig};
+
 use std::fs;
 
 use console::{style, Emoji};

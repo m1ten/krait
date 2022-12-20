@@ -1,7 +1,8 @@
-use krait::{args::Args, exit, kdbg, pkg::Pkg, question, KraitConfig};
+use krait::{args::Args, exit, kdbg, pkg::Pkg, question, config::KraitConfig};
 
 #[tokio::main]
 async fn main() {
+
     if krait::setup::is_super() {
         eprintln!("Error: You are running krait as root.");
         eprintln!("Please run krait as a normal user to prevent damage.");
@@ -13,6 +14,9 @@ async fn main() {
         eprintln!("Please check your internet connection.");
         exit!(1);
     }
+
+    krait::manifest::Manifest::gen_manifest();
+    exit!(1);
 
     let mut krait_config = KraitConfig::default();
     let args = Args::new(krait_config.clone());

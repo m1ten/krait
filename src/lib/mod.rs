@@ -3,19 +3,13 @@ pub mod lua;
 pub mod manifest;
 pub mod pkg;
 pub mod setup;
+pub mod config;
 
 use std::{
     fs::File,
     io::{self, Read, Write},
-    path::PathBuf,
 };
-
-use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value};
-use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
-
-use crate as krait;
-
+ 
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
     let mut file = File::open(path)?;
@@ -55,12 +49,13 @@ pub fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
     }
 }
 
+
 #[macro_export]
 macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        krait::scan::<$_type>(' ' as u8).expect("scan failed")
+        crate::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -69,7 +64,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        krait::scan::<String>('\n' as u8).expect("scanln failed")
+        crate::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
@@ -90,13 +85,13 @@ macro_rules! clear {
 #[macro_export]
 macro_rules! exit {
     ($code: tt) => {{
-        let key = if cfg!(target_os = "macos") {
-            "return"
-        } else {
-            "enter"
-        };
-        let msg = format!("\nPress {} to exit.\n", key);
-        krait::scanln!(msg);
+        use std::io::Read;
+        println!("\nPress any key to exit.\n");
+
+        crossterm::terminal::enable_raw_mode().unwrap();
+        let _ = std::io::stdin().read(&mut [0]).unwrap();
+        crossterm::terminal::disable_raw_mode().unwrap();
+
         std::process::exit($code);
     }};
 }
@@ -132,159 +127,5 @@ macro_rules! kdbg {
                 ($($x)*)
             }
         }
-    }
-}
-
-#[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
-pub struct KraitConfig {
-    // krait name
-    #[default(String::from("krait"))]
-    pub name: String,
-
-    // krait author
-    #[default(String::from("miten <57693631+m1ten@users.noreply.github.com>"))]
-    #[serde(default)]
-    #[serde(alias = "maintainer")]
-    pub author: String,
-
-    // krait version
-    #[default(String::from("0.0.1"))]
-    #[serde(alias = "version")]
-    pub ver: String,
-
-    // krait description
-    #[default(String::from("cross platform package manager"))]
-    #[serde(default)]
-    #[serde(alias = "description")]
-    pub desc: String,
-
-    // krait license
-    #[default(String::from("Apache-2.0"))]
-    pub license: String,
-
-    // krait git repository
-    #[default(String::from("https://github.com/m1ten/krait"))]
-    pub git: String,
-
-    #[default(None)]
-    #[serde(alias = "packages")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pkgs: Option<Vec<String>>,
-
-    #[default(dirs::home_dir().unwrap().join("krait"))]
-    #[serde(default)]
-    #[serde(alias = "directory")]
-    pub dir: PathBuf,
-
-    // krait package repository
-    #[default(vec![String::from("https://github.com/m1ten/krait-pkgs")])]
-    #[serde(alias = "repositories")]
-    pub repos: Vec<String>,
-
-    // krait default flags/args
-    #[default(None)]
-    #[serde(alias = "flags")]
-    #[serde(alias = "arguments")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub args: Option<Vec<String>>,
-}
-
-impl mlua::UserData for KraitConfig {}
-
-impl KraitConfig {
-    pub fn new() -> KraitConfig {
-        KraitConfig::default()
-    }
-
-    pub fn gen_lua(&self) -> Vec<String> {
-        let lua = mlua::Lua::new();
-        let globals = lua.globals();
-
-        let krait_t = lua.create_table().unwrap();
-        let config_t = lua.create_table().unwrap();
-
-        let mut dir = self.dir.clone().to_string_lossy().to_string();
-        // check if running on windows
-        if cfg!(target_os = "windows") {
-            dir = dir.replace("\\", "\\\\");
-        } else {
-            dir = dir.replace("/", "\\/");
-        }
-
-        // assign values to config table
-        config_t.set("name", self.name.clone()).unwrap();
-        config_t.set("author", self.author.clone()).unwrap();
-        config_t.set("ver", self.ver.clone()).unwrap();
-        config_t.set("desc", self.desc.clone()).unwrap();
-        config_t.set("license", self.license.clone()).unwrap();
-        config_t.set("git", self.git.clone()).unwrap();
-        config_t.set("pkgs", self.pkgs.clone()).unwrap();
-        config_t.set("dir", dir).unwrap();
-        config_t.set("args", self.args.clone()).unwrap();
-        config_t.set("repos", self.repos.clone()).unwrap();
-
-        // add config to krait table
-        krait_t.set("config", config_t).unwrap();
-
-        // add krait table to globals
-        globals.set("krait", krait_t).unwrap();
-
-        // get the krait table
-        let krait_t = globals.get::<_, mlua::Table>("krait").unwrap();
-
-        let mut result = lua::LuaState::gen_lua("krait".to_string(), krait_t);
-
-        // add the comments at the beginning of the file
-        let mut comments = vec![
-            "--           Krait Config           ".to_string(),
-            "\n-- Automatically generated by Krait ".to_string(),
-            "\n--      READ THE DOCUMENTATION      ".to_string(),
-            "\n".to_string(),
-        ];
-
-        // add the generated lua code
-        comments.append(&mut result);
-
-        kdbg!(result.iter().map(|x| x.to_string()).collect::<String>());
-
-        comments
-    }
-
-    pub fn parse(config_str: String) -> KraitConfig {
-        let lua = match lua::LuaState::lua_init(None) {
-            Ok(lua) => lua,
-            Err(e) => {
-                eprintln!("error: {}", e);
-                exit!(1);
-            }
-        };
-
-        // load the config
-        lua.load(&config_str).exec().expect("failed to load config");
-
-        let globals = lua.globals();
-
-        // get the config as a table
-        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
-        let config_table: Table = krait_table
-            .get("config")
-            .expect("failed to get config table");
-
-        // deserialize the config table into a config struct using serde
-
-        let options = DeserializeOptions::new()
-            .deny_unsupported_types(false)
-            .deny_recursive_tables(false);
-
-        let krait_config: KraitConfig =
-            match lua.from_value_with(Value::Table(config_table), options) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Error parsing config: {}", e);
-                    exit!(1);
-                }
-            };
-
-        krait_config
     }
 }
