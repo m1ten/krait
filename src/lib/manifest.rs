@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
 use mlua::{DeserializeOptions, Lua, LuaSerdeExt, Table};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
-use crate as krait;
+use crate::{self as krait, manifest};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Manifest {
@@ -424,77 +424,11 @@ impl Manifest {
 
         let krait_t = lua.create_table().unwrap();
 
-        let manifest_t = lua.create_table().unwrap();
+        let m_json = serde_json::to_string(&manifest).unwrap();
 
-        manifest_t.set("repo", manifest.repo).unwrap();
-        manifest_t.set("latest_commit", manifest.latest_commit).unwrap();
-        manifest_t.set("timestamp", manifest.timestamp).unwrap();
+        let manifest_v = lua.to_value(&m_json).unwrap();
 
-        let packages_t = lua.create_table().unwrap();
-
-        for (package_name, package_versions) in manifest.packages {
-            let package_versions_t = lua.create_table().unwrap();
-
-            for (package_version, package_contents) in package_versions {
-
-                let package_content_t = lua.create_table().unwrap();
-                
-                for package_content in package_contents {
-
-                    package_content_t
-                        .set("path", package_content.path.clone())
-                        .unwrap();
-                    package_content_t
-                        .set("commit", package_content.commit.clone())
-                        .unwrap();
-                    package_content_t
-                        .set("timestamp", package_content.timestamp.clone())
-                        .unwrap();
-
-                    let package_content_contents_t = lua.create_table().unwrap();
-
-                    for package_content_content in package_content.contents {
-                        let package_content_content_t = lua.create_table().unwrap();
-
-                        package_content_content_t
-                            .set("name", package_content_content.name.clone())
-                            .unwrap();
-                        package_content_content_t
-                            .set("path", package_content_content.path.clone())
-                            .unwrap();
-                        package_content_content_t
-                            .set("sha1", package_content_content.sha1.clone())
-                            .unwrap();
-                        package_content_content_t
-                            .set("url", package_content_content.url.clone())
-                            .unwrap();
-
-                        package_content_contents_t
-                            .set(
-                                package_content_content.name.clone(),
-                                package_content_content_t,
-                            )
-                            .unwrap();
-                    }
-
-                    package_content_t
-                        .set("contents", package_content_contents_t)
-                        .unwrap();
-                }
-
-                package_versions_t
-                    .set(package_version.clone(), package_content_t)
-                    .unwrap();
-            }
-
-            packages_t
-                .set(package_name.clone(), package_versions_t)
-                .unwrap();
-        }
-
-        manifest_t.set("packages", packages_t).unwrap();
-
-        krait_t.set("manifest", manifest_t).unwrap();
+        krait_t.set("manifest", manifest_v).unwrap();
 
         globals.set("krait", krait_t).unwrap();
 
