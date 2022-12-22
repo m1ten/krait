@@ -1,12 +1,10 @@
-use crate::{exit};
+use crate::{exit, manifest::Manifest};
 
 use mlua::{Error, Lua, Table, Value};
 
-
-trait LuaTrait
-{
+trait LuaTrait {
     fn init(&mut self) -> Lua;
-    fn fmt(&mut self) -> String; 
+    fn fmt(&mut self) -> String;
 }
 
 pub struct LuaState;
@@ -73,7 +71,9 @@ impl LuaState {
             match value {
                 Value::Table(t) => {
                     // if the value is a table, call gen_lua recursively
-                    let key_t = format!("{}.{}", name_t, key);
+                    // let key_t = format!("{}.{}", name_t, key);
+
+                    let key_t = format!("{}[\"{}\"]", name_t, key);
 
                     // if the keys under the table are strings, then we can use the dot syntax
                     // otherwise we have to use the bracket syntax
@@ -107,7 +107,7 @@ impl LuaState {
                                     array += &format!("{},", b);
                                 }
                                 Value::Table(_) => {
-                                    eprintln!("Error: nested tables are not supported");
+                                    eprintln!("Error: invalid value type");
                                     exit!(1);
                                 }
                                 _ => {
@@ -155,27 +155,39 @@ impl LuaState {
                     let s = s.to_str().unwrap();
 
                     // if the value is a string, add the key value pair to the result vector
-                    result.push(format!("{}.{} = \"{}\"\n", name_t, key, s));
+                    // result.push(format!("{}.{} = \"{}\"\n", name_t, key, s));
+
+                    result.push(format!("{}[\"{}\"] = \"{}\"\n", name_t, key, s));
                 }
                 Value::Integer(i) => {
                     // if the value is an integer, add the key value pair to the result vector
-                    result.push(format!("{}.{} = {}\n", name_t, key, i));
+                    // result.push(format!("{}.{} = {}\n", name_t, key, i));
+
+                    result.push(format!("{}[\"{}\"] = {}\n", name_t, key, i));
                 }
                 Value::Number(n) => {
                     // if the value is a number, add the key value pair to the result vector
-                    result.push(format!("{}.{} = {}\n", name_t, key, n));
+                    // result.push(format!("{}.{} = {}\n", name_t, key, n));
+
+                    result.push(format!("{}[\"{}\"] = {}\n", name_t, key, n));
                 }
                 Value::Boolean(b) => {
                     // if the value is a boolean, add the key value pair to the result vector
-                    result.push(format!("{}.{} = {}\n", name_t, key, b));
+                    // result.push(format!("{}.{} = {}\n", name_t, key, b));
+
+                    result.push(format!("{}[\"{}\"] = {}\n", name_t, key, b));
                 }
                 Value::Function(_) => {
                     // if the value is a function, add the key value pair to the result vector
-                    result.push(format!("function {}.{}()\nend\n", name_t, key));
+                    // result.push(format!("function {}.{}()\nend\n", name_t, key));
+
+                    result.push(format!("{}[\"{}\"] function ()\nend\n", name_t, key));
                 }
                 Value::Nil => {
                     // if the value is nil, add the key value pair to the result vector
-                    result.push(format!("{}.{} = nil\n", name_t, key));
+                    // result.push(format!("{}.{} = nil\n", name_t, key));
+
+                    result.push(format!("{}[\"{}\"] = nil\n", name_t, key));
                 }
                 _ => {
                     let type_ = value.type_name();
@@ -234,11 +246,15 @@ impl LuaState {
 
                 // replace all instances of krait.table_name with &table_name[0..1]
                 for line in &mut result {
-                    *line = line.replace(&format!("krait.{}", table_name), &short);
+                    // *line = line.replace(&format!("krait.{}", table_name), &short);
+
+                    *line = line.replace(&format!("krait[\"{}\"]", table_name), &short);
                 }
 
                 // if this is not the last table, add a line to the beginning defining the variable
-                result.insert(0, format!("local {} = krait.{}\n", short, table_name));
+                // result.insert(0, format!("local {} = krait.{}\n", short, table_name));
+
+                result.insert(0, format!("local {} = krait[\"{}\"]\n", short, table_name));
             }
 
             // move functions to the end of the file

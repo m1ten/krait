@@ -12,6 +12,8 @@ pub struct Manifest {
     pub repo: String,
     pub latest_commit: String,
     pub timestamp: u64,
+
+    // HashMap<name, HashMap<version, Vec<ManifestPackage>>>
     pub packages: HashMap<String, HashMap<String, Vec<ManifestPackage>>>,
 }
 
@@ -32,6 +34,10 @@ pub struct ManifestPackageContent {
     pub sha1: String,
     pub url: String,
 }
+
+impl mlua::UserData for Manifest {}
+impl mlua::UserData for ManifestPackage {}
+impl mlua::UserData for ManifestPackageContent {}
 
 impl Manifest {
     pub fn parse(s: String) -> Self {
@@ -194,11 +200,11 @@ impl Manifest {
             let mut repo_url;
             loop {
                 repo_url = krait::scanln!("Enter the remote location for the repo (user/repo): ");
-                
+
                 if repo_url.is_empty() {
                     eprintln!("Error: No remote url entered");
                     krait::exit!(1);
-                } 
+                }
 
                 // enter name of the org
                 let org = krait::scanln!("Enter the name of the org: ");
@@ -239,7 +245,6 @@ impl Manifest {
         }
 
         for package_dir in package_dirs {
-
             let package_name = package_dir
                 .file_name()
                 .unwrap()
@@ -353,7 +358,7 @@ impl Manifest {
                     } else {
                         // branch name
                         branch_name.to_string()
-                    }; 
+                    };
 
                     // get the download url
                     let download_url = format!(
@@ -414,16 +419,111 @@ impl Manifest {
 
         println!("{:#?}", manifest);
 
-        // write the manifest to the repo root as manifest.lua
+        let lua = Lua::new();
+        let globals = lua.globals();
 
-        // let manifest_str = manifest.to_string();
+        let krait_t = lua.create_table().unwrap();
 
-        // match std::fs::write(&manifest_path, manifest_str) {
-        //     Ok(_) => {}
-        //     Err(e) => {
-        //         eprintln!("Error writing manifest: {}", e);
-        //         krait::exit!(1);
-        //     }
-        // }
+        let manifest_t = lua.create_table().unwrap();
+
+        manifest_t.set("repo", manifest.repo).unwrap();
+        manifest_t.set("latest_commit", manifest.latest_commit).unwrap();
+        manifest_t.set("timestamp", manifest.timestamp).unwrap();
+
+        let packages_t = lua.create_table().unwrap();
+
+        for (package_name, package_versions) in manifest.packages {
+            let package_versions_t = lua.create_table().unwrap();
+
+            for (package_version, package_contents) in package_versions {
+
+                let package_content_t = lua.create_table().unwrap();
+                
+                for package_content in package_contents {
+
+                    package_content_t
+                        .set("path", package_content.path.clone())
+                        .unwrap();
+                    package_content_t
+                        .set("commit", package_content.commit.clone())
+                        .unwrap();
+                    package_content_t
+                        .set("timestamp", package_content.timestamp.clone())
+                        .unwrap();
+
+                    let package_content_contents_t = lua.create_table().unwrap();
+
+                    for package_content_content in package_content.contents {
+                        let package_content_content_t = lua.create_table().unwrap();
+
+                        package_content_content_t
+                            .set("name", package_content_content.name.clone())
+                            .unwrap();
+                        package_content_content_t
+                            .set("path", package_content_content.path.clone())
+                            .unwrap();
+                        package_content_content_t
+                            .set("sha1", package_content_content.sha1.clone())
+                            .unwrap();
+                        package_content_content_t
+                            .set("url", package_content_content.url.clone())
+                            .unwrap();
+
+                        package_content_contents_t
+                            .set(
+                                package_content_content.name.clone(),
+                                package_content_content_t,
+                            )
+                            .unwrap();
+                    }
+
+                    package_content_t
+                        .set("contents", package_content_contents_t)
+                        .unwrap();
+                }
+
+                package_versions_t
+                    .set(package_version.clone(), package_content_t)
+                    .unwrap();
+            }
+
+            packages_t
+                .set(package_name.clone(), package_versions_t)
+                .unwrap();
+        }
+
+        manifest_t.set("packages", packages_t).unwrap();
+
+        krait_t.set("manifest", manifest_t).unwrap();
+
+        globals.set("krait", krait_t).unwrap();
+
+        let krait_t = globals.get::<_, mlua::Table>("krait").unwrap();
+
+        let result = krait::lua::LuaState::gen_lua("krait".to_string(), krait_t);
+
+        let mut result_str: String = String::new();
+
+        for r in result {
+            result_str = result_str + "\n" + &r;
+        }
+
+        let result_bytes = result_str.as_bytes();
+
+        bat::PrettyPrinter::new()
+            .input_from_bytes(result_bytes)
+            .language("lua")
+            .line_numbers(true)
+            .grid(true)
+            .theme("Visual Studio Dark+")
+            .print()
+            .expect("Error: Could not print lua.");
+
+        if let Err(e) = std::fs::write(manifest_path, result_bytes) {
+            eprintln!("Error writing krait.lua: {}", e);
+            krait::exit!(1);
+        }
+
+        println!("Wrote manifest.lua");
     }
 }
