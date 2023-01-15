@@ -15,8 +15,9 @@ use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
-use crate::manifest::Manifest;
-use crate::{self as krait};
+use crate as krait;
+use crate::scripts::KraitScript;
+use crate::structs::KraitMain;
 
 use krait::exit;
 use krait::kdbg;
@@ -349,7 +350,21 @@ impl Pkg {
 
             // let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
 
-            let manifest_lua = Manifest::parse(manifest_lua_str.clone());
+            let manifest_lua = match KraitMain::parse(&manifest_lua_str) {
+                Ok(main) => match main.manifest {
+                    Some(manifest) => manifest,
+                    None => {
+                        eprintln!("Failed to get manifest");
+                        fail = true;
+                        continue;
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Failed to parse manifest.lua: {}", e);
+                    fail = true;
+                    continue;
+                }
+            };
 
             let mut ver_commit: Option<String> = None;
 

@@ -1,4 +1,4 @@
-use crate::config::KraitConfig;
+use crate::structs::config::KraitConfig;
 use clap::{Arg, Command};
 use indexmap::IndexMap;
 

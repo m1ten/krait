@@ -1,12 +1,16 @@
-use crate::{self as krait, config::KraitConfig, exit, question};
+use crate::{
+    self as krait, exit, question,
+    structs::KraitMain,
+};
 
 use std::fs;
 
 use console::{style, Emoji};
 
-pub fn run(krait_config: &KraitConfig) {
+pub fn run(krait_main: &KraitMain) {
     // TODO: Implement setup.rs
 
+    let krait_config = krait_main.config.as_ref().unwrap();
     let krait_path = krait_config.dir.clone();
     let krait_path_lua = krait_path.join("krait.lua");
 

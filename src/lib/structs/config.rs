@@ -5,7 +5,7 @@ use smart_default::SmartDefault;
 
 use crate::{
     kdbg,
-    script::{self, KraitScript},
+    scripts::{self, KraitScript},
 };
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
@@ -107,7 +107,7 @@ impl KraitConfig {
         // get the krait table
         let krait_t = globals.get::<_, mlua::Table>("krait").unwrap();
 
-        let mut result = script::LuaState::gen_lua("krait".to_string(), krait_t);
+        let mut result = scripts::LuaState::gen_lua("krait".to_string(), krait_t);
 
         // add the comments at the beginning of the file
         let mut comments = vec![

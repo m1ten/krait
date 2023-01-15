@@ -1,14 +1,17 @@
 use std::{collections::HashMap, fmt::Debug};
 
-use mlua::{DeserializeOptions, Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
-use crate::{self as krait};
+use crate::{
+    self as krait,
+    scripts::KraitScript,
+    structs::{self, KraitMain},
+};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct Manifest {
+pub struct KraitManifest {
     pub repo: String,
     pub latest_commit: String,
     pub timestamp: u64,
@@ -35,58 +38,11 @@ pub struct ManifestPackageContent {
     pub url: String,
 }
 
-impl mlua::UserData for Manifest {}
+impl mlua::UserData for KraitManifest {}
 impl mlua::UserData for ManifestPackage {}
 impl mlua::UserData for ManifestPackageContent {}
 
-impl Manifest {
-    pub fn parse(s: String) -> Self {
-        let lua = Lua::new();
-        let globals = lua.globals();
-
-        let krait_table = lua.create_table().expect("Failed to create krait table");
-        let manifest_table = lua.create_table().expect("Failed to create manifest table");
-
-        krait_table
-            .set("manifest", manifest_table)
-            .expect("Failed to set manifest table");
-
-        globals
-            .set("krait", krait_table)
-            .expect("Failed to set krait table");
-
-        // load the manifest
-        let result = lua.load(&s).exec();
-
-        if let Err(e) = result {
-            eprintln!("Error parsing manifest: {}", e);
-            krait::exit!(1);
-        }
-
-        // get the config as a table
-        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
-        let manifest_table: Table = krait_table
-            .get("manifest")
-            .expect("failed to get manifest table");
-
-        let options = DeserializeOptions::new()
-            .deny_unsupported_types(false)
-            .deny_recursive_tables(false);
-
-        let manifest: Manifest =
-            match lua.from_value_with(mlua::Value::Table(manifest_table), options) {
-                Ok(m) => m,
-                Err(e) => {
-                    eprintln!("Error parsing manifest: {}", e);
-                    krait::exit!(1);
-                }
-            };
-
-        dbg!(&manifest);
-
-        manifest
-    }
-
+impl KraitManifest {
     pub fn gen_manifest() {
         // check if the current directory is a git repo
         // if not, exit
@@ -112,7 +68,16 @@ impl Manifest {
 
         // check if the manifest.lua file exists and if it does, read it
         let mut manifest = match std::fs::read_to_string(&manifest_path) {
-            Ok(m) => Manifest::parse(m),
+            Ok(s) => match KraitMain::parse(&s) {
+                Ok(main) => match main.manifest {
+                    Some(m) => m,
+                    None => KraitManifest::default(),
+                },
+                Err(e) => {
+                    eprintln!("Error parsing manifest.lua file: {}", e);
+                    krait::exit!(1);
+                }
+            },
             Err(_) => {
                 // create a new empty manifest.lua file
                 match std::fs::File::create(&manifest_path) {
@@ -123,7 +88,7 @@ impl Manifest {
                     }
                 };
 
-                Manifest::default()
+                KraitManifest::default()
             }
         };
 
@@ -270,7 +235,7 @@ impl Manifest {
                 }
             };
 
-            let package_manifest = krait::pkg::PkgInfo::parse(package_manifest_str);
+            let package_manifest = structs::pkg::PkgInfo::parse(package_manifest_str);
 
             // get the last commit for the package
             // let package_commit =

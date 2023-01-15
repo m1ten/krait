@@ -1,4 +1,4 @@
-use crate::exit;
+use crate::{exit, structs::KraitMain};
 
 use mlua::{DeserializeOptions, Error, Lua, LuaSerdeExt, Table, Value};
 
@@ -42,25 +42,21 @@ pub trait KraitScript {
         todo!("{name}")
     }
 
-    fn parse<T: KraitScript>(name: &str, script: &String) -> Result<T, Error>
-    where
-        T: serde::de::DeserializeOwned,
-    {
-        let lua = <T>::init(None)?;
+    fn parse(script: &String) -> Result<KraitMain, Error> {
+        let lua = KraitMain::init(None)?;
 
         lua.load(script).exec()?;
 
         let globals = lua.globals();
         let krait_t = globals.get::<_, mlua::Table>("krait")?;
-        let generic_t = krait_t.get::<_, mlua::Table>(name)?;
 
         let options = DeserializeOptions::new()
             .deny_unsupported_types(false)
             .deny_recursive_tables(false);
 
-        let generic_struct: T = lua.from_value_with(Value::Table(generic_t), options)?;
+        let krait_struct: KraitMain = lua.from_value_with(Value::Table(krait_t), options)?;
 
-        Ok(generic_struct)
+        Ok(krait_struct)
     }
 }
 

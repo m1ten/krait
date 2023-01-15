@@ -1,9 +1,8 @@
 pub mod args;
-pub mod config;
-pub mod script;
-pub mod manifest;
-pub mod pkg;
 pub mod setup;
+
+pub mod scripts;
+pub mod structs;
 
 use std::{
     fs::File,
