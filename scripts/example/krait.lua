@@ -11,3 +11,10 @@ c.ver = "0.0.1"
 c.license = "Apache-2.0"
 c.repos = {"https://github.com/m1ten/krait-pkgs"}
 c.desc = "cross platform package manager"
+
+-- The following solutions are also acceptable:
+krait.config = {
+    name = "krait"
+}
+krait.config["name"] = "krait"
+krait["config"]["name"] = "krait"

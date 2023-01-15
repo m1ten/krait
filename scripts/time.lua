@@ -1,4 +1,5 @@
 -- usage: krait -e time.lua <number of iterations> <program> <arguments>
+-- note: this is pseudocode (for possible future implementation)
 
 -- get the command line arguments
 local args = krait.args
