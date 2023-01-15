@@ -38,7 +38,6 @@ impl LuaState {
         Ok(lua)
     }
 
-    /// Deprecated (for legacy purposes only)
     #[deprecated = "inefficient method of generating lua code"]
     pub fn gen_lua(name_t: String, table: Table) -> Vec<String> {
         let pairs: mlua::TablePairs<Value, Value> = table.clone().pairs();

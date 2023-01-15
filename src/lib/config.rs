@@ -67,6 +67,7 @@ impl KraitConfig {
         KraitConfig::default()
     }
 
+    #[deprecated = "an alternative solution will be provided in the future"]
     pub fn gen_lua(&self) -> Vec<String> {
         let lua = mlua::Lua::new();
         let globals = lua.globals();

@@ -12,6 +12,7 @@ pub struct Args {
 
 impl Args {
     // function to get krait args
+    #[deprecated = "incompatible with clap 4"]
     pub fn new(krait_config: &KraitConfig) -> Args {
         let title = format!("- {} - {}", krait_config.ver, krait_config.desc);
 
