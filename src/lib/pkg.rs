@@ -3,6 +3,7 @@
 
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
 use mlua::DeserializeOptions;
@@ -185,7 +186,7 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn fill(mut self, cache_dir: &PathBuf, repos: &Vec<String>) -> Self {
+    pub async fn fill(mut self, cache_dir: &Path, repos: &Vec<String>) -> Self {
         kdbg!(&repos);
 
         // check if the package is already in the cache
@@ -340,7 +341,7 @@ impl Pkg {
 
             let hash = format!("{:x}", hash_bytes);
 
-            if hash != manifest_lua_hash.to_string() {
+            if hash != *manifest_lua_hash {
                 eprintln!("manifest.lua hash mismatch");
                 fail = true;
                 continue;
@@ -396,7 +397,7 @@ impl Pkg {
                                     .map_err(|e| e.to_string())
                                     .expect("failed to create file");
 
-                                let mut res = match reqwest::get(url)
+                                let res = match reqwest::get(url)
                                     .await
                                     .map_err(|e| e.to_string())
                                     .expect("failed to get file")
@@ -412,7 +413,7 @@ impl Pkg {
                                 };
 
                                 // write the file
-                                match file.write_all(&mut res) {
+                                match file.write_all(&res) {
                                     Ok(_) => (),
                                     Err(e) => {
                                         eprintln!("Failed to write file: {}", e);
@@ -463,7 +464,7 @@ impl Pkg {
 
             let package_manifest_lua_path = package_path.join("manifest.lua");
 
-            let package_manifest_lua_str = match std::fs::read_to_string(&package_manifest_lua_path)
+            let package_manifest_lua_str = match std::fs::read_to_string(package_manifest_lua_path)
             {
                 Ok(text) => text,
                 Err(e) => {

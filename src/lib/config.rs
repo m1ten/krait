@@ -77,9 +77,9 @@ impl KraitConfig {
         let mut dir = self.dir.clone().to_string_lossy().to_string();
         // check if running on windows
         if cfg!(target_os = "windows") {
-            dir = dir.replace("\\", "\\\\");
+            dir = dir.replace('\\', "\\\\");
         } else {
-            dir = dir.replace("/", "\\/");
+            dir = dir.replace('/', "\\/");
         }
 
         // assign values to config table
@@ -122,7 +122,7 @@ impl KraitConfig {
     }
 
     pub fn parse(config_str: &String) -> KraitConfig {
-        let lua = match lua::LuaState::lua_init(None) {
+        let lua = match lua::LuaState::init(None) {
             Ok(lua) => lua,
             Err(e) => {
                 eprintln!("error: {}", e);

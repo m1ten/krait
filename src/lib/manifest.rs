@@ -310,77 +310,75 @@ impl Manifest {
 
             let mut contents: Vec<ManifestPackageContent> = Vec::new();
 
-            for content in package_contents {
-                if let Ok(content) = content {
-                    let content_path = content.path();
+            for content in package_contents.flatten() {
+                let content_path = content.path();
 
-                    if content_path.is_dir() {
-                        eprintln!("Error: Package {} contains a directory", package_name);
-                        eprintln!("Directories are not currently supported");
+                if content_path.is_dir() {
+                    eprintln!("Error: Package {} contains a directory", package_name);
+                    eprintln!("Directories are not currently supported");
+                    krait::exit!(1);
+                }
+
+                let content_name = content_path
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+
+                let content_path = format!("{}/{}", package_path, content_name);
+
+                // hash the file using sha1
+                let mut hasher = Sha1::new();
+                let mut file = match std::fs::File::open(&content_path) {
+                    Ok(f) => f,
+                    Err(e) => {
+                        eprintln!("Error opening file {}: {}", content_path, e);
                         krait::exit!(1);
                     }
+                };
 
-                    let content_name = content_path
-                        .file_name()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string();
+                match std::io::copy(&mut file, &mut hasher) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        eprintln!("Error hashing file {}: {}", content_path, e);
+                        krait::exit!(1);
+                    }
+                };
 
-                    let content_path = format!("{}/{}", package_path, content_name);
+                let hash_bytes = hasher.finalize();
 
-                    // hash the file using sha1
-                    let mut hasher = Sha1::new();
-                    let mut file = match std::fs::File::open(&content_path) {
-                        Ok(f) => f,
-                        Err(e) => {
-                            eprintln!("Error opening file {}: {}", content_path, e);
-                            krait::exit!(1);
-                        }
-                    };
+                let hash = format!("{:x}", hash_bytes);
 
-                    match std::io::copy(&mut file, &mut hasher) {
-                        Ok(b) => b,
-                        Err(e) => {
-                            eprintln!("Error hashing file {}: {}", content_path, e);
-                            krait::exit!(1);
-                        }
-                    };
+                // check if the branch name is main or master
+                let branch_name = if branch_name == "main" || branch_name == "master" {
+                    // package_commit as branch name
+                    manifest.latest_commit.clone()
+                } else {
+                    // branch name
+                    branch_name.to_string()
+                };
 
-                    let hash_bytes = hasher.finalize();
+                // get the download url
+                let download_url = format!(
+                    "https://raw.githubusercontent.com/{}/{}/{}",
+                    manifest.repo, branch_name, content_path
+                );
 
-                    let hash = format!("{:x}", hash_bytes);
+                // TODO: add support non-github repos
 
-                    // check if the branch name is main or master
-                    let branch_name = if branch_name == "main" || branch_name == "master" {
-                        // package_commit as branch name
-                        manifest.latest_commit.clone()
-                    } else {
-                        // branch name
-                        branch_name.to_string()
-                    };
-
-                    // get the download url
-                    let download_url = format!(
-                        "https://raw.githubusercontent.com/{}/{}/{}",
-                        manifest.repo, branch_name, content_path
-                    );
-
-                    // TODO: add support non-github repos
-
-                    contents.push(ManifestPackageContent {
-                        name: content_name,
-                        path: content_path,
-                        sha1: hash,
-                        url: download_url,
-                    });
-                }
+                contents.push(ManifestPackageContent {
+                    name: content_name,
+                    path: content_path,
+                    sha1: hash,
+                    url: download_url,
+                });
             }
 
             let package = ManifestPackage {
                 path: package_path,
                 commit: manifest.latest_commit.clone(),
-                timestamp: manifest.timestamp.clone(),
+                timestamp: manifest.timestamp,
                 contents,
             };
 

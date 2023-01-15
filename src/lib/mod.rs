@@ -36,7 +36,7 @@ pub fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
             Err(_) => return Err(()),
         }
 
-        if data[0] != stopper && data[0] != '\n' as u8 {
+        if data[0] != stopper && data[0] != b'\n' {
             input.push(data[0]);
         } else {
             break;
@@ -54,7 +54,7 @@ macro_rules! scan {
     ($str:tt, $_type:ty) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        crate::scan::<$_type>(' ' as u8).expect("scan failed")
+        $crate::scan::<$_type>(' ' as u8).expect("scan failed")
     }};
 }
 
@@ -63,7 +63,7 @@ macro_rules! scanln {
     ($str:tt) => {{
         print!("{}", $str);
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
-        crate::scan::<String>('\n' as u8).expect("scanln failed")
+        $crate::scan::<String>('\n' as u8).expect("scanln failed")
     }};
 }
 
