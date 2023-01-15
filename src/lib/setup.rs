@@ -1,7 +1,4 @@
-use crate::{
-    self as krait, exit, question,
-    structs::KraitMain,
-};
+use crate::{self as krait, exit, question, structs::KraitMain};
 
 use std::fs;
 
