@@ -1,8 +1,7 @@
-use krait::{args::Args, exit, kdbg, pkg::Pkg, question, config::KraitConfig};
+use krait::{args::Args, config::KraitConfig, exit, kdbg, pkg::Pkg, question};
 
 #[tokio::main]
 async fn main() {
-
     if krait::setup::is_super() {
         eprintln!("Error: You are running krait as root.");
         eprintln!("Please run krait as a normal user to prevent damage.");
@@ -15,25 +14,20 @@ async fn main() {
         exit!(1);
     }
 
-    krait::manifest::Manifest::gen_manifest();
-    exit!(1);
+    // krait::manifest::Manifest::gen_manifest();
+    // exit!(1);
 
     let mut krait_config = KraitConfig::default();
-    let args = Args::new(krait_config.clone());
+    let args = Args::new(&krait_config);
 
-    let krait_path = krait_config.dir.clone();
-    let krait_path_lua = krait_path.clone().join("krait.lua");
-    let krait_path_cache = krait_path.clone().join("cache");
+    let krait_path_lua = krait_config.dir.join("krait.lua");
+    let krait_path_cache = krait_config.dir.join("cache");
 
     // check if config file exists
-    if !krait_path_lua.exists() {
-        // run setup?
-        // println!("{:#?}", krait_config.clone());
-        if question!("Would you like to run setup?") {
-            krait::setup::run(krait_config);
+    if krait_path_lua.exists() && krait_path_lua.metadata().unwrap().len() == 0 {
+        if question!("Would you like to reset krait?") {
+            krait::setup::run(&krait_config);
             exit!(0);
-        } else {
-            exit!(1);
         }
     } else {
         // read config file
@@ -43,7 +37,7 @@ async fn main() {
                 eprintln!("Error: Reading krait.lua file: {}", e);
 
                 if question!("Would you like to reset krait?") {
-                    krait::setup::run(krait_config);
+                    krait::setup::run(&krait_config);
                     exit!(0);
                 } else {
                     exit!(1);
@@ -57,7 +51,7 @@ async fn main() {
                 eprintln!("Error: Regex: {}", e);
 
                 if question!("Would you like to reset krait?") {
-                    krait::setup::run(krait_config);
+                    krait::setup::run(&krait_config);
                     exit!(0);
                 } else {
                     exit!(1);
@@ -65,27 +59,16 @@ async fn main() {
             }
         };
 
-        if config_str.is_empty() {
-            eprintln!("Error: krait.lua file is empty.");
-
-            if question!("Would you like to reset krait?") {
-                krait::setup::run(krait_config);
-                exit!(0);
-            } else {
-                exit!(1);
-            }
-        }
-
         // TODO: parse config file
-        krait_config = KraitConfig::parse(config_str);
+        krait_config = KraitConfig::parse(&config_str);
     }
 
-    kdbg!(krait_config.clone());
+    kdbg!(&krait_config);
 
     let mut tasks = Vec::new();
 
     for arg_p in args.pkgs.clone() {
-        let cache_dir = krait_config.dir.join("cache");
+        let cache_dir = krait_path_cache.clone();
         let repos = krait_config.repos.clone();
 
         tasks.push(tokio::spawn(async move {
@@ -97,7 +80,7 @@ async fn main() {
                 ver,
                 ..Default::default()
             }
-            .fill(cache_dir, repos)
+            .fill(&cache_dir, &repos)
             .await;
 
             pkg
@@ -131,7 +114,7 @@ async fn main() {
 
                 kdbg!("{:#?}", krait_path_cache);
 
-                match std::fs::remove_dir_all(krait_path) {
+                match std::fs::remove_dir_all(&krait_config.dir) {
                     Ok(_) => {
                         println!("Krait directory cleaned!");
                     }

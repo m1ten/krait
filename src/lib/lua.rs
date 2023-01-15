@@ -1,15 +1,98 @@
-use crate::{exit, manifest::Manifest};
+use crate::exit;
 
 use mlua::{Error, Lua, Table, Value};
-
-trait LuaTrait {
-    fn init(&mut self) -> Lua;
-    fn fmt(&mut self) -> String;
-}
 
 pub struct LuaState;
 
 impl LuaState {
+    pub fn init(lua: Option<Lua>) -> Result<Lua, Error> {
+        let lua = match lua {
+            Some(l) => l,
+            None => Lua::new(),
+        };
+
+        // create the tables
+        let krait_t = lua.create_table()?;
+        let config_t = lua.create_table()?;
+        let pkg_t = lua.create_table()?;
+        let manifest_t = lua.create_table()?;
+
+        // set the tables as fields of the krait table
+        krait_t.set("config", config_t)?;
+        krait_t.set("pkg", pkg_t)?;
+        krait_t.set("manifest", manifest_t)?;
+
+        lua.globals().set("krait", krait_t)?;
+
+        Ok(lua)
+    }
+
+    pub fn fmt(name_t: String, table: Table) -> Vec<String> {
+        let pairs: mlua::TablePairs<Value, Value> = table.clone().pairs();
+
+        let mut result: Vec<String> = Vec::new();
+
+        // iterate over the key value pairs
+        for pair in pairs {
+            let (key, value) = pair.unwrap();
+
+            // assume the key is a string
+            let key_str = match key {
+                Value::String(key) => key,
+                _ => {
+                    eprintln!("Error: Key is not a string.");
+                    exit!(1);
+                }
+            }
+            .to_string_lossy()
+            .to_string();
+
+            // the value can be anything so we need to match on it
+            match value {
+                Value::String(s) => {
+                    result.push(format!(
+                        "{}[\"{}\"] = \"{}\"",
+                        name_t,
+                        key_str,
+                        s.to_string_lossy()
+                    ));
+                }
+                Value::Integer(i) => {
+                    result.push(format!("{}[\"{}\"] = {}", name_t, key_str, i));
+                }
+                Value::Boolean(b) => {
+                    result.push(format!("{}[\"{}\"] = {}", name_t, key_str, b));
+                }
+                Value::Table(t) => {
+                    let mut sub_result = LuaState::fmt(format!("{}[\"{}\"]", name_t, key_str), t);
+                    result.append(&mut sub_result);
+                }
+                Value::UserData(u) => {
+                    // convert to lua
+                    let lua = Lua::new();
+                    let lua_u = mlua::ToLua::to_lua(u, &lua).unwrap();
+
+                    // get the type of lua_u
+                    let type_u = lua_u.type_name();
+
+                    println!("type_u: {}", type_u);
+                }
+                _ => {
+                    // what is value?
+                    let value_type = value.type_name();
+
+                    eprintln!(
+                        "Error: Value is not a string, integer, boolean, or table. Value type: {}",
+                        value_type
+                    );
+                    exit!(1);
+                }
+            }
+        }
+
+        result
+    }
+
     pub fn lua_init(lua: Option<Lua>) -> Result<Lua, Error> {
         let lua = match lua {
             Some(l) => l,

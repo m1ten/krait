@@ -1,10 +1,10 @@
-use crate::{self as krait, exit, question, config::KraitConfig};
+use crate::{self as krait, config::KraitConfig, exit, question};
 
 use std::fs;
 
 use console::{style, Emoji};
 
-pub fn run(krait_config: KraitConfig) {
+pub fn run(krait_config: &KraitConfig) {
     // TODO: Implement setup.rs
 
     let krait_path = krait_config.dir.clone();
@@ -29,9 +29,6 @@ pub fn run(krait_config: KraitConfig) {
     if !question!("All previous krait data will be erased, continue?") {
         exit!(1);
     }
-
-    // remove old krait data
-    // println!("\nRemoving old krait data...");
 
     println!(
         "{} {}Removing old krait data...",
@@ -71,13 +68,11 @@ pub fn run(krait_config: KraitConfig) {
     );
 
     // create new krait folders
-    // println!("Creating new krait folders...");
     for f in &["pkg", "cache"] {
         fs::create_dir_all(krait_path.clone().join(f)).unwrap()
     }
 
     // create krait.lua file
-    // println!("Creating krait.lua file...");
     let _ = krait::writefs(
         match krait_path_lua.to_str() {
             Some(x) => x.to_string(),
@@ -88,8 +83,6 @@ pub fn run(krait_config: KraitConfig) {
         },
         config_string,
     );
-
-    // println!("\nSetup complete!");
 
     println!(
         "{} {}Setup Complete...",
@@ -121,7 +114,7 @@ pub async fn is_internet_connected() -> bool {
 //     std::env::consts::OS.to_string()
 // }
 
-// // get the current architecture
+// get the current architecture
 // pub fn get_arch() -> String {
 //     std::env::consts::ARCH.to_string()
 // }

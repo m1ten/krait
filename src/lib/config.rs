@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use mlua::{Table, DeserializeOptions, Value, LuaSerdeExt};
-use serde::{Serialize, Deserialize};
+use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value};
+use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::{lua, exit, kdbg};
+use crate::{exit, kdbg, lua};
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct KraitConfig {
@@ -121,7 +121,7 @@ impl KraitConfig {
         comments
     }
 
-    pub fn parse(config_str: String) -> KraitConfig {
+    pub fn parse(config_str: &String) -> KraitConfig {
         let lua = match lua::LuaState::lua_init(None) {
             Ok(lua) => lua,
             Err(e) => {
@@ -131,7 +131,7 @@ impl KraitConfig {
         };
 
         // load the config
-        lua.load(&config_str).exec().expect("failed to load config");
+        lua.load(config_str).exec().expect("failed to load config");
 
         let globals = lua.globals();
 

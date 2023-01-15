@@ -1,11 +1,11 @@
 use std::{collections::HashMap, fmt::Debug};
 
 use mlua::{DeserializeOptions, Lua, LuaSerdeExt, Table};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
-use crate::{self as krait, manifest};
+use crate::{self as krait};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Manifest {
@@ -419,45 +419,6 @@ impl Manifest {
 
         println!("{:#?}", manifest);
 
-        let lua = Lua::new();
-        let globals = lua.globals();
-
-        let krait_t = lua.create_table().unwrap();
-
-        let m_json = serde_json::to_string(&manifest).unwrap();
-
-        let manifest_v = lua.to_value(&m_json).unwrap();
-
-        krait_t.set("manifest", manifest_v).unwrap();
-
-        globals.set("krait", krait_t).unwrap();
-
-        let krait_t = globals.get::<_, mlua::Table>("krait").unwrap();
-
-        let result = krait::lua::LuaState::gen_lua("krait".to_string(), krait_t);
-
-        let mut result_str: String = String::new();
-
-        for r in result {
-            result_str = result_str + "\n" + &r;
-        }
-
-        let result_bytes = result_str.as_bytes();
-
-        bat::PrettyPrinter::new()
-            .input_from_bytes(result_bytes)
-            .language("lua")
-            .line_numbers(true)
-            .grid(true)
-            .theme("Visual Studio Dark+")
-            .print()
-            .expect("Error: Could not print lua.");
-
-        if let Err(e) = std::fs::write(manifest_path, result_bytes) {
-            eprintln!("Error writing krait.lua: {}", e);
-            krait::exit!(1);
-        }
-
-        println!("Wrote manifest.lua");
+        todo!("generate the script for the manifest");
     }
 }

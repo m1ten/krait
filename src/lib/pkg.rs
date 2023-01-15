@@ -185,8 +185,8 @@ pub struct PkgAction {
 }
 
 impl Pkg {
-    pub async fn fill(mut self, cache_dir: PathBuf, repos: Vec<String>) -> Self {
-        kdbg!(repos.clone());
+    pub async fn fill(mut self, cache_dir: &PathBuf, repos: &Vec<String>) -> Self {
+        kdbg!(&repos);
 
         // check if the package is already in the cache
         // create a new cache if it doesn't exist

@@ -12,7 +12,7 @@ pub struct Args {
 
 impl Args {
     // function to get krait args
-    pub fn new(krait_config: KraitConfig) -> Args {
+    pub fn new(krait_config: &KraitConfig) -> Args {
         let title = format!("- {} - {}", krait_config.ver, krait_config.desc);
 
         // get custom args

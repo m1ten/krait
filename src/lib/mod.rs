@@ -1,15 +1,15 @@
 pub mod args;
+pub mod config;
 pub mod lua;
 pub mod manifest;
 pub mod pkg;
 pub mod setup;
-pub mod config;
 
 use std::{
     fs::File,
     io::{self, Read, Write},
 };
- 
+
 // read from file
 pub fn readfs(path: String) -> Result<String, io::Error> {
     let mut file = File::open(path)?;
@@ -48,7 +48,6 @@ pub fn scan<T: std::str::FromStr>(stopper: u8) -> Result<T, ()> {
         Err(_) => Err(()),
     }
 }
-
 
 #[macro_export]
 macro_rules! scan {
