@@ -1,10 +1,12 @@
 use std::path::PathBuf;
 
-use mlua::{DeserializeOptions, LuaSerdeExt, Table, Value};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::{exit, kdbg, lua};
+use crate::{
+    kdbg,
+    script::{self, KraitScript},
+};
 
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct KraitConfig {
@@ -60,6 +62,7 @@ pub struct KraitConfig {
     pub args: Option<Vec<String>>,
 }
 
+impl KraitScript for KraitConfig {}
 impl mlua::UserData for KraitConfig {}
 
 impl KraitConfig {
@@ -104,7 +107,7 @@ impl KraitConfig {
         // get the krait table
         let krait_t = globals.get::<_, mlua::Table>("krait").unwrap();
 
-        let mut result = lua::LuaState::gen_lua("krait".to_string(), krait_t);
+        let mut result = script::LuaState::gen_lua("krait".to_string(), krait_t);
 
         // add the comments at the beginning of the file
         let mut comments = vec![
@@ -120,43 +123,5 @@ impl KraitConfig {
         kdbg!(result.iter().map(|x| x.to_string()).collect::<String>());
 
         comments
-    }
-
-    pub fn parse(config_str: &String) -> KraitConfig {
-        let lua = match lua::LuaState::init(None) {
-            Ok(lua) => lua,
-            Err(e) => {
-                eprintln!("error: {}", e);
-                exit!(1);
-            }
-        };
-
-        // load the config
-        lua.load(config_str).exec().expect("failed to load config");
-
-        let globals = lua.globals();
-
-        // get the config as a table
-        let krait_table: Table = globals.get("krait").expect("failed to get krait table");
-        let config_table: Table = krait_table
-            .get("config")
-            .expect("failed to get config table");
-
-        // deserialize the config table into a config struct using serde
-
-        let options = DeserializeOptions::new()
-            .deny_unsupported_types(false)
-            .deny_recursive_tables(false);
-
-        let krait_config: KraitConfig =
-            match lua.from_value_with(Value::Table(config_table), options) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Error parsing config: {}", e);
-                    exit!(1);
-                }
-            };
-
-        krait_config
     }
 }

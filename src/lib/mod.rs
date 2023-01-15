@@ -1,6 +1,6 @@
 pub mod args;
 pub mod config;
-pub mod lua;
+pub mod script;
 pub mod manifest;
 pub mod pkg;
 pub mod setup;

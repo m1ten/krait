@@ -1,4 +1,4 @@
-use krait::{args::Args, config::KraitConfig, exit, kdbg, pkg::Pkg, question};
+use krait::{args::Args, config::KraitConfig, script::KraitScript, exit, kdbg, pkg::Pkg, question};
 
 #[tokio::main]
 async fn main() {
@@ -60,7 +60,19 @@ async fn main() {
         };
 
         // TODO: parse config file
-        krait_config = KraitConfig::parse(&config_str);
+        krait_config = match KraitConfig::parse("config", &config_str) {
+            Ok(x) => x,
+            Err(e) => {
+                eprintln!("Error: Parsing krait.lua file: {}", e);
+
+                if question!("Would you like to reset krait?") {
+                    krait::setup::run(&krait_config);
+                    exit!(0);
+                } else {
+                    exit!(1);
+                }
+            }
+        };
     }
 
     kdbg!(&krait_config);

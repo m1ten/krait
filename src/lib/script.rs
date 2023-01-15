@@ -1,11 +1,11 @@
 use crate::exit;
 
-use mlua::{Error, Lua, Table, Value};
+use mlua::{DeserializeOptions, Error, Lua, LuaSerdeExt, Table, Value};
 
-pub struct LuaState;
-
-impl LuaState {
-    pub fn init(lua: Option<Lua>) -> Result<Lua, Error> {
+/// Generic name for future scripting languages support
+pub trait KraitScript {
+    /// Lua is default but can be changed to other scripting languages
+    fn init(lua: Option<Lua>) -> Result<Lua, Error> {
         let lua = match lua {
             Some(l) => l,
             None => Lua::new(),
@@ -38,6 +38,35 @@ impl LuaState {
         Ok(lua)
     }
 
+    fn fmt(&self, name: &String) -> Result<Vec<String>, Error> {
+        todo!("{name}")
+    }
+
+    fn parse<T: KraitScript>(name: &str, script: &String) -> Result<T, Error>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let lua = <T>::init(None)?;
+
+        lua.load(script).exec()?;
+
+        let globals = lua.globals();
+        let krait_t = globals.get::<_, mlua::Table>("krait")?;
+        let generic_t = krait_t.get::<_, mlua::Table>(name)?;
+
+        let options = DeserializeOptions::new()
+            .deny_unsupported_types(false)
+            .deny_recursive_tables(false);
+
+        let generic_struct: T = lua.from_value_with(Value::Table(generic_t), options)?;
+
+        Ok(generic_struct)
+    }
+}
+
+pub struct LuaState;
+
+impl LuaState {
     #[deprecated = "inefficient method of generating lua code"]
     pub fn gen_lua(name_t: String, table: Table) -> Vec<String> {
         let pairs: mlua::TablePairs<Value, Value> = table.clone().pairs();
