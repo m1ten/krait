@@ -65,7 +65,7 @@ krait.kaboom = "BOOM!"
 
 -- The standard library is disabled by default (for security reasons) but can be enabled under krait.config.
 krait.config.stdlib = {
-    allow = true, -- boolean or specific the functions you want to allow.
+    allow = true, -- boolean or specify the functions you want to allow.
     force = true -- Force the standard library to be used.
 }
 
