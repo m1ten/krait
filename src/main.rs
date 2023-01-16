@@ -17,6 +17,9 @@ async fn main() {
         exit!(1);
     }
 
+    // krait::structs::manifest::KraitManifest::generate();
+    // exit!(1);
+
     let mut krait_main = KraitMain {
         config: Some(KraitConfig::default()),
         ..Default::default()

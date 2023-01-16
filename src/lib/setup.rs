@@ -11,7 +11,7 @@ pub fn run(krait_main: &KraitMain) {
     let krait_path = krait_config.dir.clone();
     let krait_path_lua = krait_path.join("krait.lua");
 
-    let config_string_vector = krait_config.fmt();
+    let config_string_vector = krait_config.k_fmt();
     let config_string = config_string_vector
         .iter()
         .map(|x| x.to_string())
@@ -23,7 +23,7 @@ pub fn run(krait_main: &KraitMain) {
         .language("lua")
         .line_numbers(true)
         .grid(true)
-        .theme("Visual Studio Dark+")
+        .theme("TwoDark")
         .print()
         .expect("Error: Could not print lua.");
 

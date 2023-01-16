@@ -38,7 +38,7 @@ pub trait KraitScript {
         Ok(lua)
     }
 
-    fn fmt(&self) -> Vec<String> {
+    fn k_fmt(&self) -> Vec<String> {
         todo!();
     }
 
@@ -54,7 +54,13 @@ pub trait KraitScript {
             .deny_unsupported_types(false)
             .deny_recursive_tables(false);
 
-        let krait_struct: KraitMain = lua.from_value_with(Value::Table(krait_t), options)?;
+        let krait_struct: KraitMain = match lua.from_value_with(Value::Table(krait_t), options) {
+            Ok(k) => k,
+            Err(e) => {
+                eprintln!("Big Boy Error: {}", e);
+                exit!(1);
+            }
+        };
 
         Ok(krait_struct)
     }

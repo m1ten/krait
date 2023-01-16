@@ -12,6 +12,7 @@ use crate::{
 pub struct KraitConfig {
     // krait name
     #[default(String::from("krait"))]
+    #[serde(default)]
     pub name: String,
 
     // krait author
@@ -22,6 +23,7 @@ pub struct KraitConfig {
 
     // krait version
     #[default(String::from("0.0.1"))]
+    #[serde(default)]
     #[serde(alias = "version")]
     pub ver: String,
 
@@ -33,10 +35,12 @@ pub struct KraitConfig {
 
     // krait license
     #[default(String::from("Apache-2.0"))]
+    #[serde(default)]
     pub license: String,
 
     // krait git repository
     #[default(String::from("https://github.com/m1ten/krait"))]
+    #[serde(default)]
     pub git: String,
 
     #[default(None)]
@@ -51,6 +55,7 @@ pub struct KraitConfig {
 
     // krait package repository
     #[default(vec![String::from("https://github.com/m1ten/krait-pkgs")])]
+    #[serde(default)]
     #[serde(alias = "repositories")]
     pub repos: Vec<String>,
 
@@ -63,7 +68,7 @@ pub struct KraitConfig {
 }
 
 impl KraitScript for KraitConfig {
-    fn fmt(&self) -> Vec<String> {
+    fn k_fmt(&self) -> Vec<String> {
         let mut lines: Vec<String> = Vec::new();
 
         let mut comments = vec![
