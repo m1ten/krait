@@ -10,7 +10,7 @@ license = "Apache-2.0"
 publish = false
 
 [lib]
-name = "krait"
+name = "krt"
 path = "src/lib/mod.rs"
 
 [dependencies]

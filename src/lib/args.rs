@@ -77,6 +77,11 @@ impl Args {
                 Command::new("clean")
                     .about("clean the cache")
                     .visible_aliases(&["cl", "cle", "cls", "clear"]),
+            )
+            .subcommand(
+                Command::new("manifest")
+                    .about("create a manifest file")
+                    .visible_aliases(&["mani"]),            
             );
 
         let matches = app.get_matches();

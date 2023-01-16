@@ -15,12 +15,11 @@ use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
-use crate as krait;
+use crate::{self as krt, question};
 use crate::scripts::KraitScript;
 use crate::structs::KraitMain;
-
-use krait::exit;
-use krait::kdbg;
+use crate::exit;
+use crate::kdbg;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {
@@ -237,16 +236,30 @@ impl Pkg {
             let owner = re_cap.name("owner").unwrap().as_str();
             let repo = re_cap.name("repo").unwrap().as_str();
 
-            dbg!(format!("Searching for {owner}/{repo}..."));
+            kdbg!(format!("Searching for {owner}/{repo}..."));
 
             // search for the package on github repo
             let api_url =
                 format!("https://api.github.com/repos/{owner}/{repo}/contents/manifest.lua",);
 
-            dbg!(&api_url);
+            kdbg!(&api_url);
+
+            let mut headers = reqwest::header::HeaderMap::new();
+
+            // add user agent
+            headers.insert(
+                reqwest::header::USER_AGENT,
+                reqwest::header::HeaderValue::from_static("krait"),
+            );
+
+            // use the headers to create a client
+            let client = reqwest::Client::builder()
+                .default_headers(headers)
+                .build()
+                .unwrap();
 
             // get the manifest.lua file and save it to the cache directory
-            let manifest_json_str = match reqwest::get(&api_url).await {
+            let manifest_json_str = match client.get(&api_url).send().await {
                 Ok(res) => match res.text().await {
                     Ok(text) => text,
                     Err(e) => {
@@ -261,6 +274,25 @@ impl Pkg {
                     continue;
                 }
             };
+            
+            // // get the manifest.lua file and save it to the cache directory
+            // let manifest_json_str = match reqwest::get(&api_url).await {
+            //     Ok(res) => match res.text().await {
+            //         Ok(text) => text,
+            //         Err(e) => {
+            //             eprintln!("Failed to get manifest.lua: {}", e);
+            //             fail = true;
+            //             continue;
+            //         }
+            //     },
+            //     Err(e) => {
+            //         eprintln!("Failed to get manifest.lua: {}", e);
+            //         fail = true;
+            //         continue;
+            //     }
+            // };
+
+            kdbg!(format!("manifest_json_str: {manifest_json_str}"));
 
             // parse the json string
             let manifest_json: serde_json::Value = match serde_json::from_str(&manifest_json_str) {
@@ -272,7 +304,7 @@ impl Pkg {
                 }
             };
 
-            dbg!(&manifest_json);
+            kdbg!(&manifest_json);
 
             let down_url = match manifest_json["download_url"].as_str() {
                 Some(url) => url,
@@ -301,13 +333,15 @@ impl Pkg {
             };
 
             // write the manifest.lua file to the cache directory
-            let manifest_lua_path = cache.join("manifest.lua");
+            let manifest_lua_path = cache_dir.join("manifest.lua");
 
-            if let Err(e) = std::fs::write(&manifest_lua_path, &manifest_lua_str) {
-                eprintln!("Failed to write manifest.lua: {}", e);
-                fail = true;
-                continue;
-            }
+            kdbg!(&manifest_lua_path);           
+
+            // if let Err(e) = std::fs::write(&manifest_lua_path, &manifest_lua_str) {
+            //     eprintln!("Failed to write manifest.lua: {}", e);
+            //     fail = true;
+            //     continue;
+            // }
 
             // verify the manifest.lua file hash
             let manifest_lua_hash = match manifest_json["sha"].as_str() {
@@ -334,7 +368,7 @@ impl Pkg {
                 Ok(b) => b,
                 Err(e) => {
                     eprintln!("Error hashing file manifest.lua: {}", e);
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
             };
 
@@ -344,8 +378,13 @@ impl Pkg {
 
             if hash != *manifest_lua_hash {
                 eprintln!("manifest.lua hash mismatch");
-                fail = true;
-                continue;
+                eprintln!("Expected: {}", manifest_lua_hash);
+                eprintln!("Actual: {}", hash);
+
+                if !question!("Continue anyways? (unsafe)") {
+                    fail = true;
+                    continue;
+                }
             }
 
             // let full_repo = format!("{owner}/{repo}", owner = owner, repo = repo);
@@ -368,7 +407,7 @@ impl Pkg {
 
             let mut ver_commit: Option<String> = None;
 
-            for pkg in manifest_lua.packages {
+            for pkg in manifest_lua.packages.unwrap() {
                 if pkg.0 == self.name {
                     for pkg in pkg.1 {
                         if pkg.0 == self.ver {
@@ -386,46 +425,74 @@ impl Pkg {
 
                             // download everything from pkg.contents and put it into root/packages/{pkg_name}
 
+                            todo!();
+
                             let mut sha1_url: HashMap<String, String> = HashMap::new();
 
                             for c in pkg.contents.clone() {
                                 sha1_url.insert(c.sha1, c.url);
                             }
 
-                            dbg!(&sha1_url);
+                            kdbg!(&sha1_url);
 
                             // download the files
                             for (sha1, url) in sha1_url {
                                 // write to /cache/packages/{pkg_name}/{sha1}
-                                let cache_path = cache
+                                let cache_path = cache_dir
                                     .join(self.name.clone())
-                                    .join(ver_commit.clone().unwrap());
+                                    .join(sha1.clone());
+
+                                kdbg!(&cache_path);
 
                                 // check if the file exists, if yes, overwrite it
                                 if cache_path.exists() {
                                     std::fs::remove_file(&cache_path)
                                         .map_err(|e| e.to_string())
                                         .expect("failed to remove file");
+                                } else {
+                                    std::fs::create_dir_all(&cache_path)
+                                        .map_err(|e| e.to_string())
+                                        .expect("failed to create directory");
                                 }
+
+                                
 
                                 let mut file = std::fs::File::create(&cache_path)
                                     .map_err(|e| e.to_string())
-                                    .expect("failed to create file");
+                                    .expect("failed to create file"); 
+                                    
+                                
 
-                                let res = match reqwest::get(url)
-                                    .await
-                                    .map_err(|e| e.to_string())
-                                    .expect("failed to get file")
-                                    .bytes()
-                                    .await
-                                {
-                                    Ok(res) => res,
+                                let res = match client.get(url).send().await {
+                                    Ok(res) => match res.bytes().await {
+                                        Ok(res) => res,
+                                        Err(e) => {
+                                            eprintln!("Failed to get file: {}", e);
+                                            fail = true;
+                                            continue;
+                                        }
+                                    },
                                     Err(e) => {
                                         eprintln!("Failed to get file: {}", e);
                                         fail = true;
                                         continue;
                                     }
                                 };
+
+                                // let res = match reqwest::get(url)
+                                //     .await
+                                //     .map_err(|e| e.to_string())
+                                //     .expect("failed to get file")
+                                //     .bytes()
+                                //     .await
+                                // {
+                                //     Ok(res) => res,
+                                //     Err(e) => {
+                                //         eprintln!("Failed to get file: {}", e);
+                                //         fail = true;
+                                //         continue;
+                                //     }
+                                // };
 
                                 // write the file
                                 match file.write_all(&res) {

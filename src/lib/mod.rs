@@ -100,7 +100,7 @@ macro_rules! question {
         loop {
             print!("{} [Y/n] ", $msg);
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
-            let answer = krait::scan::<String>('\n' as u8)
+            let answer = $crate::scan::<String>('\n' as u8)
                 .expect("question failed")
                 .to_lowercase();
             if answer.trim() == "y" || answer.trim() == "yes" || answer.trim() == "" {

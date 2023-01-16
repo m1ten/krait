@@ -1,24 +1,21 @@
-use krait::{
+use krt::{
     args::Args, exit, kdbg, question, scripts::KraitScript, structs::config::KraitConfig,
-    structs::pkg::Pkg, structs::KraitMain,
+    structs::pkg::Pkg, structs::KraitMain, setup::{is_super, is_internet_connected, self},
 };
 
 #[tokio::main]
 async fn main() {
-    if krait::setup::is_super() {
+    if is_super() {
         eprintln!("Error: You are running krait as root.");
         eprintln!("Please run krait as a normal user to prevent damage.");
         exit!(1);
     }
 
-    if !krait::setup::is_internet_connected().await {
+    if !is_internet_connected().await {
         eprintln!("Error: Internet connection is not available.");
         eprintln!("Please check your internet connection.");
         exit!(1);
     }
-
-    // krait::structs::manifest::KraitManifest::generate();
-    // exit!(1);
 
     let mut krait_main = KraitMain {
         config: Some(KraitConfig::default()),
@@ -33,18 +30,18 @@ async fn main() {
     // check if config file exists
     if krait_path_lua.exists() && krait_path_lua.metadata().unwrap().len() == 0 {
         if question!("Would you like to reset krait?") {
-            krait::setup::run(&krait_main);
+            setup::run(&krait_main);
             exit!(0);
         }
     } else {
         // read config file
-        let mut config_str = match krait::readfs(krait_path_lua.to_string_lossy().to_string()) {
+        let mut config_str = match krt::readfs(krait_path_lua.to_string_lossy().to_string()) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Error: Reading krait.lua file: {}", e);
 
                 if question!("Would you like to reset krait?") {
-                    krait::setup::run(&krait_main);
+                    setup::run(&krait_main);
                     exit!(0);
                 } else {
                     exit!(1);
@@ -58,7 +55,7 @@ async fn main() {
                 eprintln!("Error: Regex: {}", e);
 
                 if question!("Would you like to reset krait?") {
-                    krait::setup::run(&krait_main);
+                    setup::run(&krait_main);
                     exit!(0);
                 } else {
                     exit!(1);
@@ -74,7 +71,7 @@ async fn main() {
                     eprintln!("Error: Parsing krait.lua file: No config found");
 
                     if question!("Would you like to reset krait?") {
-                        krait::setup::run(&krait_main);
+                        setup::run(&krait_main);
                         exit!(0);
                     } else {
                         exit!(1);
@@ -85,7 +82,7 @@ async fn main() {
                 eprintln!("Error: Parsing krait.lua file: {}", e);
 
                 if question!("Would you like to reset krait?") {
-                    krait::setup::run(&krait_main);
+                    setup::run(&krait_main);
                     exit!(0);
                 } else {
                     exit!(1);
@@ -130,7 +127,7 @@ async fn main() {
         }
     }
 
-    krait::kdbg!("finished");
+    kdbg!("finished");
 
     match args.status.as_str() {
         "search" => {
@@ -170,6 +167,10 @@ async fn main() {
                     }
                 }
             }
+        }
+        "manifest" => {
+            krt::structs::manifest::KraitManifest::generate();
+            exit!(1);
         }
         _ => {
             // call self exe with arg '--help'

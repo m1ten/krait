@@ -5,19 +5,30 @@ use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
 use crate::{
-    self as krait, kdbg,
+    self as krt, kdbg,
     scripts::KraitScript,
     structs::{self, KraitMain},
 };
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct KraitManifest {
-    pub repo: String,
-    pub latest_commit: String,
-    pub timestamp: u64,
+    #[default(None)]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repo: Option<String>,
+
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub latest_commit: Option<String>,
+
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<u64>,
 
     // HashMap<name, HashMap<version, Vec<ManifestPackage>>>
-    pub packages: HashMap<String, HashMap<String, Vec<ManifestPackage>>>,
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub packages: Option<HashMap<String, HashMap<String, Vec<ManifestPackage>>>>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -56,13 +67,16 @@ impl KraitScript for KraitManifest {
 
         lines.push("krait.manifest = {\n".to_string());
 
-        lines.push(format!("\trepo = \"{}\",\n", self.repo));
-        lines.push(format!("\tlatest_commit = \"{}\",\n", self.latest_commit));
-        lines.push(format!("\ttimestamp = {},\n", self.timestamp));
+        lines.push(format!("\trepo = \"{}\",\n", self.repo.as_ref().unwrap()));
+        lines.push(format!(
+            "\tlatest_commit = \"{}\",\n",
+            self.latest_commit.as_ref().unwrap()
+        ));
+        lines.push(format!("\ttimestamp = {},\n", self.timestamp.unwrap()));
 
         let mut pkgs = vec![];
 
-        for (name, versions) in &self.packages {
+        for (name, versions) in self.packages.as_ref().unwrap() {
             let mut vers = vec![];
             for (version, packages) in versions {
                 let mut pkgs = vec![];
@@ -91,7 +105,7 @@ impl KraitScript for KraitManifest {
             }
             pkgs.push(format!("  [\"{}\"] = {{ {} }}", name, vers.join(",\n")));
         }
-        lines.push(format!("packages = {{ {} }}", pkgs.join(",\n")));
+        lines.push(format!("\tpackages = {{ {} }}", pkgs.join(",\n")));
 
         lines.push("}".to_string());
 
@@ -108,7 +122,7 @@ impl KraitManifest {
             Ok(c) => c,
             Err(e) => {
                 eprintln!("Error getting current directory: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -116,7 +130,7 @@ impl KraitManifest {
             Ok(r) => r,
             Err(e) => {
                 eprintln!("Error: Current directory is not a git repository: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -132,7 +146,7 @@ impl KraitManifest {
                 },
                 Err(e) => {
                     eprintln!("Error parsing manifest.lua file: {}", e);
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
             },
             Err(_) => {
@@ -141,7 +155,7 @@ impl KraitManifest {
                     Ok(f) => f,
                     Err(e) => {
                         eprintln!("Error creating manifest.lua file: {}", e);
-                        krait::exit!(1);
+                        krt::exit!(1);
                     }
                 };
 
@@ -149,12 +163,14 @@ impl KraitManifest {
             }
         };
 
+        kdbg!(&manifest);
+
         // get the current branch
         let branch = match repo.head() {
             Ok(b) => b,
             Err(e) => {
                 eprintln!("Error getting current branch: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -162,7 +178,7 @@ impl KraitManifest {
             Some(b) => b,
             None => {
                 eprintln!("Error getting current branch name");
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -171,7 +187,7 @@ impl KraitManifest {
             Ok(b) => b,
             Err(e) => {
                 eprintln!("Error getting latest commit: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -179,14 +195,14 @@ impl KraitManifest {
             Ok(c) => c,
             Err(e) => {
                 eprintln!("Error getting latest commit: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
-        manifest.latest_commit = latest_commit.id().to_string();
+        manifest.latest_commit = Some(latest_commit.id().to_string());
 
         // get the last update time
-        manifest.timestamp = latest_commit.time().seconds() as u64;
+        manifest.timestamp = Some(latest_commit.time().seconds() as u64);
 
         // get the repo url
         // if manifest.repo.is_empty() {
@@ -194,7 +210,7 @@ impl KraitManifest {
         //         Ok(r) => r,
         //         Err(e) => {
         //             eprintln!("Error getting repo url: {}", e);
-        //             krait::exit!(1);
+        //             krt::exit!(1);
         //         }
         //     };
 
@@ -211,25 +227,25 @@ impl KraitManifest {
 
         //     if !valid {
         //         eprintln!("Error: No valid remote found");
-        //         krait::exit!(1);
+        //         krt::exit!(1);
         //     }
 
         //     manifest.repo = repo_url;
         // }
 
         // ask the user for remote url
-        if manifest.repo.is_empty() {
+        if manifest.repo.as_ref().is_none() || manifest.repo.as_ref().unwrap().is_empty() {
             let mut repo_url;
             loop {
-                repo_url = krait::scanln!("Enter the remote location for the repo (user/repo): ");
+                repo_url = krt::scanln!("Enter the remote location for the repo (user/repo): ");
 
                 if repo_url.is_empty() {
                     eprintln!("Error: No remote url entered");
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
 
                 // enter name of the org
-                let org = krait::scanln!("Enter the name of the org: ");
+                let org = krt::scanln!("Enter the name of the org: ");
 
                 if org.is_empty() || org.contains("github") {
                     break;
@@ -238,15 +254,17 @@ impl KraitManifest {
                 eprintln!("Error: Invalid remote url");
             }
 
-            manifest.repo = repo_url;
+            manifest.repo = Some(repo_url);
         }
+
+        kdbg!(&manifest);
 
         // read the packages directory and get the packages and their path relative to the repo root
         let packages_dir = cd.join("packages");
 
         if !packages_dir.exists() {
             eprintln!("Error: No packages directory found");
-            krait::exit!(1);
+            krt::exit!(1);
         }
 
         let mut package_dirs = Vec::new();
@@ -262,7 +280,7 @@ impl KraitManifest {
             }
             Err(e) => {
                 eprintln!("Error reading packages directory: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         }
 
@@ -281,14 +299,14 @@ impl KraitManifest {
                     "Error: No manifest.lua file found in package {}",
                     package_name
                 );
-                krait::exit!(1);
+                krt::exit!(1);
             }
 
             let package_manifest_str = match std::fs::read_to_string(&package_manifest_path) {
                 Ok(m) => m,
                 Err(e) => {
                     eprintln!("Error reading package manifest: {}", e);
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
             };
 
@@ -303,7 +321,7 @@ impl KraitManifest {
             //                 "Error getting last commit for package {}: {}",
             //                 package_name, e
             //             );
-            //             krait::exit!(1);
+            //             krt::exit!(1);
             //         }
             //     };
 
@@ -314,7 +332,7 @@ impl KraitManifest {
             //             "Error getting last commit for package {}: {}",
             //             package_name, e
             //         );
-            //         krait::exit!(1);
+            //         krt::exit!(1);
             //     }
             // };
 
@@ -326,7 +344,7 @@ impl KraitManifest {
                 Ok(c) => c,
                 Err(e) => {
                     eprintln!("Error reading package contents: {}", e);
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
             };
 
@@ -338,7 +356,7 @@ impl KraitManifest {
                 if content_path.is_dir() {
                     eprintln!("Error: Package {} contains a directory", package_name);
                     eprintln!("Directories are not currently supported");
-                    krait::exit!(1);
+                    krt::exit!(1);
                 }
 
                 let content_name = content_path
@@ -356,7 +374,7 @@ impl KraitManifest {
                     Ok(f) => f,
                     Err(e) => {
                         eprintln!("Error opening file {}: {}", content_path, e);
-                        krait::exit!(1);
+                        krt::exit!(1);
                     }
                 };
 
@@ -364,7 +382,7 @@ impl KraitManifest {
                     Ok(b) => b,
                     Err(e) => {
                         eprintln!("Error hashing file {}: {}", content_path, e);
-                        krait::exit!(1);
+                        krt::exit!(1);
                     }
                 };
 
@@ -378,13 +396,15 @@ impl KraitManifest {
                     manifest.latest_commit.clone()
                 } else {
                     // branch name
-                    branch_name.to_string()
+                    Some(branch_name.to_string())
                 };
 
                 // get the download url
                 let download_url = format!(
                     "https://raw.githubusercontent.com/{}/{}/{}",
-                    manifest.repo, branch_name, content_path
+                    manifest.repo.as_ref().unwrap(),
+                    branch_name.unwrap(),
+                    content_path
                 );
 
                 // TODO: add support non-github repos
@@ -399,15 +419,15 @@ impl KraitManifest {
 
             let package = ManifestPackage {
                 path: package_path,
-                commit: manifest.latest_commit.clone(),
-                timestamp: manifest.timestamp,
+                commit: manifest.latest_commit.clone().unwrap(),
+                timestamp: manifest.timestamp.unwrap(),
                 contents,
             };
 
             // get the version from the package manifest
             let version = package_manifest.ver;
 
-            let mut packages = manifest.packages.clone();
+            let mut packages = manifest.packages.clone().unwrap_or_default();
 
             if packages.contains_key(&package_name) {
                 // check if the version is already in the manifest
@@ -434,7 +454,7 @@ impl KraitManifest {
                 packages.insert(package_name.clone(), hashmap);
             }
 
-            manifest.packages = packages;
+            manifest.packages = Some(packages);
         }
 
         kdbg!(&manifest);
@@ -447,7 +467,7 @@ impl KraitManifest {
             Ok(f) => f,
             Err(e) => {
                 eprintln!("Error creating manifest file: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
 
@@ -466,7 +486,7 @@ impl KraitManifest {
             Ok(_) => (),
             Err(e) => {
                 eprintln!("Error writing to manifest file: {}", e);
-                krait::exit!(1);
+                krt::exit!(1);
             }
         };
     }
