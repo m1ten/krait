@@ -38,8 +38,8 @@ pub trait KraitScript {
         Ok(lua)
     }
 
-    fn fmt(&self, name: &String) -> Result<Vec<String>, Error> {
-        todo!("{name}")
+    fn fmt(&self) -> Vec<String> {
+        todo!();
     }
 
     fn parse(script: &String) -> Result<KraitMain, Error> {

@@ -1,4 +1,4 @@
-use crate::{self as krait, exit, question, structs::KraitMain};
+use crate::{self as krait, exit, question, structs::KraitMain, scripts::KraitScript};
 
 use std::fs;
 
@@ -11,7 +11,7 @@ pub fn run(krait_main: &KraitMain) {
     let krait_path = krait_config.dir.clone();
     let krait_path_lua = krait_path.join("krait.lua");
 
-    let config_string_vector = krait_config.gen_lua();
+    let config_string_vector = krait_config.fmt();
     let config_string = config_string_vector
         .iter()
         .map(|x| x.to_string())
