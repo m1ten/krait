@@ -3,10 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::{
-    kdbg,
-    scripts::{self, KraitScript},
-};
+use crate::scripts::KraitScript;
 
 #[cfg(debug_assertions)]
 const KRAIT_DIR: &str = "krait-dev";
@@ -90,8 +87,8 @@ impl KraitScript for KraitConfig {
             .dir
             .to_string_lossy()
             .to_string()
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"");
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"");
 
         let mut config = vec![
             "krait.config = {".to_string(),

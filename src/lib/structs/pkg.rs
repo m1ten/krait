@@ -1,8 +1,6 @@
 // Fields that should be added:
 // - maintainer/contributor (type: string)
 
-use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
@@ -10,16 +8,11 @@ use mlua::DeserializeOptions;
 use mlua::LuaSerdeExt;
 use mlua::Table;
 use mlua::Value;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
-use sha1::{Digest, Sha1};
 use smart_default::SmartDefault;
 
 use crate::exit;
 use crate::kdbg;
-use crate::scripts::KraitScript;
-use crate::structs::KraitMain;
-use crate::{self as krt, question};
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct Pkg {

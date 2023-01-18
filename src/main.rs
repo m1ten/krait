@@ -1,6 +1,11 @@
 use krt::{
-    args::Args, exit, kdbg, question, scripts::KraitScript, structs::config::KraitConfig,
-    structs::pkg::Pkg, structs::KraitMain, setup::{is_super, is_internet_connected, self},
+    args::Args,
+    exit, kdbg, question,
+    scripts::KraitScript,
+    setup::{self, is_internet_connected, is_super},
+    structs::config::KraitConfig,
+    structs::pkg::Pkg,
+    structs::KraitMain,
 };
 
 #[tokio::main]

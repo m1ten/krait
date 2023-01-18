@@ -81,7 +81,7 @@ impl Args {
             .subcommand(
                 Command::new("manifest")
                     .about("create a manifest file")
-                    .visible_aliases(&["mani"]),            
+                    .visible_aliases(&["mani"]),
             );
 
         let matches = app.get_matches();
