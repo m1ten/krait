@@ -8,6 +8,12 @@ use crate::{
     scripts::{self, KraitScript},
 };
 
+#[cfg(debug_assertions)]
+const KRAIT_DIR: &str = "krait-dev";
+
+#[cfg(not(debug_assertions))]
+const KRAIT_DIR: &str = "krait";
+
 #[derive(SmartDefault, Serialize, Deserialize, Debug, Clone)]
 pub struct KraitConfig {
     // krait name
@@ -48,13 +54,13 @@ pub struct KraitConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pkgs: Option<Vec<String>>,
 
-    #[default(dirs::home_dir().unwrap().join("krait"))]
+    #[default(dirs::home_dir().unwrap().join(KRAIT_DIR))]
     #[serde(default)]
     #[serde(alias = "directory")]
     pub dir: PathBuf,
 
     // krait package repository
-    #[default(vec![String::from("https://github.com/m1ten/krait-pkgs")])]
+    #[default(vec![String::from("https://github.com/m1ten/kraits")])]
     #[serde(default)]
     #[serde(alias = "repositories")]
     pub repos: Vec<String>,
@@ -80,7 +86,12 @@ impl KraitScript for KraitConfig {
 
         lines.append(&mut comments);
 
-        let dir = self.dir.to_string_lossy().to_string();
+        let dir = self
+            .dir
+            .to_string_lossy()
+            .to_string()
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"");
 
         let mut config = vec![
             "krait.config = {".to_string(),
