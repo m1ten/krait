@@ -15,27 +15,47 @@ use crate::exit;
 use crate::kdbg;
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct Pkg {
-    // name received from cli
-    #[default("")]
+/// Items received from cli
+pub struct PkgCli {
+    /// Required: Krait is not magic
+    #[default(String::new())] 
     pub name: String,
 
-    // version received from cli
-    #[default("latest")]
+    /// Optional: defaults to latest (not yet implemented)
+    #[default(String::from("latest"))]
     pub ver: String,
 
-    #[default(None)]
-    pub url: Option<String>,
-
+    /// Path to package
     #[default(None)]
     pub path: Option<PathBuf>,
 
-    #[deprecated]
+    /// Other fields I am probably missing before data
+    /// This data is actual serialized data from '{pkg}/main.lua'
+    pub data: Option<PkgData>,
+}
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+/// Items received from '{pkg}/main.lua'
+/// This is the data that is actually used to install the package
+pub struct PkgData {
+    /// Required: Krait is not magic
+    /// First name should be the folder name 
+    #[serde(alias = "name")]
+    pub names: Vec<String>,
+
+    /// Description of package
     #[default(None)]
-    pub info_str: Option<String>,
+    #[serde(alias = "description")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub desc: Option<String>,
+
+    /// License of package (can be multiple)
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub license: Option<Vec<String>>,   
 
     #[default(None)]
-    pub info: Option<PkgInfo>,
+    
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
@@ -179,15 +199,15 @@ pub struct PkgAction {
     pub run: Option<String>,
 }
 
-impl Pkg {
-    pub async fn fill(self, cache_dir: &Path, repos: &Vec<String>) -> Self {
-        kdbg!(self);
-        kdbg!(cache_dir);
-        kdbg!(repos);
+// impl Pkg {
+//     pub async fn fill(self, cache_dir: &Path, repos: &Vec<String>) -> Self {
+//         kdbg!(self);
+//         kdbg!(cache_dir);
+//         kdbg!(repos);
 
-        todo!("fill pkg info");
-    }
-}
+//         todo!("fill pkg info");
+//     }
+// }
 
 impl PkgInfo {
     pub fn parse(script_str: String) -> PkgInfo {
