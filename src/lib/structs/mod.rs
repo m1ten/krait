@@ -12,11 +12,35 @@ pub mod config;
 pub mod manifest;
 pub mod pkg;
 
-#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct KraitCli {
-    /// implement this later
+#[derive(Deserialize, Serialize, Debug, Clone)]
+enum ArgCommand {
+    Install(bool, Vec<String>),
+    Uninstall(bool, Vec<String>),
+    Update(bool, Vec<String>),
+    Clean(bool),
+    Help(bool),
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+enum ArgOption {
+    Verbose(bool),
+    Debug(bool),
+}
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+pub struct KraitCli {
+    /// arguments passed to the script
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_args: Option<ScriptArgs>,
+
+    /// arguments passed to krait
+    #[default((ArgCommand::Help(true), None))]
+    pub krait_args: (ArgCommand, Option<Vec<ArgOption>>),
+}
+
+#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+pub struct ScriptArgs {}
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct KraitStd {
