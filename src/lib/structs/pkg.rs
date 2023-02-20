@@ -4,10 +4,10 @@
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
-use mlua::DeserializeOptions;
 use mlua::LuaSerdeExt;
 use mlua::Table;
 use mlua::Value;
+use mlua::{DeserializeOptions, Function};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -18,7 +18,7 @@ use crate::kdbg;
 /// Items received from cli
 pub struct PkgCli {
     /// Required: Krait is not magic
-    #[default(String::new())] 
+    #[default(String::new())]
     pub name: String,
 
     /// Optional: defaults to latest (not yet implemented)
@@ -39,7 +39,9 @@ pub struct PkgCli {
 /// This is the data that is actually used to install the package
 pub struct PkgData {
     /// Required: Krait is not magic
-    /// First name should be the folder name 
+    /// index 0 name should be the folder name
+    /// include the name and version based on the os
+    /// if the os is not supported, then it will not be included
     #[serde(alias = "name")]
     pub names: Vec<String>,
 
@@ -52,10 +54,49 @@ pub struct PkgData {
     /// License of package (can be multiple)
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub license: Option<Vec<String>>,   
+    pub license: Option<Vec<String>>,
 
+    /// supported os (can be multiple)
+    /// win@x86 | ubuntu@x64 | macos@arm64
+    /// the default is always x64 (if not specified)
     #[default(None)]
-    // TODO: left off here 
+    #[serde(alias = "os")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub support: Option<Vec<String>>,
+
+    /// dependencies (can be multiple)
+    /// dep@ver:optional | dep:dev:optional; order of : does not matter
+    /// check the os first, then check the arch, then check the ver
+    /// then assign the dep to the correct os/arch/ver
+    #[default(None)]
+    #[serde(alias = "dep", alias = "dependency", alias = "dependencies")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deps: Option<Vec<String>>,
+
+    /// source (can be multiple)
+    #[default(None)]
+    #[serde(alias = "src", alias = "source", alias = "sources")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub src: Option<Vec<String>>,
+
+    /// supported types (use multiple files for different types)
+    /// binary | git etc
+    #[default(None)]
+    #[serde(alias = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub types: Option<String>,
+
+    /// install function, called after all dependencies are installed
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// String is temporary, will be replaced with a function
+    pub install: Option<String>,
+
+    /// uninstall function, called before all dependencies are uninstalled (if any)
+    #[default(None)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// String is temporary, will be replaced with a function
+    pub uninstall: Option<String>,
 }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
