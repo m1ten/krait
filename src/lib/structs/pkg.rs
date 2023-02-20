@@ -14,30 +14,30 @@ use smart_default::SmartDefault;
 use crate::exit;
 use crate::kdbg;
 
-#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-/// Items received from cli
-pub struct PkgCli {
-    /// Required: Krait is not magic
-    #[default(String::new())]
-    pub name: String,
+// #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+// /// Items received from cli
+// pub struct PkgCli {
+//     /// Required: Krait is not magic
+//     #[default(String::new())]
+//     pub name: String,
 
-    /// Optional: defaults to latest (not yet implemented)
-    #[default(String::from("latest"))]
-    pub ver: String,
+//     /// Optional: defaults to latest (not yet implemented)
+//     #[default(String::from("latest"))]
+//     pub ver: String,
 
-    /// Path to package
-    #[default(None)]
-    pub path: Option<PathBuf>,
+//     /// Path to package
+//     #[default(None)]
+//     pub path: Option<PathBuf>,
 
-    /// Other fields I am probably missing before data
-    /// This data is actual serialized data from '{pkg}/main.lua'
-    pub data: Option<PkgData>,
-}
+//     /// Other fields I am probably missing before data
+//     /// This data is actual serialized data from '{pkg}/main.lua'
+//     pub data: Option<PkgManifest>,
+// }
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 /// Items received from '{pkg}/main.lua'
 /// This is the data that is actually used to install the package
-pub struct PkgData {
+pub struct PkgManifest {
     /// Required: Krait is not magic
     /// index 0 name should be the folder name
     /// include the name and version based on the os

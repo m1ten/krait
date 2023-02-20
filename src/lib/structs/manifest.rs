@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct KraitManifest {
+pub struct RepoManifest {
     #[default(None)]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,11 +49,11 @@ pub struct ManifestPackageContent {
     pub url: String,
 }
 
-impl mlua::UserData for KraitManifest {}
+impl mlua::UserData for RepoManifest {}
 impl mlua::UserData for ManifestPackage {}
 impl mlua::UserData for ManifestPackageContent {}
 
-impl KraitScript for KraitManifest {
+impl KraitScript for RepoManifest {
     fn k_fmt(&self) -> Vec<String> {
         let mut lines = Vec::new();
 
@@ -113,7 +113,7 @@ impl KraitScript for KraitManifest {
     }
 }
 
-impl KraitManifest {
+impl RepoManifest {
     pub fn generate() {
         // check if the current directory is a git repo
         // if not, exit
@@ -142,7 +142,7 @@ impl KraitManifest {
             Ok(s) => match KraitMain::parse(&s) {
                 Ok(main) => match main.manifest {
                     Some(m) => m,
-                    None => KraitManifest::default(),
+                    None => RepoManifest::default(),
                 },
                 Err(e) => {
                     eprintln!("Error parsing manifest.lua file: {}", e);
@@ -159,7 +159,7 @@ impl KraitManifest {
                     }
                 };
 
-                KraitManifest::default()
+                RepoManifest::default()
             }
         };
 

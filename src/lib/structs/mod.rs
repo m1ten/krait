@@ -5,8 +5,8 @@ use smart_default::SmartDefault;
 use crate::scripts::KraitScript;
 
 use self::config::KraitConfig;
-use self::manifest::KraitManifest;
-use self::pkg::{Pkg, PkgData};
+use self::manifest::RepoManifest;
+use self::pkg::PkgManifest;
 
 pub mod config;
 pub mod manifest;
@@ -27,9 +27,17 @@ enum ArgOption {
     Debug(bool),
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+enum ScriptArgs {
+    /// arguments passed to the script
+    /// TODO: implement script args
+    TODO,
+}
+
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct KraitCli {
     /// arguments passed to the script
+    /// TODO: implement script args
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub script_args: Option<ScriptArgs>,
@@ -38,9 +46,6 @@ pub struct KraitCli {
     #[default((ArgCommand::Help(true), None))]
     pub krait_args: (ArgCommand, Option<Vec<ArgOption>>),
 }
-
-#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct ScriptArgs {}
 
 #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
 pub struct KraitStd {
@@ -54,24 +59,27 @@ pub struct KraitStd {
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pkg: Option<PkgData>,
+    pub pkg_manifest: Option<PkgManifest>,
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub root: Option<KraitManifest>,
+    pub repo_manifest: Option<RepoManifest>,
 }
 
-#[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
-pub struct KraitMain {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub config: Option<KraitConfig>,
+/// Temporary type alias for testing
+pub type KraitMain = KraitStd;
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pkgs: Option<Vec<Pkg>>,
+// #[derive(SmartDefault, Deserialize, Serialize, Debug, Clone)]
+// pub struct KraitMain {
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub config: Option<KraitConfig>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub manifest: Option<KraitManifest>,
-}
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub pkgs: Option<Vec<Pkg>>,
+
+//     #[serde(skip_serializing_if = "Option::is_none")]
+//     pub manifest: Option<KraitManifest>,
+// }
 
 impl UserData for KraitMain {}
 impl KraitScript for KraitMain {}
