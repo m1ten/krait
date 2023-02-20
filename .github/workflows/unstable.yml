@@ -52,10 +52,10 @@ jobs:
       with:
         fetch-depth: '1'
 
-    - name: Install Rust stable
+    - name: Install Rust nightly
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: nightly
         default: true
         override: true
 
@@ -82,10 +82,10 @@ jobs:
       with:
         fetch-depth: '1'
 
-    - name: Install Rust stable
+    - name: Install Rust nightly
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: nightly
         default: true
         override: true
 
@@ -112,10 +112,10 @@ jobs:
       with:
         fetch-depth: '1'
     
-    - name: Install Rust stable
+    - name: Install Rust nightly
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: nightly
         target: x86_64-apple-darwin
         default: true
         override: true
