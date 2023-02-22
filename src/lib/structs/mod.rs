@@ -53,9 +53,11 @@ pub struct KraitStd {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub config: Option<KraitConfig>,
 
+    /// arguments passed to the script
+    /// TODO: implement script args
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cli: Option<KraitCli>,
+    pub script_args: Option<ScriptArgs>,
 
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -64,6 +66,8 @@ pub struct KraitStd {
     #[default(None)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_manifest: Option<RepoManifest>,
+
+    /// built-in functions and variables will be defined here ~~later~~
 }
 
 /// Temporary type alias for testing
