@@ -25,6 +25,7 @@ enum ArgCommand {
 enum ArgOption {
     Verbose(bool),
     Debug(bool),
+    Version(bool),
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -67,7 +68,8 @@ pub struct KraitStd {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repo_manifest: Option<RepoManifest>,
 
-    /// built-in functions and variables will be defined here ~~later~~
+    /// TODO: built-in functions and variables will be defined here ~~later~~
+    /// I have no idea what pre-defined things need to be here
 }
 
 /// Temporary type alias for testing
