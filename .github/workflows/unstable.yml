@@ -1,134 +1,156 @@
+# Deprecated but still useful
+
 name: compile and release krait unstable
 
 on:
   push:
-    branches: 
+    branches:
       - main
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-
   create-release:
-
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '1'
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '1'
-    
-    - name: Generate Prerelease Release Notes
-      run: |
-        echo '| :warning: WARNING                                        |' >> ReleaseNotes.md
-        echo '|:--------------------------------------------------------:|' >> ReleaseNotes.md
-        echo '| This project is incomplete and may not work as expected. |' >> ReleaseNotes.md
-        git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
+      - name: Generate Prerelease Release Notes
+        run: |
+          echo '| :warning: WARNING                                        |' >> ReleaseNotes.md
+          echo '|:--------------------------------------------------------:|' >> ReleaseNotes.md
+          echo '| This project is incomplete and may not work as expected. |' >> ReleaseNotes.md
+          git log -"1" --format="- %H %s" | sed '/^$/d' >> ReleaseNotes.md
 
-    - name: Delete Old Prerelease
-      uses: dev-drprasad/delete-tag-and-release@v1.0.1
-      with:
-        tag_name: krait-unstable
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete Old Prerelease
+        uses: dev-drprasad/delete-tag-and-release@v1.0.1
+        with:
+          tag_name: krait-unstable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish GitHub Release
-      uses: ncipollo/release-action@v1.14.0
-      with:
-        prerelease: true
-        bodyFile: ReleaseNotes.md
-        tag: "krait-unstable"
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish GitHub Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          prerelease: true
+          bodyFile: ReleaseNotes.md
+          tag: 'krait-unstable'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-    
     runs-on: windows-latest
 
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '1'
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '1'
+      - name: Install Rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+          override: true
 
-    - name: Install Rust nightly
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        default: true
-        override: true
+      - name: Build
+        run: cargo build --release
 
-    - name: Build
-      run: cargo build --release
-    
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/krait.exe
-        asset_name: krait-windows-x86_64.exe
-        tag: "krait-unstable"
-        overwrite: true
-        prerelease: true
-      
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/krait.exe
+          asset_name: krait-windows-x86_64.exe
+          tag: 'krait-unstable'
+          overwrite: true
+          prerelease: true
+
   build-linux:
-
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '1'
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '1'
+      - name: Install Rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+          override: true
 
-    - name: Install Rust nightly
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        default: true
-        override: true
+      - name: Build
+        run: cargo build --release
 
-    - name: Build
-      run: cargo build --release
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/krait
+          asset_name: krait-linux-x86_64
+          tag: 'krait-unstable'
+          overwrite: true
+          prerelease: true
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/krait
-        asset_name: krait-linux-x86_64
-        tag: "krait-unstable"
-        overwrite: true
-        prerelease: true
-    
-  build-macos:
-
+  build-macos-x86_64:
     runs-on: macos-latest
 
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '1'
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '1'
-    
-    - name: Install Rust nightly
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        target: x86_64-apple-darwin
-        default: true
-        override: true
+      - name: Install Rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: x86_64-apple-darwin
+          default: true
+          override: true
 
-    - name: Build
-      run: cargo build --release
+      - name: Build
+        run: cargo build --release
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/krait
-        asset_name: krait-macos-x86_64
-        tag: "krait-unstable"
-        overwrite: true
-        prerelease: true
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/krait
+          asset_name: krait-macos-x86_64
+          tag: 'krait-unstable'
+          overwrite: true
+          prerelease: true
+
+  build-macos-aarch64:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '1'
+
+      - name: Install Rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: aarch64-apple-darwin
+          default: true
+          override: true
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/krait
+          asset_name: krait-macos-aarch64
+          tag: 'krait-unstable'
+          overwrite: true
+          prerelease: true
