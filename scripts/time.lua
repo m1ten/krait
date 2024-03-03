@@ -13,11 +13,11 @@ for i = 3, #args do
 end
 
 -- run the program
-local start = krait.sys.clock()
+local start = krait.sys.time()
 for i = 1, iterations do
 	krait.program.exec(program, program_args)
 end
-local finish = krait.sys.clock()
+local finish = krait.sys.time()
 
 -- print the time
 print("time: " .. (finish - start) .. " seconds")
